@@ -1,0 +1,96 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Size {
+  S
+  M
+  L
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PAYMENT_FAILED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  WALLET
+  CARD
+}
+
+model Product {
+  id        Int         @id @default(autoincrement())
+  name      String
+  price     Int
+  imageUrl  String
+  stock     Int         @default(0)
+  version   Int         @default(0)
+  items     OrderItem[]
+}
+
+model User {
+  id            Int     @id @default(autoincrement())
+  email         String  @unique
+  passwordHash  String
+  loyaltyPoints Int     @default(0)
+  orders        Order[]
+}
+
+model Voucher {
+  id              Int       @id @default(autoincrement())
+  code            String    @unique
+  discountPercent Int
+  expiresAt       DateTime
+  active          Boolean   @default(true)
+  orders          Order[]
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  status    OrderStatus @default(PENDING)
+  total     Int
+  discount  Int         @default(0)
+  voucherId Int?
+  createdAt DateTime    @default(now())
+
+  user     User        @relation(fields: [userId], references: [id])
+  voucher  Voucher?    @relation(fields: [voucherId], references: [id])
+  items    OrderItem[]
+  payments Payment[]
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  size      Size
+  toppings  String[] @default([])
+  qty       Int
+  lineTotal Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  orderId        Int
+  idempotencyKey String        @unique
+  amount         Int
+  method         PaymentMethod
+  createdAt      DateTime      @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
