@@ -1,2 +1,15 @@
 services:
-  
+  db:
+    image: postgres:16
+    container_name: brewlite-db
+    environment:
+      POSTGRES_USER: brewlite
+      POSTGRES_PASSWORD: brewlite
+      POSTGRES_DB: brewlite
+    ports:
+      - "5432:5432"
+    volumes:
+      - brewlite-data:/var/lib/postgresql/data
+
+volumes:
+  brewlite-data:
