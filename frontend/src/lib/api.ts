@@ -20,7 +20,7 @@ export async function getProduct(id: number): Promise<ProductDetail | null> {
     return res.json();
 }
 
-async function readError(res: Response, fallback: string): Promise<string> {
+export async function readError(res: Response, fallback: string): Promise<string> {
     try {
         const data = await res.json();
         if (Array.isArray(data.message)) return data.message.join('. ');

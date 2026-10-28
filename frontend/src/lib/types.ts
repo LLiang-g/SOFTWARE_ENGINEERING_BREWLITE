@@ -25,3 +25,41 @@ export type AuthResponse = {
     accessToken: string;
     user: AuthUser;
 };
+
+export type OrderStatus =
+    | 'PENDING'
+    | 'PAID'
+    | 'PAYMENT_FAILED'
+    | 'PREPARING'
+    | 'READY'
+    | 'COMPLETED'
+    | 'CANCELLED';
+
+export type PaymentMethod = 'WALLET' | 'CARD';
+
+export type OrderItemView = {
+    id: number;
+    productId: number;
+    name: string;
+    size: SizeCode;
+    toppings: string[];
+    toppingNames: string[];
+    qty: number;
+    lineTotal: number;
+};
+
+export type OrderView = {
+    id: number;
+    status: OrderStatus;
+    total: number;
+    discount: number;
+    createdAt: string;
+    items: OrderItemView[];
+};
+
+export type PayResult = {
+    orderId: number;
+    status: 'PAID' | 'PAYMENT_FAILED';
+    paymentId?: number;
+    message?: string;
+};
