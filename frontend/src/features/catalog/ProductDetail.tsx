@@ -6,6 +6,7 @@ import { ProductDetail as ProductDetailType, SizeCode } from '@/lib/types';
 import { calcUnitPrice } from '@/lib/pricing';
 import { formatPrice } from '@/lib/format';
 import ProductImage from './ProductImage';
+import { useCartStore } from '@/features/cart/cart.store';
 
 export default function ProductDetail({
                                           product,
@@ -14,6 +15,8 @@ export default function ProductDetail({
 }) {
     const [size, setSize] = useState<SizeCode>('M');
     const [toppings, setToppings] = useState<string[]>([]);
+    const addItem = useCartStore((s) => s.addItem);
+    const [added, setAdded] = useState(false);
 
     const unitPrice = calcUnitPrice(
         product.price,
@@ -29,8 +32,18 @@ export default function ProductDetail({
     }
 
     function handleAddToCart() {
-        // Chặng 3 sẽ nối vào giỏ hàng. Tạm thời chỉ in ra console để kiểm tra.
-        console.log({ productId: product.id, size, toppings, unitPrice });
+        addItem({
+            productId: product.id,
+            name: product.name,
+            size,
+            toppings,
+            toppingNames: product.options.toppings
+                .filter((t) => toppings.includes(t.code))
+                .map((t) => t.name),
+            unitPrice,
+        });
+        setAdded(true);
+        setTimeout(() => setAdded(false), 2000);
     }
 
     return (
@@ -94,6 +107,14 @@ export default function ProductDetail({
                     >
                         Thêm vào giỏ
                     </button>
+                    {added && (
+                        <p className="mt-2 text-sm text-green-500">
+                            Đã thêm vào giỏ.{' '}
+                            <Link href="/cart" className="underline">
+                                Xem giỏ hàng
+                            </Link>
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
