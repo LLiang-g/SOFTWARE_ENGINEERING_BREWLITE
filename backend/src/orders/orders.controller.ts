@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    HttpCode,
     Param,
     ParseIntPipe,
     Post,
@@ -29,5 +30,14 @@ export class OrdersController {
         @Param('id', ParseIntPipe) id: number,
     ) {
         return this.orders.findOne(user.id, id);
+    }
+
+    @Post(':id/cancel')
+    @HttpCode(200)
+    cancel(
+        @CurrentUser() user: AuthUser,
+        @Param('id', ParseIntPipe) id: number,
+    ) {
+        return this.orders.cancel(user.id, id);
     }
 }

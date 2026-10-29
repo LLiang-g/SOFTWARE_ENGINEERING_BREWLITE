@@ -21,6 +21,9 @@ async function main() {
         });
     }
 
+    // Đưa bộ đếm id về sau id lớn nhất, vì seed chèn id gõ tay.
+    await prisma.$queryRaw`SELECT setval(pg_get_serial_sequence('"Product"', 'id'), (SELECT COALESCE(MAX(id), 1) FROM "Product"))`;
+
     await prisma.voucher.upsert({
         where: { code: 'BREW10' },
         update: {},

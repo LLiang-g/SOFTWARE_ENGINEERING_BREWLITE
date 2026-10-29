@@ -1,11 +1,13 @@
 import {
     BadRequestException,
+    ConflictException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TOPPINGS, calcUnitPrice } from '../common/pricing';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { assertTransition } from './order-state-machine';
 
 const ORDER_INCLUDE = {
     items: {
@@ -60,6 +62,25 @@ export class OrdersService {
             throw new NotFoundException('Không tìm thấy đơn hàng');
         }
         return this.toResponse(order);
+    }
+
+    async cancel(userId: number, id: number) {
+        const order = await this.loadOrder(id);
+        if (!order || order.userId !== userId) {
+            throw new NotFoundException('Không tìm thấy đơn hàng');
+        }
+
+        assertTransition(order.status, 'CANCELLED');
+
+        const result = await this.prisma.order.updateMany({
+            where: { id, status: order.status },
+            data: { status: 'CANCELLED' },
+        });
+        if (result.count === 0) {
+            throw new ConflictException('Trạng thái đơn vừa thay đổi, vui lòng thử lại');
+        }
+
+        return this.findOne(userId, id);
     }
 
     loadOrder(id: number) {
