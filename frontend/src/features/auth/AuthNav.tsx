@@ -37,6 +37,9 @@ export default function AuthNav() {
             >
                 Đăng xuất
             </button>
+            <Link href="/orders" className="hover:underline">
+                Đơn hàng
+            </Link>
         </div>
     );
 }

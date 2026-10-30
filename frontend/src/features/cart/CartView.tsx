@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { useCartStore, selectTotal } from './cart.store';
 import { useHydrated } from './useHydrated';
 import { formatPrice } from '@/lib/format';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/features/auth/auth.store';
+import { ApiError, createOrder } from '@/lib/orders-api';
 
 export default function CartView() {
     const hydrated = useHydrated();
@@ -11,6 +15,47 @@ export default function CartView() {
     const total = useCartStore(selectTotal);
     const setQty = useCartStore((s) => s.setQty);
     const removeItem = useCartStore((s) => s.removeItem);
+
+    const router = useRouter();
+    const token = useAuthStore((s) => s.token);
+    const clearCart = useCartStore((s) => s.clear);
+    const [placing, setPlacing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    async function handlePlaceOrder() {
+        if (!token) {
+            router.push('/login?next=/cart');
+            return;
+        }
+        setError(null);
+        setPlacing(true);
+        try {
+            const order = await createOrder(
+                items.map((i) => ({
+                    productId: i.productId,
+                    size: i.size,
+                    toppings: i.toppings,
+                    qty: i.qty,
+                })),
+            );
+            clearCart();
+            router.push(`/orders/${order.id}`);
+        } catch (err) {
+            if (err instanceof ApiError) {
+                if (err.status === 401) {
+                    useAuthStore.getState().logout();
+                    router.push('/login?next=/cart');
+                    return;
+                }
+                setError(err.message);
+            } else {
+                setError(
+                    'Không kết nối được máy chủ. Hãy kiểm tra backend đã chạy chưa.',
+                );
+            }
+            setPlacing(false);
+        }
+    }
 
     if (!hydrated) {
         return <p className="py-12 text-center text-gray-500">Đang tải giỏ hàng...</p>;
@@ -84,14 +129,19 @@ export default function CartView() {
                 ))}
             </ul>
 
-            <div className="mt-6 flex items-center justify-between rounded-xl bg-white p-4 text-gray-900 shadow-sm">
-                <p className="text-lg font-semibold">Tổng: {formatPrice(total)}</p>
-                <Link
-                    href="/checkout"
-                    className="rounded-lg bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700"
-                >
-                    Thanh toán
-                </Link>
+            <div className="mt-6 rounded-xl bg-white p-4 text-gray-900 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <p className="text-lg font-semibold">Tổng: {formatPrice(total)}</p>
+                    <button
+                        type="button"
+                        onClick={handlePlaceOrder}
+                        disabled={placing}
+                        className="rounded-lg bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+                    >
+                        {placing ? 'Đang đặt...' : 'Đặt hàng'}
+                    </button>
+                </div>
+                {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
             </div>
         </div>
     );

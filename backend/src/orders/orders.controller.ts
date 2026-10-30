@@ -24,6 +24,11 @@ export class OrdersController {
         return this.orders.create(user.id, dto);
     }
 
+    @Get('me')
+    findMine(@CurrentUser() user: AuthUser) {
+        return this.orders.findByUser(user.id);
+    }
+
     @Get(':id')
     findOne(
         @CurrentUser() user: AuthUser,
