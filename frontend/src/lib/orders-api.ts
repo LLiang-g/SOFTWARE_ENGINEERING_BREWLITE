@@ -1,6 +1,6 @@
 import { API_URL, readError } from './api';
 import { useAuthStore } from '@/features/auth/auth.store';
-import { OrderView, PayResult, PaymentMethod, SizeCode } from './types';
+import { AuthUser, OrderView, PayResult, PaymentMethod, SizeCode } from './types';
 
 export class ApiError extends Error {
     status: number;
@@ -36,11 +36,18 @@ export type NewOrderItem = {
     qty: number;
 };
 
-export function createOrder(items: NewOrderItem[]) {
+export function createOrder(items: NewOrderItem[], voucherCode?: string) {
     return authFetch<OrderView>('/orders', {
         method: 'POST',
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+            items,
+            ...(voucherCode ? { voucherCode } : {}),
+        }),
     });
+}
+
+export function getMe() {
+    return authFetch<AuthUser>('/auth/me', { cache: 'no-store' });
 }
 
 export function getOrder(id: number) {

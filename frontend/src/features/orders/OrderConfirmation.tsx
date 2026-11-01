@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { useHydrated } from '@/features/cart/useHydrated';
 import PaymentPanel from '@/features/payments/PaymentPanel';
-import { ApiError, cancelOrder, getOrder } from '@/lib/orders-api';
+import { ApiError, cancelOrder, getMe, getOrder } from '@/lib/orders-api';
 import { ORDER_STATUS_LABEL, formatPrice } from '@/lib/format';
 import { OrderStatus, OrderView } from '@/lib/types';
 
@@ -31,6 +31,7 @@ const CANCELLABLE_STATUSES: OrderStatus[] = ['PENDING', 'PAYMENT_FAILED'];
 export default function OrderConfirmation({ id }: { id: number }) {
     const hydrated = useHydrated();
     const token = useAuthStore((s) => s.token);
+    const updateUser = useAuthStore((s) => s.updateUser);
     const [order, setOrder] = useState<OrderView | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
@@ -38,7 +39,12 @@ export default function OrderConfirmation({ id }: { id: number }) {
 
     const reload = useCallback(async () => {
         setOrder(await getOrder(id));
-    }, [id]);
+        try {
+            updateUser(await getMe());
+        } catch {
+            // Không lấy được số điểm mới thì bỏ qua, đơn hàng vẫn hiển thị bình thường.
+        }
+    }, [id, updateUser]);
 
     useEffect(() => {
         if (!hydrated || !token) return;
@@ -151,12 +157,32 @@ export default function OrderConfirmation({ id }: { id: number }) {
                     </li>
                 ))}
             </ul>
-            <p className="mt-3 border-t pt-3 text-right font-semibold">
-                Tổng: {formatPrice(order.total)}
-            </p>
+
+            <div className="mt-3 space-y-1 border-t pt-3 text-right text-sm">
+                {order.discount > 0 && (
+                    <>
+                        <p className="text-gray-600">
+                            Tạm tính: {formatPrice(order.total + order.discount)}
+                        </p>
+                        <p className="text-green-700">
+                            Giảm giá{order.voucherCode ? ` (${order.voucherCode})` : ''}: -
+                            {formatPrice(order.discount)}
+                        </p>
+                    </>
+                )}
+                <p className="text-base font-semibold">
+                    Tổng: {formatPrice(order.total)}
+                </p>
+            </div>
 
             {success && (
                 <p className="mt-4 text-sm text-gray-700">Mời tới quầy lấy nước</p>
+            )}
+
+            {success && order.pointsEarned > 0 && (
+                <p className="mt-1 text-sm text-amber-700">
+                    Bạn được cộng {order.pointsEarned} điểm tích lũy
+                </p>
             )}
 
             {payable && (

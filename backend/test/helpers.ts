@@ -39,11 +39,12 @@ export function createOrder(
     app: INestApplication,
     token: string,
     items: OrderItemInput[],
+    voucherCode?: string,
 ) {
     return request(app.getHttpServer())
         .post('/orders')
         .set('Authorization', `Bearer ${token}`)
-        .send({ items });
+        .send({ items, ...(voucherCode ? { voucherCode } : {}) });
 }
 
 export function cancelOrder(

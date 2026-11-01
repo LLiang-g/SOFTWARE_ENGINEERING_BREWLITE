@@ -14,3 +14,8 @@ export function calcUnitPrice(
     );
     return basePrice + sizeExtra + toppingsTotal;
 }
+
+export function calcDiscount(subtotal: number, percent: number): number {
+    const safePercent = Math.min(Math.max(percent, 0), 100);
+    return Math.min(Math.floor((subtotal * safePercent) / 100), subtotal);
+}

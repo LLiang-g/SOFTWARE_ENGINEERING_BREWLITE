@@ -55,6 +55,8 @@ export type OrderView = {
     discount: number;
     createdAt: string;
     items: OrderItemView[];
+    voucherCode: string | null;
+    pointsEarned: number;
 };
 
 export type PayResult = {
@@ -62,4 +64,10 @@ export type PayResult = {
     status: 'PAID' | 'PAYMENT_FAILED';
     paymentId?: number;
     message?: string;
+};
+
+export type VoucherInfo = {
+    code: string;
+    discountPercent: number;
+    expiresAt: string;
 };

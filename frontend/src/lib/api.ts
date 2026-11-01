@@ -1,4 +1,4 @@
-import { AuthResponse, Product, ProductDetail } from './types';
+import { AuthResponse, Product, ProductDetail, VoucherInfo } from './types';
 
 export const API_URL =
     process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
@@ -53,4 +53,16 @@ export function login(email: string, password: string) {
 
 export function register(email: string, password: string) {
     return postAuth('/auth/register', email, password);
+}
+
+export async function validateVoucher(code: string): Promise<VoucherInfo> {
+    const res = await fetch(`${API_URL}/promotions/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+    });
+    if (!res.ok) {
+        throw new Error(await readError(res, 'Mã giảm giá không hợp lệ'));
+    }
+    return res.json();
 }

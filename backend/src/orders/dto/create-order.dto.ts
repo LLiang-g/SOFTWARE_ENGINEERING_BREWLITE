@@ -9,6 +9,7 @@ import {
     IsOptional,
     IsString,
     Max,
+    MaxLength,
     Min,
     ValidateNested,
 } from 'class-validator';
@@ -41,4 +42,9 @@ export class CreateOrderDto {
     @ValidateNested({ each: true })
     @Type(() => OrderItemDto)
     items: OrderItemDto[];
+
+    @IsOptional()
+    @IsString({ message: 'Mã giảm giá không hợp lệ' })
+    @MaxLength(50, { message: 'Mã giảm giá quá dài' })
+    voucherCode?: string;
 }

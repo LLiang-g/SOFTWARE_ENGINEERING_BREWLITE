@@ -1,26 +1,58 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCartStore, selectTotal } from './cart.store';
 import { useHydrated } from './useHydrated';
-import { formatPrice } from '@/lib/format';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { ApiError, createOrder } from '@/lib/orders-api';
+import { validateVoucher } from '@/lib/api';
+import { calcDiscount } from '@/lib/pricing';
+import { formatPrice } from '@/lib/format';
+import { VoucherInfo } from '@/lib/types';
 
 export default function CartView() {
+    const router = useRouter();
     const hydrated = useHydrated();
     const items = useCartStore((s) => s.items);
-    const total = useCartStore(selectTotal);
+    const subtotal = useCartStore(selectTotal);
     const setQty = useCartStore((s) => s.setQty);
     const removeItem = useCartStore((s) => s.removeItem);
-
-    const router = useRouter();
-    const token = useAuthStore((s) => s.token);
     const clearCart = useCartStore((s) => s.clear);
+    const token = useAuthStore((s) => s.token);
+
     const [placing, setPlacing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [voucherInput, setVoucherInput] = useState('');
+    const [voucher, setVoucher] = useState<VoucherInfo | null>(null);
+    const [voucherError, setVoucherError] = useState<string | null>(null);
+    const [applying, setApplying] = useState(false);
+
+    const discount = voucher
+        ? calcDiscount(subtotal, voucher.discountPercent)
+        : 0;
+    const total = subtotal - discount;
+
+    async function handleApplyVoucher() {
+        const code = voucherInput.trim();
+        if (!code) return;
+        setApplying(true);
+        setVoucherError(null);
+        try {
+            setVoucher(await validateVoucher(code));
+            setVoucherInput('');
+        } catch (err) {
+            setVoucher(null);
+            setVoucherError(
+                err instanceof TypeError
+                    ? 'Không kết nối được máy chủ. Hãy kiểm tra backend đã chạy chưa.'
+                    : (err as Error).message,
+            );
+        } finally {
+            setApplying(false);
+        }
+    }
 
     async function handlePlaceOrder() {
         if (!token) {
@@ -37,6 +69,7 @@ export default function CartView() {
                     toppings: i.toppings,
                     qty: i.qty,
                 })),
+                voucher?.code,
             );
             clearCart();
             router.push(`/orders/${order.id}`);
@@ -58,7 +91,9 @@ export default function CartView() {
     }
 
     if (!hydrated) {
-        return <p className="py-12 text-center text-gray-500">Đang tải giỏ hàng...</p>;
+        return (
+            <p className="py-12 text-center text-gray-500">Đang tải giỏ hàng...</p>
+        );
     }
 
     if (items.length === 0) {
@@ -129,7 +164,60 @@ export default function CartView() {
                 ))}
             </ul>
 
-            <div className="mt-6 rounded-xl bg-white p-4 text-gray-900 shadow-sm">
+            <div className="mt-6 space-y-3 rounded-xl bg-white p-4 text-gray-900 shadow-sm">
+                {voucher ? (
+                    <div className="flex items-center justify-between rounded-lg bg-green-50 p-3 text-sm text-green-700">
+            <span>
+              Mã {voucher.code}: giảm {voucher.discountPercent}%
+            </span>
+                        <button
+                            type="button"
+                            onClick={() => setVoucher(null)}
+                            className="underline"
+                        >
+                            Bỏ mã
+                        </button>
+                    </div>
+                ) : (
+                    <div>
+                        <div className="flex gap-2">
+                            <input
+                                value={voucherInput}
+                                onChange={(e) => setVoucherInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleApplyVoucher();
+                                }}
+                                placeholder="Nhập mã giảm giá"
+                                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleApplyVoucher}
+                                disabled={applying || !voucherInput.trim()}
+                                className="rounded-lg border border-amber-600 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-60"
+                            >
+                                {applying ? 'Đang kiểm tra...' : 'Áp dụng'}
+                            </button>
+                        </div>
+                        {voucherError && (
+                            <p className="mt-2 text-sm text-red-600">{voucherError}</p>
+                        )}
+                    </div>
+                )}
+
+                <div className="space-y-1 border-t pt-3 text-sm">
+                    <div className="flex justify-between">
+                        <span>Tạm tính</span>
+                        <span>{formatPrice(subtotal)}</span>
+                    </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between text-green-700">
+                            <span>Giảm giá</span>
+                            <span>-{formatPrice(discount)}</span>
+                        </div>
+                    )}
+                </div>
+
                 <div className="flex items-center justify-between">
                     <p className="text-lg font-semibold">Tổng: {formatPrice(total)}</p>
                     <button
@@ -141,7 +229,7 @@ export default function CartView() {
                         {placing ? 'Đang đặt...' : 'Đặt hàng'}
                     </button>
                 </div>
-                {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+                {error && <p className="text-sm text-red-600">{error}</p>}
             </div>
         </div>
     );

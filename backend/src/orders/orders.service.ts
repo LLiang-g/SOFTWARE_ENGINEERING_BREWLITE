@@ -7,6 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { TOPPINGS, calcUnitPrice } from '../common/pricing';
 import { InventoryService } from '../products/inventory.service';
+import { PromotionsService } from '../promotions/promotions.service';
+import { calcDiscount, calcPoints } from '../promotions/discount';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { assertTransition } from './order-state-machine';
 
@@ -15,7 +17,10 @@ const ORDER_INCLUDE = {
         orderBy: { id: 'asc' },
         include: { product: { select: { name: true } } },
     },
+    voucher: { select: { code: true } },
 } as const;
+
+const PAID_STATUSES: string[] = ['PAID', 'PREPARING', 'READY', 'COMPLETED'];
 
 type OrderWithItems = NonNullable<
     Awaited<ReturnType<OrdersService['loadOrder']>>
@@ -26,6 +31,7 @@ export class OrdersService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly inventory: InventoryService,
+        private readonly promotions: PromotionsService,
     ) {}
 
     async create(userId: number, dto: CreateOrderDto) {
@@ -57,12 +63,29 @@ export class OrdersService {
                     };
                 });
 
+                const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
+
+                // Kiểm tra mã giảm giá trước khi đụng tới kho: mã sai thì không trừ kho.
+                let discount = 0;
+                let voucherId: number | undefined;
+                const code = dto.voucherCode?.trim();
+                if (code) {
+                    const voucher = await this.promotions.findValid(code, tx);
+                    discount = calcDiscount(subtotal, voucher.discountPercent);
+                    voucherId = voucher.id;
+                }
+
                 // Trừ kho và tạo đơn nằm chung một giao dịch: lỗi ở đâu thì hoàn tác tất cả.
                 await this.inventory.reserve(tx, needs);
 
-                const total = lines.reduce((sum, l) => sum + l.lineTotal, 0);
                 return tx.order.create({
-                    data: { userId, total, items: { create: lines } },
+                    data: {
+                        userId,
+                        total: subtotal - discount,
+                        discount,
+                        voucherId,
+                        items: { create: lines },
+                    },
                     include: ORDER_INCLUDE,
                 });
             },
@@ -130,6 +153,10 @@ export class OrdersService {
             status: order.status,
             total: order.total,
             discount: order.discount,
+            voucherCode: order.voucher?.code ?? null,
+            pointsEarned: PAID_STATUSES.includes(order.status)
+                ? calcPoints(order.total)
+                : 0,
             createdAt: order.createdAt,
             items: order.items.map((i) => ({
                 id: i.id,

@@ -4,38 +4,83 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import type { Prisma } from '../generated/prisma/client';
 import { MockGatewayService } from './mock-gateway.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { OrderStatus } from '../generated/prisma/client';
+import { assertTransition } from '../orders/order-state-machine';
+import { LoyaltyService } from '../promotions/loyalty.service';
 
-const PAYABLE: OrderStatus[] = ['PENDING', 'PAYMENT_FAILED'];
+export type PayResult = {
+    orderId: number;
+    status: 'PAID' | 'PAYMENT_FAILED';
+    paymentId?: number;
+    message?: string;
+};
+
+type Db = Pick<PrismaService, 'payment'>;
 
 @Injectable()
 export class PaymentsService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly gateway: MockGatewayService,
+        private readonly loyalty: LoyaltyService,
     ) {}
 
-    async pay(userId: number, idempotencyKey: string, dto: CreatePaymentDto) {
-        // 1. Cùng Idempotency-Key đã thanh toán rồi: trả lại kết quả cũ, không trừ tiền lần nữa.
-        const replay = await this.findReplay(userId, idempotencyKey, dto.orderId);
+    async pay(
+        userId: number,
+        idempotencyKey: string,
+        dto: CreatePaymentDto,
+    ): Promise<PayResult> {
+        try {
+            return await this.prisma.$transaction(
+                (tx) => this.payInTransaction(tx, userId, idempotencyKey, dto),
+                { timeout: 15000 },
+            );
+        } catch (e) {
+            // Cùng key nhưng khác đơn đến sát nhau: bên đến sau đụng ràng buộc duy nhất.
+            if ((e as { code?: string }).code === 'P2002') {
+                const again = await this.findReplay(
+                    this.prisma,
+                    userId,
+                    idempotencyKey,
+                    dto.orderId,
+                );
+                if (again) return again;
+            }
+            throw e;
+        }
+    }
+
+    private async payInTransaction(
+        tx: Prisma.TransactionClient,
+        userId: number,
+        idempotencyKey: string,
+        dto: CreatePaymentDto,
+    ): Promise<PayResult> {
+        // 1. Khóa dòng đơn: các yêu cầu cùng một đơn phải xếp hàng, từng yêu cầu một.
+        await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${dto.orderId} FOR UPDATE`;
+
+        // 2. Cùng Idempotency-Key đã xử lý rồi: trả lại kết quả cũ, không trừ tiền lần nữa.
+        const replay = await this.findReplay(
+            tx,
+            userId,
+            idempotencyKey,
+            dto.orderId,
+        );
         if (replay) return replay;
 
-        // 2. Kiểm tra đơn: phải của chính người dùng và đang ở trạng thái thanh toán được.
-        const order = await this.prisma.order.findUnique({
-            where: { id: dto.orderId },
-        });
+        // 3. Kiểm tra đơn và luật chuyển trạng thái.
+        const order = await tx.order.findUnique({ where: { id: dto.orderId } });
         if (!order || order.userId !== userId) {
             throw new NotFoundException('Không tìm thấy đơn hàng');
         }
-        if (!PAYABLE.includes(order.status)) {
-            throw new ConflictException(
-                `Đơn đang ở trạng thái ${order.status}, không thể thanh toán`,
-            );
+        if (order.status === 'PAID') {
+            throw new ConflictException('Đơn này đã được thanh toán');
         }
+        assertTransition(order.status, 'PAID');
 
-        // 3. Gọi cổng thanh toán giả lập.
+        // 4. Gọi cổng thanh toán giả lập.
         const charge = await this.gateway.charge({
             amount: order.total,
             method: dto.method,
@@ -43,53 +88,45 @@ export class PaymentsService {
         });
 
         if (!charge.success) {
-            await this.prisma.order.updateMany({
-                where: { id: order.id, status: { in: PAYABLE } },
-                data: { status: 'PAYMENT_FAILED' },
-            });
+            if (order.status !== 'PAYMENT_FAILED') {
+                assertTransition(order.status, 'PAYMENT_FAILED');
+                await tx.order.update({
+                    where: { id: order.id },
+                    data: { status: 'PAYMENT_FAILED' },
+                });
+            }
             return {
                 orderId: order.id,
-                status: 'PAYMENT_FAILED' as const,
+                status: 'PAYMENT_FAILED',
                 message: charge.message ?? 'Thanh toán thất bại',
             };
         }
 
-        // 4. Thành công: đổi đơn sang PAID và ghi Payment trong cùng một giao dịch.
-        try {
-            const payment = await this.prisma.$transaction(async (tx) => {
-                const updated = await tx.order.updateMany({
-                    where: { id: order.id, status: { in: PAYABLE } },
-                    data: { status: 'PAID' },
-                });
-                if (updated.count === 0) {
-                    throw new ConflictException('Đơn đã được thanh toán hoặc đã bị hủy');
-                }
-                return tx.payment.create({
-                    data: {
-                        orderId: order.id,
-                        idempotencyKey,
-                        amount: order.total,
-                        method: dto.method,
-                    },
-                });
-            });
-            return {
+        // 5. Thành công: ghi Payment, đổi đơn sang PAID và cộng điểm trong cùng một giao dịch.
+        const payment = await tx.payment.create({
+            data: {
                 orderId: order.id,
-                status: 'PAID' as const,
-                paymentId: payment.id,
-            };
-        } catch (e) {
-            // Hai yêu cầu cùng key đến sát nhau: bên đến sau trả lại kết quả của bên đến trước.
-            if ((e as { code?: string }).code === 'P2002') {
-                const again = await this.findReplay(userId, idempotencyKey, dto.orderId);
-                if (again) return again;
-            }
-            throw e;
-        }
+                idempotencyKey,
+                amount: order.total,
+                method: dto.method,
+            },
+        });
+        await tx.order.update({
+            where: { id: order.id },
+            data: { status: 'PAID' },
+        });
+        await this.loyalty.award(tx, userId, order.total);
+
+        return { orderId: order.id, status: 'PAID', paymentId: payment.id };
     }
 
-    private async findReplay(userId: number, key: string, orderId: number) {
-        const existing = await this.prisma.payment.findUnique({
+    private async findReplay(
+        db: Db,
+        userId: number,
+        key: string,
+        orderId: number,
+    ): Promise<PayResult | null> {
+        const existing = await db.payment.findUnique({
             where: { idempotencyKey: key },
             include: { order: { select: { userId: true } } },
         });
@@ -101,7 +138,7 @@ export class PaymentsService {
         }
         return {
             orderId: existing.orderId,
-            status: 'PAID' as const,
+            status: 'PAID',
             paymentId: existing.id,
         };
     }

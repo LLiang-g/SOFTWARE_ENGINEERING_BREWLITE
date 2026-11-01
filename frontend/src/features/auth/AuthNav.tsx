@@ -27,6 +27,7 @@ export default function AuthNav() {
     return (
         <div className="flex items-center gap-3 text-sm text-gray-800">
             <span className="hidden sm:inline">{user.email}</span>
+            <span className="text-amber-700">⭐ {user.loyaltyPoints}</span>
             <button
                 type="button"
                 onClick={() => {
