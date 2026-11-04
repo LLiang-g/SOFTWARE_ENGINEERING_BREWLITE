@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import OrdersLiveStatus from '@/features/orders/OrdersLiveStatus';
+import { useOrdersLive } from '@/features/orders/useOrdersLive';
 import { SAMPLE_ORDERS } from '@/features/staff/sample-orders';
 import { formatDateTime, formatPrice, ORDER_STATUS_LABEL } from '@/lib/format';
 import { ApiError } from '@/lib/orders-api';
@@ -22,39 +24,21 @@ export default function StaffBoard() {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
     const [sendingId, setSendingId] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState(!USE_DEMO);
-
-    async function loadOrders() {
+    const loadOrders = useCallback(async (signal: AbortSignal) => {
         try {
-            setOrders(await getStaffOrders());
+            const data = await getStaffOrders(signal);
+            if (signal.aborted) return;
+            setOrders(data);
             setLoadError(null);
         } catch {
-            setLoadError(LOAD_ERROR);
-        } finally {
-            setIsLoading(false);
+            if (!signal.aborted) setLoadError(LOAD_ERROR);
         }
-    }
-
-    useEffect(() => {
-        if (USE_DEMO) return;
-        const controller = new AbortController();
-        void getStaffOrders(controller.signal)
-            .then((data) => {
-                if (!controller.signal.aborted) setOrders(data);
-            })
-            .catch(() => {
-                if (!controller.signal.aborted) setLoadError(LOAD_ERROR);
-            })
-            .finally(() => {
-                if (!controller.signal.aborted) setIsLoading(false);
-            });
-        return () => controller.abort();
     }, []);
+    const { connected, isLoading, refresh } = useOrdersLive(!USE_DEMO, loadOrders);
 
     function reloadOrders() {
-        setIsLoading(true);
         setActionError(null);
-        void loadOrders();
+        void refresh();
     }
 
     async function changeStatus(order: OrderView, status: NextStaffStatus) {
@@ -69,12 +53,12 @@ export default function StaffBoard() {
                 ) ?? null);
             } else {
                 await updateStaffOrder(order.id, status);
-                await loadOrders();
+                await refresh();
             }
         } catch (error) {
             if (error instanceof ApiError && error.status === 409) {
                 setActionError('Đơn đã thay đổi. Hãy kiểm tra trạng thái sau khi tải lại.');
-                await loadOrders();
+                await refresh();
             } else {
                 setActionError(error instanceof ApiError
                     ? error.message
@@ -94,14 +78,12 @@ export default function StaffBoard() {
                         Đang dùng đơn mẫu. Thay đổi sẽ mất khi tải lại trang.
                     </p>
                 )}
-                {isLoading && <p role="status" className="mt-4 text-sm">Đang tải đơn hàng...</p>}
+                {!USE_DEMO && (
+                    <OrdersLiveStatus connected={connected} busy={isLoading || sendingId !== null} refresh={reloadOrders} />
+                )}
                 {loadError && (
                     <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
                         <p role="alert">{loadError}</p>
-                        <button type="button" onClick={reloadOrders} disabled={isLoading || sendingId !== null}
-                            className="mt-2 font-semibold underline disabled:opacity-50">
-                            Tải lại
-                        </button>
                     </div>
                 )}
                 {actionError && <p role="alert" className="mt-4 text-sm text-red-800">{actionError}</p>}
