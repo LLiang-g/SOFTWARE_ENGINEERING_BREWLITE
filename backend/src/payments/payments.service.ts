@@ -9,6 +9,7 @@ import { MockGatewayService } from './mock-gateway.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { assertTransition } from '../orders/order-state-machine';
 import { LoyaltyService } from '../promotions/loyalty.service';
+import { OrdersGateway } from '../realtime/orders.gateway';
 
 export type PayResult = {
     orderId: number;
@@ -18,6 +19,7 @@ export type PayResult = {
 };
 
 type Db = Pick<PrismaService, 'payment'>;
+type PaymentOutcome = { result: PayResult; changed: boolean };
 
 @Injectable()
 export class PaymentsService {
@@ -25,6 +27,7 @@ export class PaymentsService {
         private readonly prisma: PrismaService,
         private readonly gateway: MockGatewayService,
         private readonly loyalty: LoyaltyService,
+        private readonly events: OrdersGateway,
     ) {}
 
     async pay(
@@ -33,10 +36,13 @@ export class PaymentsService {
         dto: CreatePaymentDto,
     ): Promise<PayResult> {
         try {
-            return await this.prisma.$transaction(
+            const outcome = await this.prisma.$transaction(
                 (tx) => this.payInTransaction(tx, userId, idempotencyKey, dto),
                 { timeout: 15000 },
             );
+            // Transaction đã commit. Replay không phát thông báo lặp.
+            if (outcome.changed) this.events.notifyOrdersChanged();
+            return outcome.result;
         } catch (e) {
             // Cùng key nhưng khác đơn đến sát nhau: bên đến sau đụng ràng buộc duy nhất.
             if ((e as { code?: string }).code === 'P2002') {
@@ -57,7 +63,7 @@ export class PaymentsService {
         userId: number,
         idempotencyKey: string,
         dto: CreatePaymentDto,
-    ): Promise<PayResult> {
+    ): Promise<PaymentOutcome> {
         // 1. Khóa dòng đơn: các yêu cầu cùng một đơn phải xếp hàng, từng yêu cầu một.
         await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${dto.orderId} FOR UPDATE`;
 
@@ -68,7 +74,7 @@ export class PaymentsService {
             idempotencyKey,
             dto.orderId,
         );
-        if (replay) return replay;
+        if (replay) return { result: replay, changed: false };
 
         // 3. Kiểm tra đơn và luật chuyển trạng thái.
         const order = await tx.order.findUnique({ where: { id: dto.orderId } });
@@ -96,9 +102,12 @@ export class PaymentsService {
                 });
             }
             return {
-                orderId: order.id,
-                status: 'PAYMENT_FAILED',
-                message: charge.message ?? 'Thanh toán thất bại',
+                result: {
+                    orderId: order.id,
+                    status: 'PAYMENT_FAILED',
+                    message: charge.message ?? 'Thanh toán thất bại',
+                },
+                changed: order.status !== 'PAYMENT_FAILED',
             };
         }
 
@@ -117,7 +126,10 @@ export class PaymentsService {
         });
         await this.loyalty.award(tx, userId, order.total);
 
-        return { orderId: order.id, status: 'PAID', paymentId: payment.id };
+        return {
+            result: { orderId: order.id, status: 'PAID', paymentId: payment.id },
+            changed: true,
+        };
     }
 
     private async findReplay(

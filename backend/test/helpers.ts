@@ -10,7 +10,8 @@ export async function createTestApp() {
     }).compile();
     const app = moduleRef.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-    await app.init();
+    // Dùng một cổng cố định trong suốt bài test, cả HTTP và WebSocket dùng chung.
+    await app.listen(0, '127.0.0.1');
     return { app, prisma: app.get(PrismaService) };
 }
 

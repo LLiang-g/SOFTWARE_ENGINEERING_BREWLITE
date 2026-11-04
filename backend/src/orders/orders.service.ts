@@ -11,6 +11,8 @@ import { PromotionsService } from '../promotions/promotions.service';
 import { calcDiscount, calcPoints } from '../promotions/discount';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { assertTransition } from './order-state-machine';
+import { OrdersGateway } from '../realtime/orders.gateway';
+import type { UpdateStaffOrderStatusDto } from './dto/update-staff-order-status.dto';
 
 const ORDER_INCLUDE = {
     items: {
@@ -32,6 +34,7 @@ export class OrdersService {
         private readonly prisma: PrismaService,
         private readonly inventory: InventoryService,
         private readonly promotions: PromotionsService,
+        private readonly events: OrdersGateway,
     ) {}
 
     async create(userId: number, dto: CreateOrderDto) {
@@ -137,7 +140,49 @@ export class OrdersService {
             );
         });
 
+        this.events.notifyOrdersChanged();
         return this.findOne(userId, id);
+    }
+
+    async findForStaff() {
+        // Cùng một ảnh chụp dữ liệu, tránh mất/lặp đơn vừa chuyển sang COMPLETED.
+        const [active, completed] = await this.prisma.$transaction([
+            this.prisma.order.findMany({
+                where: { status: { in: ['PAID', 'PREPARING', 'READY'] } },
+                orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+                include: ORDER_INCLUDE,
+            }),
+            this.prisma.order.findMany({
+                where: { status: 'COMPLETED' },
+                orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+                take: 20,
+                include: ORDER_INCLUDE,
+            }),
+        ], { isolationLevel: 'RepeatableRead' });
+        return [...active, ...completed].map((order) => this.toResponse(order));
+    }
+
+    async updateStaffStatus(id: number, status: UpdateStaffOrderStatusDto['status']) {
+        const updated = await this.prisma.$transaction(async (tx) => {
+            const order = await tx.order.findUnique({ where: { id } });
+            if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+            if (!['PAID', 'PREPARING', 'READY'].includes(order.status)) {
+                throw new ConflictException('Chỉ xử lý đơn đã thanh toán và chưa hoàn tất');
+            }
+            assertTransition(order.status, status);
+
+            // Hai nhân viên cùng thao tác: chỉ người còn đúng trạng thái cũ mới ghi được.
+            const result = await tx.order.updateMany({
+                where: { id, status: order.status },
+                data: { status },
+            });
+            if (result.count === 0) {
+                throw new ConflictException('Đơn vừa được cập nhật ở màn hình khác, vui lòng tải lại');
+            }
+            return tx.order.findUniqueOrThrow({ where: { id }, include: ORDER_INCLUDE });
+        });
+        this.events.notifyOrdersChanged();
+        return this.toResponse(updated);
     }
 
     loadOrder(id: number) {
