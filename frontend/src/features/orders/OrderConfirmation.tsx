@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { useHydrated } from '@/features/cart/useHydrated';
@@ -8,6 +8,8 @@ import PaymentPanel from '@/features/payments/PaymentPanel';
 import { ApiError, cancelOrder, getMe, getOrder } from '@/lib/orders-api';
 import { ORDER_STATUS_LABEL, formatPrice } from '@/lib/format';
 import { OrderStatus, OrderView } from '@/lib/types';
+import OrdersLiveStatus from './OrdersLiveStatus';
+import { useOrdersLive } from './useOrdersLive';
 
 const HEADINGS: Record<OrderStatus, string> = {
     PENDING: 'Đơn hàng đã được tạo',
@@ -37,34 +39,32 @@ export default function OrderConfirmation({ id }: { id: number }) {
     const [cancelling, setCancelling] = useState(false);
     const [cancelError, setCancelError] = useState<string | null>(null);
 
-    const reload = useCallback(async () => {
-        setOrder(await getOrder(id));
+    const loadOrder = useCallback(async (signal: AbortSignal) => {
         try {
-            updateUser(await getMe());
+            const data = await getOrder(id, signal);
+            if (signal.aborted || useAuthStore.getState().token !== token) return;
+            setOrder(data);
+            setError(null);
+        } catch (err) {
+            if (signal.aborted || useAuthStore.getState().token !== token) return;
+            setError(
+                err instanceof ApiError && err.status === 404
+                    ? 'Không tìm thấy đơn hàng.'
+                    : 'Không tải được đơn hàng. Hãy thử tải lại.',
+            );
+        }
+    }, [id, token]);
+    const { connected, isLoading, refresh } = useOrdersLive(hydrated && Boolean(token), loadOrder);
+
+    async function reloadAfterPayment() {
+        await refresh();
+        try {
+            const user = await getMe();
+            if (useAuthStore.getState().token === token) updateUser(user);
         } catch {
             // Không lấy được số điểm mới thì bỏ qua, đơn hàng vẫn hiển thị bình thường.
         }
-    }, [id, updateUser]);
-
-    useEffect(() => {
-        if (!hydrated || !token) return;
-        let cancelled = false;
-        getOrder(id)
-            .then((o) => {
-                if (!cancelled) setOrder(o);
-            })
-            .catch((err) => {
-                if (cancelled) return;
-                setError(
-                    err instanceof ApiError && err.status === 404
-                        ? 'Không tìm thấy đơn hàng.'
-                        : 'Không tải được đơn hàng. Hãy kiểm tra backend đã chạy chưa.',
-                );
-            });
-        return () => {
-            cancelled = true;
-        };
-    }, [hydrated, token, id]);
+    }
 
     if (!hydrated) {
         return <p className="py-12 text-center text-gray-500">Đang tải...</p>;
@@ -84,10 +84,13 @@ export default function OrderConfirmation({ id }: { id: number }) {
         );
     }
 
-    if (error) {
+    const liveStatus = <OrdersLiveStatus connected={connected} busy={isLoading} refresh={refresh} />;
+
+    if (error && !order) {
         return (
             <div className="py-12 text-center">
                 <p className="text-red-600">{error}</p>
+                {liveStatus}
                 <Link href="/" className="mt-3 inline-block text-amber-500 underline">
                     Về trang chủ
                 </Link>
@@ -97,7 +100,10 @@ export default function OrderConfirmation({ id }: { id: number }) {
 
     if (!order) {
         return (
-            <p className="py-12 text-center text-gray-500">Đang tải đơn hàng...</p>
+            <div className="py-12">
+                <p className="text-center text-gray-500">Đang tải đơn hàng...</p>
+                {liveStatus}
+            </div>
         );
     }
 
@@ -106,7 +112,8 @@ export default function OrderConfirmation({ id }: { id: number }) {
         setCancelling(true);
         setCancelError(null);
         try {
-            setOrder(await cancelOrder(order.id));
+            await cancelOrder(order.id);
+            await refresh();
         } catch (err) {
             setCancelError(
                 err instanceof ApiError
@@ -143,6 +150,8 @@ export default function OrderConfirmation({ id }: { id: number }) {
             <p className="text-sm text-gray-600">
                 Trạng thái: {order.status} ({ORDER_STATUS_LABEL[order.status]})
             </p>
+            {liveStatus}
+            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
 
             <ul className="mt-4 space-y-1 border-t pt-4 text-left text-sm">
                 {order.items.map((item) => (
@@ -189,7 +198,7 @@ export default function OrderConfirmation({ id }: { id: number }) {
                 <PaymentPanel
                     orderId={order.id}
                     total={order.total}
-                    onResult={reload}
+                    onResult={reloadAfterPayment}
                 />
             )}
 

@@ -50,8 +50,8 @@ export function getMe() {
     return authFetch<AuthUser>('/auth/me', { cache: 'no-store' });
 }
 
-export function getOrder(id: number) {
-    return authFetch<OrderView>(`/orders/${id}`, { cache: 'no-store' });
+export function getOrder(id: number, signal?: AbortSignal) {
+    return authFetch<OrderView>(`/orders/${id}`, { cache: 'no-store', signal });
 }
 
 export function payOrder(input: {
@@ -71,8 +71,8 @@ export function payOrder(input: {
     });
 }
 
-export function getMyOrders() {
-    return authFetch<OrderView[]>('/orders/me', { cache: 'no-store' });
+export function getMyOrders(signal?: AbortSignal) {
+    return authFetch<OrderView[]>('/orders/me', { cache: 'no-store', signal });
 }
 
 export function cancelOrder(id: number) {

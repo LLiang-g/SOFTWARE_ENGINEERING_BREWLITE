@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/auth.store';
@@ -12,6 +12,8 @@ import {
     formatPrice,
 } from '@/lib/format';
 import { OrderStatus, OrderView } from '@/lib/types';
+import OrdersLiveStatus from './OrdersLiveStatus';
+import { useOrdersLive } from './useOrdersLive';
 
 const STATUS_STYLE: Record<OrderStatus, string> = {
     PENDING: 'bg-gray-100 text-gray-700',
@@ -30,28 +32,23 @@ export default function OrderHistory() {
     const [orders, setOrders] = useState<OrderView[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (!hydrated || !token) return;
-        let cancelled = false;
-        getMyOrders()
-            .then((data) => {
-                if (!cancelled) setOrders(data);
-            })
-            .catch((err) => {
-                if (cancelled) return;
-                if (err instanceof ApiError && err.status === 401) {
-                    useAuthStore.getState().logout();
-                    router.push('/login?next=/orders');
-                    return;
-                }
-                setError(
-                    'Không tải được lịch sử đơn hàng. Hãy kiểm tra backend đã chạy chưa.',
-                );
-            });
-        return () => {
-            cancelled = true;
-        };
-    }, [hydrated, token, router]);
+    const loadOrders = useCallback(async (signal: AbortSignal) => {
+        try {
+            const data = await getMyOrders(signal);
+            if (signal.aborted || useAuthStore.getState().token !== token) return;
+            setOrders(data);
+            setError(null);
+        } catch (err) {
+            if (signal.aborted || useAuthStore.getState().token !== token) return;
+            if (err instanceof ApiError && err.status === 401) {
+                useAuthStore.getState().logout();
+                router.push('/login?next=/orders');
+                return;
+            }
+            setError('Không tải được lịch sử đơn hàng. Hãy thử tải lại.');
+        }
+    }, [router, token]);
+    const { connected, isLoading, refresh } = useOrdersLive(hydrated && Boolean(token), loadOrders);
 
     if (!hydrated) {
         return <p className="py-12 text-center text-gray-500">Đang tải...</p>;
@@ -71,17 +68,22 @@ export default function OrderHistory() {
         );
     }
 
-    if (error) {
-        return <p className="py-12 text-center text-red-600">{error}</p>;
-    }
+    const liveStatus = <OrdersLiveStatus connected={connected} busy={isLoading} refresh={refresh} />;
 
     if (!orders) {
-        return <p className="py-12 text-center text-gray-500">Đang tải đơn hàng...</p>;
+        return (
+            <>
+                {liveStatus}
+                {error && <p role="alert" className="text-center text-red-600">{error}</p>}
+            </>
+        );
     }
 
     if (orders.length === 0) {
         return (
             <div className="py-12 text-center">
+                {liveStatus}
+                {error && <p role="alert" className="text-red-600">{error}</p>}
                 <p className="text-gray-500">Bạn chưa có đơn hàng nào.</p>
                 <Link href="/" className="mt-3 inline-block text-amber-500 underline">
                     Về menu để chọn món
@@ -91,6 +93,9 @@ export default function OrderHistory() {
     }
 
     return (
+        <>
+        {liveStatus}
+        {error && <p role="alert" className="mb-3 text-red-600">{error}</p>}
         <ul className="space-y-3">
             {orders.map((order) => (
                 <li key={order.id}>
@@ -119,5 +124,6 @@ export default function OrderHistory() {
                 </li>
             ))}
         </ul>
+        </>
     );
 }
