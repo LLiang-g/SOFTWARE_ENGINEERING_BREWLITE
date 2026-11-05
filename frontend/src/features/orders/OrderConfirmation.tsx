@@ -185,7 +185,12 @@ export default function OrderConfirmation({ id }: { id: number }) {
             </div>
 
             {success && (
-                <p className="mt-4 text-sm text-gray-700">Mời tới quầy lấy nước</p>
+                <p className="mt-4 text-sm text-gray-700">
+                    {order.status === 'PAID' && 'Quầy sẽ sớm tiếp nhận đơn của bạn.'}
+                    {order.status === 'PREPARING' && 'Nhân viên đang pha chế đồ uống của bạn.'}
+                    {order.status === 'READY' && 'Đồ uống đã sẵn sàng. Mời tới quầy lấy nước.'}
+                    {order.status === 'COMPLETED' && 'Đã giao đồ uống. Cảm ơn bạn đã chọn BrewLite!'}
+                </p>
             )}
 
             {success && order.pointsEarned > 0 && (
