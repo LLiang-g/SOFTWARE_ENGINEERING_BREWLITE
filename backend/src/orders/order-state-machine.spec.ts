@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ConflictException } from '@nestjs/common';
 import type { OrderStatus } from '../generated/prisma/client';
-import { assertTransition, canTransition } from './order-state-machine';
+import { assertTransition, canTransition, isTerminal } from './order-state-machine';
 
 const ALL: OrderStatus[] = [
     'PENDING',
@@ -14,6 +14,28 @@ const ALL: OrderStatus[] = [
 ];
 
 describe('Order state machine', () => {
+    it('assertTransition thực thi đủ 49 cặp trạng thái theo đặc tả', () => {
+        const allowed = new Set([
+            'PENDING:PAID', 'PENDING:PAYMENT_FAILED', 'PENDING:CANCELLED',
+            'PAYMENT_FAILED:PENDING', 'PAYMENT_FAILED:PAID', 'PAYMENT_FAILED:CANCELLED',
+            'PAID:PREPARING', 'PAID:CANCELLED', 'PREPARING:READY', 'READY:COMPLETED',
+        ]);
+        for (const from of ALL) {
+            for (const to of ALL) {
+                const valid = allowed.has(`${from}:${to}`);
+                expect(canTransition(from, to)).toBe(valid);
+                if (valid) expect(() => assertTransition(from, to)).not.toThrow();
+                else expect(() => assertTransition(from, to)).toThrow(ConflictException);
+            }
+        }
+    });
+
+    it('chỉ COMPLETED và CANCELLED là trạng thái kết thúc', () => {
+        for (const status of ALL) {
+            expect(isTerminal(status)).toBe(status === 'COMPLETED' || status === 'CANCELLED');
+        }
+    });
+
     it('cho phép luồng thành công PENDING → PAID → PREPARING → READY → COMPLETED', () => {
         const path: OrderStatus[] = [
             'PENDING',

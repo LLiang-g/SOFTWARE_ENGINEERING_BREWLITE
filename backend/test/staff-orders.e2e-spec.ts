@@ -5,6 +5,8 @@ import { io, type Socket } from 'socket.io-client';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { OrdersGateway } from '../src/realtime/orders.gateway';
 import { MockGatewayService } from '../src/payments/mock-gateway.service';
+import { LoyaltyService } from '../src/promotions/loyalty.service';
+import type { OrderStatus } from '../src/generated/prisma/client';
 import {
     cancelOrder, cleanupUsers, createOrder, createTestApp,
     createTestProduct, pay, registerUser,
@@ -19,6 +21,7 @@ describe('API nhân viên và WebSocket', () => {
     let otherUserId: number;
     let productId: number;
     const sockets: Socket[] = [];
+    const pendingListeners = new Set<() => void>();
     let sequence = 0;
     const key = () => `staff-${Date.now()}-${sequence++}`;
 
@@ -34,9 +37,16 @@ describe('API nhân viên và WebSocket', () => {
 
     function waitForConnect(socket: Socket) {
         return new Promise<void>((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error('WebSocket kết nối quá hạn')), 5000);
-            socket.once('connect', () => { clearTimeout(timer); resolve(); });
-            socket.once('connect_error', (error) => { clearTimeout(timer); reject(error); });
+            const cleanup = () => {
+                clearTimeout(timer);
+                socket.off('connect', connected);
+                socket.off('connect_error', failed);
+            };
+            const connected = () => { cleanup(); resolve(); };
+            const failed = (error: Error) => { cleanup(); reject(error); };
+            const timer = setTimeout(() => failed(new Error('WebSocket kết nối quá hạn')), 5000);
+            socket.once('connect', connected);
+            socket.once('connect_error', failed);
             socket.connect();
         });
     }
@@ -50,7 +60,10 @@ describe('API nhân viên và WebSocket', () => {
         await connectSocket();
     });
 
-    afterEach(() => { vi.restoreAllMocks(); });
+    afterEach(() => {
+        pendingListeners.forEach((cleanup) => cleanup());
+        vi.restoreAllMocks();
+    });
 
     afterAll(async () => {
         sockets.forEach((socket) => socket.disconnect());
@@ -71,21 +84,67 @@ describe('API nhân viên và WebSocket', () => {
     const update = (id: number, status: string) => request(app.getHttpServer())
         .patch(`/staff/orders/${id}/status`).send({ status });
 
-    function nextChange(socket: Socket, orderId: number) {
-        return new Promise<{ args: unknown[]; status: string | undefined }>((resolve, reject) => {
-            const timer = setTimeout(() => {
+    function nextChange(socket: Socket, orderId: number, readStock = false) {
+        const pending = new Promise<{ args: unknown[]; status: string | undefined; stock?: number }>((resolve, reject) => {
+            const cleanup = () => {
+                clearTimeout(timer);
                 socket.off('orders.changed', listener);
+                pendingListeners.delete(cleanup);
+            };
+            const timer = setTimeout(() => {
+                cleanup();
                 reject(new Error('Không nhận được orders.changed'));
             }, 5000);
             const listener = async (...args: unknown[]) => {
-                clearTimeout(timer);
+                cleanup();
                 try {
+                    if (readStock) {
+                        const [order, product] = await prisma.$transaction([
+                            prisma.order.findUnique({ where: { id: orderId } }),
+                            prisma.product.findUniqueOrThrow({ where: { id: productId } }),
+                        ], { isolationLevel: 'RepeatableRead' });
+                        resolve({ args, status: order?.status, stock: product.stock });
+                        return;
+                    }
                     const order = await prisma.order.findUnique({ where: { id: orderId } });
                     resolve({ args, status: order?.status });
                 } catch (error) { reject(error); }
             };
+            pendingListeners.add(cleanup);
             socket.once('orders.changed', listener);
         });
+        // Promise được chờ sau HTTP; vẫn xử lý rejection nếu HTTP đã thất bại trước đó.
+        void pending.catch(() => undefined);
+        return pending;
+    }
+
+    async function paidOrderAt(status: 'PAID' | 'PREPARING' | 'READY') {
+        const id = await newOrder();
+        const paymentKey = key();
+        let changes = sockets.map((socket) => nextChange(socket, id));
+        await pay(app, token, id, paymentKey).expect(201);
+        await Promise.all(changes);
+        for (const next of ['PREPARING', 'READY'] as const) {
+            if (status === 'PAID' || (next === 'READY' && status === 'PREPARING')) break;
+            changes = sockets.map((socket) => nextChange(socket, id));
+            await update(id, next).expect(200);
+            await Promise.all(changes);
+        }
+        return { id, paymentKey };
+    }
+
+    async function recordChanges(action: () => Promise<unknown>) {
+        const messages: unknown[][][] = sockets.map(() => []);
+        const listeners = sockets.map((_, index) => (...args: unknown[]) => messages[index].push(args));
+        sockets.forEach((socket, index) => socket.on('orders.changed', listeners[index]));
+        try {
+            await action();
+            // Khoảng quan sát hữu hạn để phát hiện sự kiện thừa/không được phép trên wire.
+            await new Promise((resolve) => setTimeout(resolve, 150));
+            return messages;
+        } finally {
+            sockets.forEach((socket, index) => socket.off('orders.changed', listeners[index]));
+        }
     }
 
     it('mở không cần token, ẩn đơn chưa trả tiền và dữ liệu tài khoản', async () => {
@@ -220,5 +279,114 @@ describe('API nhân viên và WebSocket', () => {
         const owner = await request(app.getHttpServer()).get(`/orders/${id}`)
             .set('Authorization', `Bearer ${token}`).expect(200);
         expect(owner.body.status).toBe('PREPARING');
+        const changes = sockets.map((socket) => nextChange(socket, id));
+        await update(id, 'READY').expect(200);
+        expect(await Promise.all(changes)).toEqual([
+            { args: [], status: 'READY' }, { args: [], status: 'READY' },
+        ]);
+    });
+
+    it('hàng đợi hơn 20 đơn không cắt mất PAID, PREPARING hoặc READY và ẩn các đơn không xử lý', async () => {
+        const createdAt = new Date();
+        const states: OrderStatus[] = ['PAID', 'PREPARING', 'READY'];
+        const active = await Promise.all(Array.from({ length: 27 }, (_, index) =>
+            prisma.order.create({ data: { userId, total: 40000, status: states[index % 3], createdAt } }),
+        ));
+        const hidden = await Promise.all((['PENDING', 'PAYMENT_FAILED', 'CANCELLED'] as const).map((status) =>
+            prisma.order.create({ data: { userId, total: 40000, status } }),
+        ));
+        const response = await request(app.getHttpServer()).get('/staff/orders').expect(200);
+        const ids: number[] = response.body.map((order: { id: number }) => order.id);
+        const fixtureIds = new Set(active.map((order) => order.id));
+        expect(ids.filter((id) => fixtureIds.has(id))).toEqual(active.map((order) => order.id).sort((a, b) => a - b));
+        hidden.forEach((order) => expect(ids).not.toContain(order.id));
+        expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it.each([
+        ['PAID', 'PREPARING'],
+        ['PREPARING', 'READY'],
+        ['READY', 'COMPLETED'],
+    ] as const)('8 nhân viên cùng đổi %s → %s: một cập nhật, một sự kiện trên mỗi client', async (from, to) => {
+        const { id } = await paidOrderAt(from);
+        const stock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const points = (await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints;
+        const messages = await recordChanges(async () => {
+            const responses = await Promise.all(Array.from({ length: 8 }, () => update(id, to)));
+            expect(responses.filter((res) => res.status === 200)).toHaveLength(1);
+            expect(responses.filter((res) => res.status === 409)).toHaveLength(7);
+        });
+        expect(messages).toEqual([[[]], [[]]]);
+        expect((await prisma.order.findUniqueOrThrow({ where: { id } })).status).toBe(to);
+        expect(await prisma.payment.count({ where: { orderId: id } })).toBe(1);
+        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(stock);
+        expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints).toBe(points);
+    });
+
+    it('replay, bấm lặp và chuyển lùi không phát sự kiện trên WebSocket thật', async () => {
+        const { id, paymentKey } = await paidOrderAt('READY');
+        const messages = await recordChanges(async () => {
+            await pay(app, token, id, paymentKey).expect(201);
+            await update(id, 'READY').expect(409);
+            await update(id, 'PREPARING').expect(409);
+            await update(id, 'CANCELLED').expect(400);
+        });
+        expect(messages).toEqual([[], []]);
+        expect((await prisma.order.findUniqueOrThrow({ where: { id } })).status).toBe('READY');
+    });
+
+    it('lỗi cộng điểm sau khi đã ghi Payment/PAID rollback toàn bộ và không phát sự kiện', async () => {
+        const id = await newOrder();
+        const before = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+        const stock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const award = vi.spyOn(app.get(LoyaltyService), 'award').mockRejectedValueOnce(new Error('Test loyalty rollback'));
+        const messages = await recordChanges(async () => {
+            await pay(app, token, id, key()).expect(500);
+        });
+        expect(award).toHaveBeenCalledTimes(1);
+        expect(messages).toEqual([[], []]);
+        expect(await prisma.payment.count({ where: { orderId: id } })).toBe(0);
+        expect((await prisma.order.findUniqueOrThrow({ where: { id } })).status).toBe('PENDING');
+        expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints).toBe(before.loyaltyPoints);
+        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(stock);
+        const changes = sockets.map((socket) => nextChange(socket, id));
+        await pay(app, token, id, key()).expect(201);
+        expect(await Promise.all(changes)).toEqual([
+            { args: [], status: 'PAID' }, { args: [], status: 'PAID' },
+        ]);
+    });
+
+    it('hủy đơn chỉ thông báo khi tồn kho đã được hoàn, hủy lại không phát hoặc hoàn thêm', async () => {
+        const id = await newOrder();
+        const reservedStock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const changes = sockets.map((socket) => nextChange(socket, id, true));
+        await cancelOrder(app, token, id).expect(200);
+        expect(await Promise.all(changes)).toEqual([
+            { args: [], status: 'CANCELLED', stock: reservedStock + 1 },
+            { args: [], status: 'CANCELLED', stock: reservedStock + 1 },
+        ]);
+        const messages = await recordChanges(async () => { await cancelOrder(app, token, id).expect(409); });
+        expect(messages).toEqual([[], []]);
+        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(reservedStock + 1);
+    });
+
+    it('thất bại lần đầu phát sự kiện; thất bại không đổi trạng thái không phát; thử lại thành công vào hàng đợi', async () => {
+        const id = await newOrder();
+        let changes = sockets.map((socket) => nextChange(socket, id));
+        await pay(app, token, id, key(), { simulateFailure: true }).expect(201);
+        expect(await Promise.all(changes)).toEqual([
+            { args: [], status: 'PAYMENT_FAILED' }, { args: [], status: 'PAYMENT_FAILED' },
+        ]);
+        const messages = await recordChanges(async () => {
+            await pay(app, token, id, key(), { simulateFailure: true }).expect(201);
+        });
+        expect(messages).toEqual([[], []]);
+        const failedList = await request(app.getHttpServer()).get('/staff/orders').expect(200);
+        expect(failedList.body.some((order: { id: number }) => order.id === id)).toBe(false);
+        changes = sockets.map((socket) => nextChange(socket, id));
+        await pay(app, token, id, key()).expect(201);
+        await Promise.all(changes);
+        const paidList = await request(app.getHttpServer()).get('/staff/orders').expect(200);
+        expect(paidList.body.find((order: { id: number }) => order.id === id).status).toBe('PAID');
     });
 });
