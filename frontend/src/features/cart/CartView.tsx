@@ -11,6 +11,8 @@ import { validateVoucher } from '@/lib/api';
 import { calcDiscount } from '@/lib/pricing';
 import { formatPrice } from '@/lib/format';
 import { VoucherInfo } from '@/lib/types';
+import { IconMinus, IconPlus, IconTag, IconTrash } from '@/components/icons';
+import DrinkArt, { DRINK_TINT, drinkKindFor } from '@/features/catalog/DrinkArt';
 
 export default function CartView() {
     const router = useRouter();
@@ -92,16 +94,25 @@ export default function CartView() {
 
     if (!hydrated) {
         return (
-            <p className="py-12 text-center text-gray-500">Đang tải giỏ hàng...</p>
+            <div className="space-y-3" aria-busy="true">
+                {[0, 1].map((i) => (
+                    <div key={i} className="h-28 rounded-[22px] bg-line motion-safe:animate-pulse" />
+                ))}
+            </div>
         );
     }
 
     if (items.length === 0) {
         return (
-            <div className="py-12 text-center">
-                <p className="text-gray-500">Giỏ hàng đang trống.</p>
-                <Link href="/" className="mt-3 inline-block text-amber-500 underline">
-                    Về menu để chọn món
+            <div className="flex flex-col items-center py-14 text-center">
+                <DrinkArt kind="cup" className="h-32 w-auto" />
+                <h2 className="mt-4 font-display text-xl font-bold">Giỏ hàng đang trống</h2>
+                <p className="mt-1 text-muted">Chọn một ly để bắt đầu đơn của bạn.</p>
+                <Link
+                    href="/"
+                    className="mt-6 inline-flex h-12 items-center rounded-full bg-espresso px-6 font-semibold text-white hover:bg-roast"
+                >
+                    Chọn món
                 </Link>
             </div>
         );
@@ -111,75 +122,84 @@ export default function CartView() {
         <div>
             <ul className="space-y-3">
                 {items.map((item) => (
-                    <li
-                        key={item.key}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 text-gray-900 shadow-sm"
-                    >
-                        <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-gray-600">
-                                Size {item.size}
-                                {item.toppingNames.length > 0 &&
-                                    ` · ${item.toppingNames.join(', ')}`}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                                {formatPrice(item.unitPrice)} / ly
-                            </p>
+                    <li key={item.key} className="rounded-[22px] border border-line bg-paper p-3.5">
+                        <div className="flex gap-3">
+                            <div
+                                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl"
+                                style={{ backgroundColor: DRINK_TINT[drinkKindFor(item.name)] }}
+                            >
+                                <DrinkArt kind={drinkKindFor(item.name)} className="h-12 w-auto" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                    <p className="leading-snug font-semibold">{item.name}</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeItem(item.key)}
+                                        aria-label={`Xóa ${item.name} khỏi giỏ`}
+                                        className="-mt-1.5 -mr-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted hover:bg-chili-soft hover:text-chili"
+                                    >
+                                        <IconTrash className="h-5 w-5" />
+                                    </button>
+                                </div>
+                                <p className="text-sm text-muted">Size {item.size}</p>
+                                {item.toppingNames.length > 0 && (
+                                    <p className="text-sm text-muted">{item.toppingNames.join(', ')}</p>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center rounded-lg border border-gray-300">
+                        <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+                            <div className="flex h-11 items-center rounded-full border-2 border-line">
                                 <button
                                     type="button"
                                     onClick={() => setQty(item.key, item.qty - 1)}
-                                    className="px-3 py-1 hover:bg-gray-100"
+                                    className="flex h-full w-11 items-center justify-center rounded-full"
                                     aria-label="Giảm số lượng"
                                 >
-                                    −
+                                    <IconMinus className="h-5 w-5" />
                                 </button>
-                                <span className="min-w-8 text-center">{item.qty}</span>
+                                <span className="min-w-7 text-center font-semibold tabular-nums">{item.qty}</span>
                                 <button
                                     type="button"
                                     onClick={() => setQty(item.key, item.qty + 1)}
-                                    className="px-3 py-1 hover:bg-gray-100"
+                                    className="flex h-full w-11 items-center justify-center rounded-full"
                                     aria-label="Tăng số lượng"
                                 >
-                                    +
+                                    <IconPlus className="h-5 w-5" />
                                 </button>
                             </div>
-
-                            <p className="w-24 text-right font-medium">
-                                {formatPrice(item.unitPrice * item.qty)}
-                            </p>
-
-                            <button
-                                type="button"
-                                onClick={() => removeItem(item.key)}
-                                className="text-sm text-red-600 hover:underline"
-                            >
-                                Xóa
-                            </button>
+                            <div className="text-right">
+                                <p className="font-semibold tabular-nums">{formatPrice(item.unitPrice * item.qty)}</p>
+                                {item.qty > 1 && (
+                                    <p className="text-xs text-muted tabular-nums">{formatPrice(item.unitPrice)} / ly</p>
+                                )}
+                            </div>
                         </div>
                     </li>
                 ))}
             </ul>
 
-            <div className="mt-6 space-y-3 rounded-xl bg-white p-4 text-gray-900 shadow-sm">
+            <section className="mt-4 rounded-[22px] border border-line bg-paper p-4" aria-labelledby="voucher-title">
+                <h2 id="voucher-title" className="flex items-center gap-2 font-semibold">
+                    <IconTag className="h-5 w-5 text-muted" />
+                    Mã giảm giá
+                </h2>
                 {voucher ? (
-                    <div className="flex items-center justify-between rounded-lg bg-green-50 p-3 text-sm text-green-700">
-            <span>
-              Mã {voucher.code}: giảm {voucher.discountPercent}%
-            </span>
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-pandan-soft px-4 py-3 text-sm font-medium text-pandan">
+                        <span>
+                            Mã {voucher.code}: giảm {voucher.discountPercent}%
+                        </span>
                         <button
                             type="button"
                             onClick={() => setVoucher(null)}
-                            className="underline"
+                            className="min-h-9 font-semibold underline underline-offset-2"
                         >
                             Bỏ mã
                         </button>
                     </div>
                 ) : (
-                    <div>
+                    <div className="mt-3">
                         <div className="flex gap-2">
                             <input
                                 value={voucherInput}
@@ -188,48 +208,59 @@ export default function CartView() {
                                     if (e.key === 'Enter') handleApplyVoucher();
                                 }}
                                 placeholder="Nhập mã giảm giá"
-                                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"
+                                aria-label="Mã giảm giá"
+                                autoCapitalize="characters"
+                                autoComplete="off"
+                                className="h-12 min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 text-base outline-none placeholder:text-muted/70 focus:border-espresso focus:ring-2 focus:ring-espresso/15"
                             />
                             <button
                                 type="button"
                                 onClick={handleApplyVoucher}
                                 disabled={applying || !voucherInput.trim()}
-                                className="rounded-lg border border-amber-600 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-60"
+                                className="h-12 shrink-0 rounded-xl border-2 border-espresso px-4 text-sm font-semibold hover:bg-espresso hover:text-white disabled:border-line disabled:text-muted disabled:hover:bg-transparent"
                             >
                                 {applying ? 'Đang kiểm tra...' : 'Áp dụng'}
                             </button>
                         </div>
                         {voucherError && (
-                            <p className="mt-2 text-sm text-red-600">{voucherError}</p>
+                            <p role="alert" className="mt-2 text-sm text-chili">{voucherError}</p>
                         )}
                     </div>
                 )}
+            </section>
 
-                <div className="space-y-1 border-t pt-3 text-sm">
+            <section className="mt-4 rounded-[22px] border border-line bg-paper p-4" aria-label="Tổng thanh toán">
+                <div className="space-y-2 text-[15px]">
                     <div className="flex justify-between">
-                        <span>Tạm tính</span>
-                        <span>{formatPrice(subtotal)}</span>
+                        <span className="text-muted">Tạm tính</span>
+                        <span className="tabular-nums">{formatPrice(subtotal)}</span>
                     </div>
                     {discount > 0 && (
-                        <div className="flex justify-between text-green-700">
+                        <div className="flex justify-between text-pandan">
                             <span>Giảm giá</span>
-                            <span>-{formatPrice(discount)}</span>
+                            <span className="tabular-nums">-{formatPrice(discount)}</span>
                         </div>
                     )}
                 </div>
+                <div className="mt-3 flex items-baseline justify-between border-t border-line pt-3">
+                    <span className="font-semibold">Tổng</span>
+                    <span className="font-display text-2xl font-bold tabular-nums">{formatPrice(total)}</span>
+                </div>
+                {error && <p role="alert" className="mt-3 rounded-xl bg-chili-soft px-3 py-2 text-sm text-chili">{error}</p>}
+            </section>
 
-                <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold">Tổng: {formatPrice(total)}</p>
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_24px_-14px_rgba(43,26,18,0.3)] md:static md:z-auto md:mt-4 md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+                <div className="mx-auto max-w-3xl">
                     <button
                         type="button"
                         onClick={handlePlaceOrder}
                         disabled={placing}
-                        className="rounded-lg bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+                        className="flex h-14 w-full items-center justify-between rounded-full bg-espresso px-6 text-base font-semibold text-white transition hover:bg-roast active:scale-[0.99] disabled:opacity-60"
                     >
-                        {placing ? 'Đang đặt...' : 'Đặt hàng'}
+                        <span>{placing ? 'Đang đặt...' : token ? 'Đặt hàng' : 'Đăng nhập để đặt hàng'}</span>
+                        <span className="tabular-nums">{formatPrice(total)}</span>
                     </button>
                 </div>
-                {error && <p className="text-sm text-red-600">{error}</p>}
             </div>
         </div>
     );

@@ -18,10 +18,11 @@ export default async function ProductPage({
         product = await getProduct(productId);
     } catch {
         return (
-            <main className="mx-auto max-w-3xl p-6">
-                <p className="py-12 text-center text-red-600">
-                    Không kết nối được máy chủ. Hãy kiểm tra backend đã chạy chưa.
-                </p>
+            <main className="mx-auto w-full max-w-5xl px-4 pt-6 md:px-6">
+                <div role="alert" className="rounded-[22px] bg-chili-soft px-5 py-8 text-center text-chili">
+                    <p className="font-semibold">Không kết nối được máy chủ</p>
+                    <p className="mt-1 text-sm">Hãy kiểm tra backend đã chạy chưa, rồi tải lại trang.</p>
+                </div>
             </main>
         );
     }
@@ -31,7 +32,7 @@ export default async function ProductPage({
     }
 
     return (
-        <main className="mx-auto max-w-3xl p-6">
+        <main className="mx-auto w-full max-w-5xl pb-cta md:px-6 md:pt-8">
             <ProductDetail product={product} />
         </main>
     );
