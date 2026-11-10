@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import DrinkArt, { drinkKindFor } from './DrinkArt';
 
+// Ảnh sản phẩm lấp đầy khung cha. Chưa có ảnh hoặc ảnh lỗi thì vẽ ly minh họa.
 export default function ProductImage({
                                          src,
                                          alt,
@@ -20,7 +22,7 @@ export default function ProductImage({
     }, []);
 
     if (failed) {
-        return <span className="text-5xl">☕</span>;
+        return <DrinkArt kind={drinkKindFor(alt)} className="h-[78%] w-auto" />;
     }
 
     return (

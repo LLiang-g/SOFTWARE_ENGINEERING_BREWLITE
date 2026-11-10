@@ -5,25 +5,43 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { useHydrated } from '@/features/cart/useHydrated';
+import DrinkArt from '@/features/catalog/DrinkArt';
 import { ApiError, getMyOrders } from '@/lib/orders-api';
-import {
-    ORDER_STATUS_LABEL,
-    formatDateTime,
-    formatPrice,
-} from '@/lib/format';
-import { OrderStatus, OrderView } from '@/lib/types';
+import { formatDateTime, formatPrice } from '@/lib/format';
+import { OrderView } from '@/lib/types';
 import OrdersLiveStatus from './OrdersLiveStatus';
+import StatusChip from './StatusChip';
 import { useOrdersLive } from './useOrdersLive';
 
-const STATUS_STYLE: Record<OrderStatus, string> = {
-    PENDING: 'bg-gray-100 text-gray-700',
-    PAID: 'bg-green-100 text-green-700',
-    PAYMENT_FAILED: 'bg-red-100 text-red-700',
-    PREPARING: 'bg-blue-100 text-blue-700',
-    READY: 'bg-emerald-100 text-emerald-700',
-    COMPLETED: 'bg-green-100 text-green-700',
-    CANCELLED: 'bg-gray-200 text-gray-600',
-};
+const GROUPS = [
+    { title: 'Cần thanh toán', statuses: ['PENDING', 'PAYMENT_FAILED'] },
+    { title: 'Đang xử lý', statuses: ['PAID', 'PREPARING', 'READY'] },
+    { title: 'Lịch sử', statuses: ['COMPLETED', 'CANCELLED'] },
+] as const;
+
+function OrderCard({ order }: { order: OrderView }) {
+    const ready = order.status === 'READY';
+    return (
+        <Link
+            href={`/orders/${order.id}`}
+            className={`block rounded-[22px] border p-4 transition hover:border-espresso ${
+                ready ? 'border-pandan bg-pandan-soft' : 'border-line bg-paper'
+            }`}
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="font-display text-2xl leading-none font-bold tabular-nums">#{order.id}</p>
+                    <p className="mt-1.5 text-xs text-muted">{formatDateTime(order.createdAt)}</p>
+                </div>
+                <StatusChip status={order.status} />
+            </div>
+            <p className="mt-3 line-clamp-2 text-[15px]">
+                {order.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}
+            </p>
+            <p className="mt-3 text-right font-semibold tabular-nums">{formatPrice(order.total)}</p>
+        </Link>
+    );
+}
 
 export default function OrderHistory() {
     const router = useRouter();
@@ -51,16 +69,24 @@ export default function OrderHistory() {
     const { connected, isLoading, refresh } = useOrdersLive(hydrated && Boolean(token), loadOrders);
 
     if (!hydrated) {
-        return <p className="py-12 text-center text-gray-500">Đang tải...</p>;
+        return (
+            <div className="space-y-3" aria-busy="true">
+                {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-32 rounded-[22px] bg-line motion-safe:animate-pulse" />
+                ))}
+            </div>
+        );
     }
 
     if (!token) {
         return (
-            <div className="py-12 text-center">
-                <p className="text-gray-500">Bạn cần đăng nhập để xem lịch sử đơn hàng.</p>
+            <div className="flex flex-col items-center py-14 text-center">
+                <DrinkArt kind="cup" className="h-28 w-auto" />
+                <h2 className="mt-4 font-display text-xl font-bold">Đăng nhập để xem đơn hàng</h2>
+                <p className="mt-1 text-muted">Đơn của bạn sẽ hiện ở đây và tự cập nhật khi quầy pha xong.</p>
                 <Link
                     href="/login?next=/orders"
-                    className="mt-3 inline-block rounded-lg bg-amber-600 px-5 py-2.5 font-medium text-white hover:bg-amber-700"
+                    className="mt-6 inline-flex h-12 items-center rounded-full bg-espresso px-6 font-semibold text-white hover:bg-roast"
                 >
                     Đăng nhập
                 </Link>
@@ -68,62 +94,69 @@ export default function OrderHistory() {
         );
     }
 
-    const liveStatus = <OrdersLiveStatus connected={connected} busy={isLoading} refresh={refresh} />;
+    const liveStatus = <OrdersLiveStatus connected={connected} busy={isLoading} refresh={refresh} showRefresh={!connected || Boolean(error)} />;
 
     if (!orders) {
         return (
             <>
                 {liveStatus}
-                {error && <p role="alert" className="text-center text-red-600">{error}</p>}
+                {error ? (
+                    <p role="alert" className="rounded-2xl bg-chili-soft px-4 py-3 text-sm text-chili">{error}</p>
+                ) : (
+                    <div className="space-y-3" aria-busy="true">
+                        {[0, 1, 2].map((i) => (
+                            <div key={i} className="h-32 rounded-[22px] bg-line motion-safe:animate-pulse" />
+                        ))}
+                    </div>
+                )}
             </>
         );
     }
 
     if (orders.length === 0) {
         return (
-            <div className="py-12 text-center">
+            <>
                 {liveStatus}
-                {error && <p role="alert" className="text-red-600">{error}</p>}
-                <p className="text-gray-500">Bạn chưa có đơn hàng nào.</p>
-                <Link href="/" className="mt-3 inline-block text-amber-500 underline">
-                    Về menu để chọn món
-                </Link>
-            </div>
+                {error && <p role="alert" className="rounded-2xl bg-chili-soft px-4 py-3 text-sm text-chili">{error}</p>}
+                <div className="flex flex-col items-center py-12 text-center">
+                    <DrinkArt kind="cup" className="h-28 w-auto" />
+                    <h2 className="mt-4 font-display text-xl font-bold">Bạn chưa có đơn hàng nào</h2>
+                    <p className="mt-1 text-muted">Chọn món từ menu và đơn đầu tiên sẽ hiện ở đây.</p>
+                    <Link
+                        href="/"
+                        className="mt-6 inline-flex h-12 items-center rounded-full bg-espresso px-6 font-semibold text-white hover:bg-roast"
+                    >
+                        Chọn món
+                    </Link>
+                </div>
+            </>
         );
     }
 
     return (
         <>
-        {liveStatus}
-        {error && <p role="alert" className="mb-3 text-red-600">{error}</p>}
-        <ul className="space-y-3">
-            {orders.map((order) => (
-                <li key={order.id}>
-                    <Link
-                        href={`/orders/${order.id}`}
-                        className="block rounded-xl bg-white p-4 text-gray-900 shadow-sm transition hover:shadow-md"
-                    >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="font-semibold">Đơn #{order.id}</p>
-                            <span
-                                className={`rounded-full px-3 py-0.5 text-xs font-medium ${STATUS_STYLE[order.status]}`}
-                            >
-                {ORDER_STATUS_LABEL[order.status]}
-              </span>
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                            {formatDateTime(order.createdAt)}
-                        </p>
-                        <p className="mt-2 text-sm text-gray-700">
-                            {order.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}
-                        </p>
-                        <p className="mt-2 text-right font-semibold">
-                            {formatPrice(order.total)}
-                        </p>
-                    </Link>
-                </li>
-            ))}
-        </ul>
+            {liveStatus}
+            {error && <p role="alert" className="mb-3 rounded-2xl bg-chili-soft px-4 py-3 text-sm text-chili">{error}</p>}
+            <div className="space-y-7">
+                {GROUPS.map(({ title, statuses }) => {
+                    const group = orders.filter((o) => (statuses as readonly string[]).includes(o.status));
+                    if (group.length === 0) return null;
+                    return (
+                        <section key={title} aria-labelledby={`group-${title}`}>
+                            <h2 id={`group-${title}`} className="mb-3 font-display text-lg font-bold">
+                                {title}
+                            </h2>
+                            <ul className="space-y-3">
+                                {group.map((order) => (
+                                    <li key={order.id}>
+                                        <OrderCard order={order} />
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                })}
+            </div>
         </>
     );
 }

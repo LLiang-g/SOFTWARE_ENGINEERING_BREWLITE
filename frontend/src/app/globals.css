@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Bảng màu BrewLite: nền foam, chữ espresso, điểm nhấn crema, trạng thái sẵn sàng pandan. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foam: #f3f2ee;
+  --color-paper: #ffffff;
+  --color-espresso: #2b1a12;
+  --color-roast: #5e4636;
+  --color-muted: #6b6159;
+  --color-line: #e3dfd6;
+  --color-crema: #e3a33b;
+  --color-crema-soft: #f6e7c9;
+  --color-pandan: #2e7d5b;
+  --color-pandan-soft: #dcefe4;
+  --color-chili: #a63320;
+  --color-chili-soft: #f8ddd7;
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-face), var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-foam);
+  color: var(--color-espresso);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-espresso);
+  outline-offset: 2px;
+}
+
+/* Chừa chỗ cho thanh tab dưới (điện thoại) hoặc thanh hành động cố định. */
+@utility pb-tabs {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  @media (min-width: 48rem) {
+    padding-bottom: 3rem;
+  }
+}
+
+@utility pb-cta {
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+  @media (min-width: 48rem) {
+    padding-bottom: 3rem;
+  }
+}
+
+/* Đường xé của vé đơn hàng: hai nửa tròn khoét ở mép và nét đứt ở giữa. */
+.ticket-cut {
+  position: relative;
+  height: 0;
+  margin-inline: 1.25rem;
+  border-top: 2px dashed var(--color-line);
+}
+.ticket-cut::before,
+.ticket-cut::after {
+  content: "";
+  position: absolute;
+  top: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-foam);
+}
+.ticket-cut::before {
+  left: -2rem;
+}
+.ticket-cut::after {
+  right: -2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

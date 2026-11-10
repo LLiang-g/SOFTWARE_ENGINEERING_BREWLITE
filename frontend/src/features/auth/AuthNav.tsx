@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { IconLogout, IconStar } from '@/components/icons';
 import { useAuthStore } from './auth.store';
 import { useHydrated } from '@/features/cart/useHydrated';
 
@@ -11,13 +12,14 @@ export default function AuthNav() {
     const logout = useAuthStore((s) => s.logout);
     const router = useRouter();
 
-    if (!hydrated) return null;
+    // Giữ chỗ để thanh trên không nhảy khi trang vừa tải xong.
+    if (!hydrated) return <span className="block h-10 w-24" />;
 
     if (!user) {
         return (
             <Link
                 href="/login"
-                className="rounded-lg px-3 py-1.5 text-sm text-gray-800 hover:underline"
+                className="inline-flex h-10 items-center rounded-full bg-espresso px-5 text-sm font-semibold text-white hover:bg-roast"
             >
                 Đăng nhập
             </Link>
@@ -25,22 +27,27 @@ export default function AuthNav() {
     }
 
     return (
-        <div className="flex items-center gap-3 text-sm text-gray-800">
-            <span className="hidden sm:inline">{user.email}</span>
-            <span className="text-amber-700">⭐ {user.loyaltyPoints}</span>
+        <div className="flex items-center gap-2">
+            <span className="hidden max-w-48 truncate text-sm text-muted lg:inline">{user.email}</span>
+            <span
+                className="inline-flex h-10 items-center gap-1.5 rounded-full bg-crema-soft px-3.5 text-sm font-semibold tabular-nums"
+                aria-label={`${user.loyaltyPoints} điểm tích lũy`}
+            >
+                <IconStar className="h-4 w-4 text-crema" />
+                {user.loyaltyPoints}
+            </span>
             <button
                 type="button"
                 onClick={() => {
                     logout();
                     router.push('/');
                 }}
-                className="text-red-600 hover:underline"
+                aria-label="Đăng xuất"
+                title="Đăng xuất"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-paper text-muted hover:text-chili"
             >
-                Đăng xuất
+                <IconLogout className="h-5 w-5" />
             </button>
-            <Link href="/orders" className="hover:underline">
-                Đơn hàng
-            </Link>
         </div>
     );
 }
