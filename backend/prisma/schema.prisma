@@ -55,6 +55,7 @@ model Ingredient {
   unit    String
   stock   Int      @default(0)
   recipes Recipe[]
+  reservations OrderInventoryReservation[]
 }
 
 // Công thức món: một dòng cho mỗi nguyên liệu, quantity là lượng dùng cho một ly.
@@ -104,6 +105,7 @@ model Order {
   items    OrderItem[]
   payments Payment[]
   loyaltyTransactions LoyaltyTransaction[]
+  inventoryReservations OrderInventoryReservation[]
 }
 
 model OrderItem {
@@ -128,6 +130,20 @@ model Payment {
   createdAt      DateTime      @default(now())
 
   order Order @relation(fields: [orderId], references: [id])
+}
+
+model OrderInventoryReservation {
+  id           Int       @id @default(autoincrement())
+  orderId      Int
+  ingredientId Int
+  quantity     Int
+  releasedAt   DateTime?
+
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, ingredientId])
+  @@index([ingredientId])
 }
 
 // Sổ cái điểm thưởng: mỗi lần cộng hoặc trừ điểm là một dòng, points dương là cộng.

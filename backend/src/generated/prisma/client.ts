@@ -80,6 +80,11 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model OrderInventoryReservation
+ * 
+ */
+export type OrderInventoryReservation = Prisma.OrderInventoryReservationModel
+/**
  * Model LoyaltyTransaction
  * 
  */

@@ -120,6 +120,30 @@ CREATE TABLE "Recipe" (
                           CONSTRAINT "Recipe_pkey" PRIMARY KEY ("id")
 );
 
+CREATE TABLE "OrderInventoryReservation" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "ingredientId" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "releasedAt" TIMESTAMP(3),
+    CONSTRAINT "OrderInventoryReservation_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "OrderInventoryReservation_quantity_positive" CHECK ("quantity" > 0)
+);
+
+CREATE UNIQUE INDEX "OrderInventoryReservation_orderId_ingredientId_key"
+    ON "OrderInventoryReservation"("orderId", "ingredientId");
+CREATE INDEX "OrderInventoryReservation_ingredientId_idx"
+    ON "OrderInventoryReservation"("ingredientId");
+
+ALTER TABLE "OrderInventoryReservation"
+    ADD CONSTRAINT "OrderInventoryReservation_orderId_fkey"
+    FOREIGN KEY ("orderId") REFERENCES "Order"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderInventoryReservation"
+    ADD CONSTRAINT "OrderInventoryReservation_ingredientId_fkey"
+    FOREIGN KEY ("ingredientId") REFERENCES "Ingredient"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
 
 -- =========================================
 -- 3. CREATE INDEXES

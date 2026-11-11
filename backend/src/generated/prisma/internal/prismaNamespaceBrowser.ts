@@ -59,6 +59,7 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
+  OrderInventoryReservation: 'OrderInventoryReservation',
   LoyaltyTransaction: 'LoyaltyTransaction'
 } as const
 
@@ -166,6 +167,17 @@ export const PaymentScalarFieldEnum = {
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const OrderInventoryReservationScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  ingredientId: 'ingredientId',
+  quantity: 'quantity',
+  releasedAt: 'releasedAt'
+} as const
+
+export type OrderInventoryReservationScalarFieldEnum = (typeof OrderInventoryReservationScalarFieldEnum)[keyof typeof OrderInventoryReservationScalarFieldEnum]
 
 
 export const LoyaltyTransactionScalarFieldEnum = {

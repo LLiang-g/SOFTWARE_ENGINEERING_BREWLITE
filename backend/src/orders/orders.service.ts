@@ -79,7 +79,7 @@ export class OrdersService {
                 }
 
                 // Trừ kho và tạo đơn nằm chung một giao dịch: lỗi ở đâu thì hoàn tác tất cả.
-                await this.inventory.reserve(tx, needs);
+                const reservations = await this.inventory.reserve(tx, needs);
 
                 return tx.order.create({
                     data: {
@@ -88,6 +88,7 @@ export class OrdersService {
                         discount,
                         voucherId,
                         items: { create: lines },
+                        inventoryReservations: { create: reservations },
                     },
                     include: ORDER_INCLUDE,
                 });
@@ -139,10 +140,7 @@ export class OrdersService {
                 );
             }
             // Chỉ hoàn kho khi chính giao dịch này đổi được trạng thái: hủy hai lần không hoàn hai lần.
-            await this.inventory.release(
-                tx,
-                order.items.map((i) => ({ productId: i.productId, qty: i.qty })),
-            );
+            await this.inventory.release(tx, id);
         });
 
         this.events.notifyOrdersChanged();

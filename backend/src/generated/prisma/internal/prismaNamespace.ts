@@ -405,6 +405,7 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
+  OrderInventoryReservation: 'OrderInventoryReservation',
   LoyaltyTransaction: 'LoyaltyTransaction'
 } as const
 
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "product" | "ingredient" | "recipe" | "user" | "voucher" | "order" | "orderItem" | "payment" | "loyaltyTransaction"
+    modelProps: "product" | "ingredient" | "recipe" | "user" | "voucher" | "order" | "orderItem" | "payment" | "orderInventoryReservation" | "loyaltyTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1017,6 +1018,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OrderInventoryReservation: {
+      payload: Prisma.$OrderInventoryReservationPayload<ExtArgs>
+      fields: Prisma.OrderInventoryReservationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrderInventoryReservationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrderInventoryReservationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>
+        }
+        findFirst: {
+          args: Prisma.OrderInventoryReservationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrderInventoryReservationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>
+        }
+        findMany: {
+          args: Prisma.OrderInventoryReservationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>[]
+        }
+        create: {
+          args: Prisma.OrderInventoryReservationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>
+        }
+        createMany: {
+          args: Prisma.OrderInventoryReservationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrderInventoryReservationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>[]
+        }
+        delete: {
+          args: Prisma.OrderInventoryReservationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>
+        }
+        update: {
+          args: Prisma.OrderInventoryReservationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrderInventoryReservationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrderInventoryReservationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrderInventoryReservationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>[]
+        }
+        upsert: {
+          args: Prisma.OrderInventoryReservationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderInventoryReservationPayload>
+        }
+        aggregate: {
+          args: Prisma.OrderInventoryReservationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrderInventoryReservation>
+        }
+        groupBy: {
+          args: Prisma.OrderInventoryReservationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderInventoryReservationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrderInventoryReservationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderInventoryReservationCountAggregateOutputType> | number
+        }
+      }
+    }
     LoyaltyTransaction: {
       payload: Prisma.$LoyaltyTransactionPayload<ExtArgs>
       fields: Prisma.LoyaltyTransactionFieldRefs
@@ -1218,6 +1293,17 @@ export const PaymentScalarFieldEnum = {
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const OrderInventoryReservationScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  ingredientId: 'ingredientId',
+  quantity: 'quantity',
+  releasedAt: 'releasedAt'
+} as const
+
+export type OrderInventoryReservationScalarFieldEnum = (typeof OrderInventoryReservationScalarFieldEnum)[keyof typeof OrderInventoryReservationScalarFieldEnum]
 
 
 export const LoyaltyTransactionScalarFieldEnum = {
@@ -1554,6 +1640,7 @@ export type GlobalOmitConfig = {
   order?: Prisma.OrderOmit
   orderItem?: Prisma.OrderItemOmit
   payment?: Prisma.PaymentOmit
+  orderInventoryReservation?: Prisma.OrderInventoryReservationOmit
   loyaltyTransaction?: Prisma.LoyaltyTransactionOmit
 }
 

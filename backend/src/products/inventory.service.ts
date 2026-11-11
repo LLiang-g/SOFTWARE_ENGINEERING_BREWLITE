@@ -6,7 +6,7 @@ import {
 import { Prisma } from '../generated/prisma/client';
 import { calcServings } from './availability';
 
-export type StockLine = { productId: number; qty: number };
+export type ReservedIngredient = { ingredientId: number; quantity: number };
 
 type Recipe = { ingredientId: number; quantity: number };
 
@@ -16,7 +16,10 @@ export class InventoryService {
      * Trừ nguyên liệu cho các món (productId -> tổng số ly). Gọi bên trong một giao dịch.
      * Khóa các dòng nguyên liệu theo thứ tự id, kiểm tra đủ hàng rồi mới trừ.
      */
-    async reserve(tx: Prisma.TransactionClient, needs: Map<number, number>) {
+    async reserve(
+        tx: Prisma.TransactionClient,
+        needs: Map<number, number>,
+    ): Promise<ReservedIngredient[]> {
         const products = await tx.product.findMany({
             where: { id: { in: [...needs.keys()] } },
             select: {
@@ -68,32 +71,46 @@ export class InventoryService {
                 data: { stock: { decrement: demand.get(id) as number } },
             });
         }
+        // Lưu chính lượng vừa trừ, không đọc công thức thêm lần nữa để tạo snapshot.
+        return ids.map((ingredientId) => ({
+            ingredientId,
+            quantity: demand.get(ingredientId) as number,
+        }));
     }
 
-    /** Hoàn nguyên liệu (khi hủy đơn). Gọi bên trong một giao dịch. */
-    async release(tx: Prisma.TransactionClient, lines: StockLine[]) {
-        const totals = new Map<number, number>();
-        for (const l of lines) {
-            totals.set(l.productId, (totals.get(l.productId) ?? 0) + l.qty);
+    /** Hoàn đúng snapshot đã giữ; trạng thái hủy, kho và dấu hoàn phải cùng commit. */
+    async release(tx: Prisma.TransactionClient, orderId: number) {
+        const reservations = await tx.$queryRaw<{
+            ingredientId: number;
+            quantity: number;
+            releasedAt: Date | null;
+        }[]>`
+            SELECT "ingredientId", quantity, "releasedAt"
+            FROM "OrderInventoryReservation"
+            WHERE "orderId" = ${orderId}
+            ORDER BY "ingredientId"
+            FOR UPDATE`;
+
+        if (reservations.length === 0) {
+            // Đơn cũ không có bằng chứng lượng đã trừ. Không suy ngược từ Recipe.
+            throw new ConflictException(
+                'Đơn chưa có dữ liệu giữ nguyên liệu, cần nhân viên đối soát trước khi hủy',
+            );
+        }
+        if (reservations.some((row) => row.releasedAt !== null)) {
+            throw new ConflictException('Nguyên liệu của đơn đã được hoàn');
         }
 
-        const recipes = await tx.recipe.findMany({
-            where: { productId: { in: [...totals.keys()] } },
-            select: { productId: true, ingredientId: true, quantity: true },
-        });
-        const restore = new Map<number, number>();
-        for (const r of recipes) {
-            const amount = r.quantity * (totals.get(r.productId) as number);
-            restore.set(r.ingredientId, (restore.get(r.ingredientId) ?? 0) + amount);
-        }
-
-        const ids = [...restore.keys()].sort((a, b) => a - b);
-        for (const id of ids) {
-            await tx.ingredient.updateMany({
-                where: { id },
-                data: { stock: { increment: restore.get(id) as number } },
+        for (const row of reservations) {
+            await tx.ingredient.update({
+                where: { id: row.ingredientId },
+                data: { stock: { increment: row.quantity } },
             });
         }
+        await tx.orderInventoryReservation.updateMany({
+            where: { orderId },
+            data: { releasedAt: new Date() },
+        });
     }
 
     /** Báo lỗi theo món bị thiếu: "<món> chỉ còn N phần", N tính từ kho hiện tại. */
