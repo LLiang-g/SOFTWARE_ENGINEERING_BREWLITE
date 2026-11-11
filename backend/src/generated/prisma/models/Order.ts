@@ -254,6 +254,7 @@ export type OrderWhereInput = {
   payments?: Prisma.PaymentListRelationFilter
   loyaltyTransactions?: Prisma.LoyaltyTransactionListRelationFilter
   inventoryReservations?: Prisma.OrderInventoryReservationListRelationFilter
+  createRequest?: Prisma.XOR<Prisma.OrderCreateRequestNullableScalarRelationFilter, Prisma.OrderCreateRequestWhereInput> | null
 }
 
 export type OrderOrderByWithRelationInput = {
@@ -270,6 +271,7 @@ export type OrderOrderByWithRelationInput = {
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionOrderByRelationAggregateInput
   inventoryReservations?: Prisma.OrderInventoryReservationOrderByRelationAggregateInput
+  createRequest?: Prisma.OrderCreateRequestOrderByWithRelationInput
 }
 
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -289,6 +291,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   payments?: Prisma.PaymentListRelationFilter
   loyaltyTransactions?: Prisma.LoyaltyTransactionListRelationFilter
   inventoryReservations?: Prisma.OrderInventoryReservationListRelationFilter
+  createRequest?: Prisma.XOR<Prisma.OrderCreateRequestNullableScalarRelationFilter, Prisma.OrderCreateRequestWhereInput> | null
 }, "id">
 
 export type OrderOrderByWithAggregationInput = {
@@ -330,6 +333,7 @@ export type OrderCreateInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
@@ -344,6 +348,7 @@ export type OrderUncheckedCreateInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUpdateInput = {
@@ -357,6 +362,7 @@ export type OrderUpdateInput = {
   payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
@@ -371,6 +377,7 @@ export type OrderUncheckedUpdateInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderCreateManyInput = {
@@ -456,14 +463,14 @@ export type OrderSumOrderByAggregateInput = {
   voucherId?: Prisma.SortOrder
 }
 
-export type OrderScalarRelationFilter = {
-  is?: Prisma.OrderWhereInput
-  isNot?: Prisma.OrderWhereInput
-}
-
 export type OrderNullableScalarRelationFilter = {
   is?: Prisma.OrderWhereInput | null
   isNot?: Prisma.OrderWhereInput | null
+}
+
+export type OrderScalarRelationFilter = {
+  is?: Prisma.OrderWhereInput
+  isNot?: Prisma.OrderWhereInput
 }
 
 export type OrderCreateNestedManyWithoutUserInput = {
@@ -562,6 +569,22 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type OrderCreateNestedOneWithoutCreateRequestInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCreateRequestInput, Prisma.OrderUncheckedCreateWithoutCreateRequestInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCreateRequestInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneWithoutCreateRequestNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutCreateRequestInput, Prisma.OrderUncheckedCreateWithoutCreateRequestInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutCreateRequestInput
+  upsert?: Prisma.OrderUpsertWithoutCreateRequestInput
+  disconnect?: Prisma.OrderWhereInput | boolean
+  delete?: Prisma.OrderWhereInput | boolean
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutCreateRequestInput, Prisma.OrderUpdateWithoutCreateRequestInput>, Prisma.OrderUncheckedUpdateWithoutCreateRequestInput>
+}
+
 export type OrderCreateNestedOneWithoutItemsInput = {
   create?: Prisma.XOR<Prisma.OrderCreateWithoutItemsInput, Prisma.OrderUncheckedCreateWithoutItemsInput>
   connectOrCreate?: Prisma.OrderCreateOrConnectWithoutItemsInput
@@ -630,6 +653,7 @@ export type OrderCreateWithoutUserInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutUserInput = {
@@ -643,6 +667,7 @@ export type OrderUncheckedCreateWithoutUserInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutUserInput = {
@@ -694,6 +719,7 @@ export type OrderCreateWithoutVoucherInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutVoucherInput = {
@@ -707,6 +733,7 @@ export type OrderUncheckedCreateWithoutVoucherInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutVoucherInput = {
@@ -735,6 +762,76 @@ export type OrderUpdateManyWithWhereWithoutVoucherInput = {
   data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutVoucherInput>
 }
 
+export type OrderCreateWithoutCreateRequestInput = {
+  status?: $Enums.OrderStatus
+  total: number
+  discount?: number
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutOrdersInput
+  voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
+  loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
+  inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutCreateRequestInput = {
+  id?: number
+  userId: number
+  status?: $Enums.OrderStatus
+  total: number
+  discount?: number
+  voucherId?: number | null
+  createdAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
+  loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
+  inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutCreateRequestInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCreateRequestInput, Prisma.OrderUncheckedCreateWithoutCreateRequestInput>
+}
+
+export type OrderUpsertWithoutCreateRequestInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutCreateRequestInput, Prisma.OrderUncheckedUpdateWithoutCreateRequestInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutCreateRequestInput, Prisma.OrderUncheckedCreateWithoutCreateRequestInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutCreateRequestInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutCreateRequestInput, Prisma.OrderUncheckedUpdateWithoutCreateRequestInput>
+}
+
+export type OrderUpdateWithoutCreateRequestInput = {
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  total?: Prisma.IntFieldUpdateOperationsInput | number
+  discount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
+  loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
+  inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutCreateRequestInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  total?: Prisma.IntFieldUpdateOperationsInput | number
+  discount?: Prisma.IntFieldUpdateOperationsInput | number
+  voucherId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
+  loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+}
+
 export type OrderCreateWithoutItemsInput = {
   status?: $Enums.OrderStatus
   total: number
@@ -745,6 +842,7 @@ export type OrderCreateWithoutItemsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutItemsInput = {
@@ -758,6 +856,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutItemsInput = {
@@ -786,6 +885,7 @@ export type OrderUpdateWithoutItemsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -799,6 +899,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutPaymentsInput = {
@@ -811,6 +912,7 @@ export type OrderCreateWithoutPaymentsInput = {
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutPaymentsInput = {
@@ -824,6 +926,7 @@ export type OrderUncheckedCreateWithoutPaymentsInput = {
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutPaymentsInput = {
@@ -852,6 +955,7 @@ export type OrderUpdateWithoutPaymentsInput = {
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutPaymentsInput = {
@@ -865,6 +969,7 @@ export type OrderUncheckedUpdateWithoutPaymentsInput = {
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutInventoryReservationsInput = {
@@ -877,6 +982,7 @@ export type OrderCreateWithoutInventoryReservationsInput = {
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
   payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutInventoryReservationsInput = {
@@ -890,6 +996,7 @@ export type OrderUncheckedCreateWithoutInventoryReservationsInput = {
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutInventoryReservationsInput = {
@@ -918,6 +1025,7 @@ export type OrderUpdateWithoutInventoryReservationsInput = {
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutInventoryReservationsInput = {
@@ -931,6 +1039,7 @@ export type OrderUncheckedUpdateWithoutInventoryReservationsInput = {
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutLoyaltyTransactionsInput = {
@@ -943,6 +1052,7 @@ export type OrderCreateWithoutLoyaltyTransactionsInput = {
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
   payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestCreateNestedOneWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutLoyaltyTransactionsInput = {
@@ -956,6 +1066,7 @@ export type OrderUncheckedCreateWithoutLoyaltyTransactionsInput = {
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutOrderInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedCreateNestedOneWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutLoyaltyTransactionsInput = {
@@ -984,6 +1095,7 @@ export type OrderUpdateWithoutLoyaltyTransactionsInput = {
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutLoyaltyTransactionsInput = {
@@ -997,6 +1109,7 @@ export type OrderUncheckedUpdateWithoutLoyaltyTransactionsInput = {
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderCreateManyUserInput = {
@@ -1018,6 +1131,7 @@ export type OrderUpdateWithoutUserInput = {
   payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutUserInput = {
@@ -1031,6 +1145,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutUserInput = {
@@ -1061,6 +1176,7 @@ export type OrderUpdateWithoutVoucherInput = {
   payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutVoucherInput = {
@@ -1074,6 +1190,7 @@ export type OrderUncheckedUpdateWithoutVoucherInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   loyaltyTransactions?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutOrderNestedInput
   inventoryReservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput
+  createRequest?: Prisma.OrderCreateRequestUncheckedUpdateOneWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutVoucherInput = {
@@ -1157,6 +1274,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   payments?: boolean | Prisma.Order$paymentsArgs<ExtArgs>
   loyaltyTransactions?: boolean | Prisma.Order$loyaltyTransactionsArgs<ExtArgs>
   inventoryReservations?: boolean | Prisma.Order$inventoryReservationsArgs<ExtArgs>
+  createRequest?: boolean | Prisma.Order$createRequestArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
@@ -1202,6 +1320,7 @@ export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   payments?: boolean | Prisma.Order$paymentsArgs<ExtArgs>
   loyaltyTransactions?: boolean | Prisma.Order$loyaltyTransactionsArgs<ExtArgs>
   inventoryReservations?: boolean | Prisma.Order$inventoryReservationsArgs<ExtArgs>
+  createRequest?: boolean | Prisma.Order$createRequestArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1222,6 +1341,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     loyaltyTransactions: Prisma.$LoyaltyTransactionPayload<ExtArgs>[]
     inventoryReservations: Prisma.$OrderInventoryReservationPayload<ExtArgs>[]
+    createRequest: Prisma.$OrderCreateRequestPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1631,6 +1751,7 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
   payments<T extends Prisma.Order$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   loyaltyTransactions<T extends Prisma.Order$loyaltyTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$loyaltyTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoyaltyTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   inventoryReservations<T extends Prisma.Order$inventoryReservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$inventoryReservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderInventoryReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  createRequest<T extends Prisma.Order$createRequestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$createRequestArgs<ExtArgs>>): Prisma.Prisma__OrderCreateRequestClient<runtime.Types.Result.GetResult<Prisma.$OrderCreateRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2180,6 +2301,25 @@ export type Order$inventoryReservationsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.OrderInventoryReservationScalarFieldEnum | Prisma.OrderInventoryReservationScalarFieldEnum[]
+}
+
+/**
+ * Order.createRequest
+ */
+export type Order$createRequestArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrderCreateRequest
+   */
+  select?: Prisma.OrderCreateRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrderCreateRequest
+   */
+  omit?: Prisma.OrderCreateRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderCreateRequestInclude<ExtArgs> | null
+  where?: Prisma.OrderCreateRequestWhereInput
 }
 
 /**

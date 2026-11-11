@@ -80,6 +80,7 @@ model User {
   loyaltyPoints       Int                  @default(0)
   orders              Order[]
   loyaltyTransactions LoyaltyTransaction[]
+  orderCreateRequests OrderCreateRequest[]
 }
 
 model Voucher {
@@ -106,6 +107,21 @@ model Order {
   payments Payment[]
   loyaltyTransactions LoyaltyTransaction[]
   inventoryReservations OrderInventoryReservation[]
+  createRequest OrderCreateRequest?
+}
+
+// Key thuộc một khách hàng, không thuộc một tiến trình backend.
+model OrderCreateRequest {
+  userId         Int
+  idempotencyKey String   @db.VarChar(100)
+  requestHash    String   @db.Char(64)
+  orderId        Int?     @unique
+  createdAt      DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@id([userId, idempotencyKey])
 }
 
 model OrderItem {

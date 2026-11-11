@@ -13,6 +13,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { assertTransition } from './order-state-machine';
 import { OrdersGateway } from '../realtime/orders.gateway';
 import type { UpdateStaffOrderStatusDto } from './dto/update-staff-order-status.dto';
+import { createHash } from 'node:crypto';
 
 const ORDER_INCLUDE = {
     items: {
@@ -37,9 +38,28 @@ export class OrdersService {
         private readonly events: OrdersGateway,
     ) {}
 
-    async create(userId: number, dto: CreateOrderDto) {
-        const order = await this.prisma.$transaction(
+    async create(userId: number, dto: CreateOrderDto, idempotencyKey: string) {
+        // Hash nội dung nghiệp vụ đã validate, không hash giá do client gửi.
+        const requestHash = createHash('sha256').update(JSON.stringify({
+            items: dto.items.map((item) => ({
+                productId: item.productId,
+                size: item.size,
+                toppings: [...(item.toppings ?? [])].sort(),
+                qty: item.qty,
+            })),
+            voucherCode: dto.voucherCode?.trim().toUpperCase() || null,
+        })).digest('hex');
+        const replay = await this.findCreateReplay(userId, idempotencyKey, requestHash);
+        if (replay) return replay;
+
+        try {
+            const order = await this.prisma.$transaction(
             async (tx) => {
+                // Tranh quyền sở hữu key TRƯỚC khi đụng đến kho.
+                // Unique constraint buộc yêu cầu cùng key phải chờ giao dịch đầu.
+                await tx.orderCreateRequest.create({
+                    data: { userId, idempotencyKey, requestHash },
+                });
                 const productIds = [...new Set(dto.items.map((i) => i.productId))];
                 const products = await tx.product.findMany({
                     where: { id: { in: productIds } },
@@ -81,7 +101,7 @@ export class OrdersService {
                 // Trừ kho và tạo đơn nằm chung một giao dịch: lỗi ở đâu thì hoàn tác tất cả.
                 const reservations = await this.inventory.reserve(tx, needs);
 
-                return tx.order.create({
+                const created = await tx.order.create({
                     data: {
                         userId,
                         total: subtotal - discount,
@@ -92,10 +112,39 @@ export class OrdersService {
                     },
                     include: ORDER_INCLUDE,
                 });
+                await tx.orderCreateRequest.update({
+                    where: { userId_idempotencyKey: { userId, idempotencyKey } },
+                    data: { orderId: created.id },
+                });
+                return created;
             },
             { maxWait: 10000, timeout: 20000 },
         );
-        return this.toResponse(order);
+            return this.toResponse(order);
+        } catch (error) {
+            if ((error as { code?: string }).code === 'P2002') {
+                // PostgreSQL transaction đã lỗi phải được rollback trước khi đọc lại.
+                const again = await this.findCreateReplay(userId, idempotencyKey, requestHash);
+                if (again) return again;
+            }
+            throw error;
+        }
+    }
+
+    private async findCreateReplay(userId: number, idempotencyKey: string, requestHash: string) {
+        const existing = await this.prisma.orderCreateRequest.findUnique({
+            where: { userId_idempotencyKey: { userId, idempotencyKey } },
+            include: { order: { include: ORDER_INCLUDE } },
+        });
+        if (!existing) return null;
+        if (existing.requestHash !== requestHash) {
+            throw new ConflictException('Idempotency-Key đã được dùng cho nội dung đặt hàng khác');
+        }
+        if (!existing.order) {
+            throw new ConflictException('Yêu cầu đặt hàng chưa có kết quả, vui lòng thử lại cùng key');
+        }
+        // Trả chính đơn cũ ở trạng thái hiện tại, không tạo đơn khác dù đã hủy/đã trả tiền.
+        return this.toResponse(existing.order);
     }
 
     async findOne(userId: number, id: number) {

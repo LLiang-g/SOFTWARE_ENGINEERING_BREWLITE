@@ -70,6 +70,11 @@ export type Voucher = Prisma.VoucherModel
  */
 export type Order = Prisma.OrderModel
 /**
+ * Model OrderCreateRequest
+ * 
+ */
+export type OrderCreateRequest = Prisma.OrderCreateRequestModel
+/**
  * Model OrderItem
  * 
  */

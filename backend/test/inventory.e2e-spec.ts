@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -137,7 +138,7 @@ describe('Tồn kho (e2e)', () => {
         const productId = await newProduct(5);
         const before = await prisma.order.count({ where: { userId } });
         await request(app.getHttpServer())
-            .post('/orders')
+            .post('/orders').set('Idempotency-Key', randomUUID())
             .set('Authorization', `Bearer ${token}`)
             .send({ items: [[{ productId, size: 'S', qty: 1 }]] })
             .expect(400);
@@ -173,7 +174,7 @@ describe('Tồn kho (e2e)', () => {
     it('server tự tính giá size/topping và trừ tổng số ly của cùng món', async () => {
         const productId = await newProduct(5);
         const created = await request(app.getHttpServer())
-            .post('/orders')
+            .post('/orders').set('Idempotency-Key', randomUUID())
             .set('Authorization', `Bearer ${token}`)
             .send({
                 total: 1,
@@ -191,14 +192,14 @@ describe('Tồn kho (e2e)', () => {
 
     it('chưa đăng nhập không thể đặt đơn hoặc trừ kho', async () => {
         const productId = await newProduct(5);
-        await request(app.getHttpServer()).post('/orders')
+        await request(app.getHttpServer()).post('/orders').set('Idempotency-Key', randomUUID())
             .send({ items: [{ productId, size: 'S', qty: 1 }] }).expect(401);
         expect(await stockOf(productId)).toBe(5);
     });
 
     it.each([0, -1, 1.5, 100, '2', null])('từ chối số lượng không hợp lệ %s, không trừ kho', async (qty) => {
         const productId = await newProduct(5);
-        await request(app.getHttpServer()).post('/orders')
+        await request(app.getHttpServer()).post('/orders').set('Idempotency-Key', randomUUID())
             .set('Authorization', `Bearer ${token}`)
             .send({ items: [{ productId, size: 'S', qty }] }).expect(400);
         expect(await stockOf(productId)).toBe(5);
@@ -213,7 +214,7 @@ describe('Tồn kho (e2e)', () => {
     ])('dữ liệu món không hợp lệ không tạo đơn hoặc trừ kho: %j', async (item) => {
         const productId = await newProduct(5);
         const before = await prisma.order.count({ where: { userId } });
-        await request(app.getHttpServer()).post('/orders')
+        await request(app.getHttpServer()).post('/orders').set('Idempotency-Key', randomUUID())
             .set('Authorization', `Bearer ${token}`)
             .send({ items: [{ productId, ...item }] }).expect(400);
         expect(await stockOf(productId)).toBe(5);

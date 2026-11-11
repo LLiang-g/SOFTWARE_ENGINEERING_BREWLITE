@@ -57,6 +57,7 @@ export const ModelName = {
   User: 'User',
   Voucher: 'Voucher',
   Order: 'Order',
+  OrderCreateRequest: 'OrderCreateRequest',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
   OrderInventoryReservation: 'OrderInventoryReservation',
@@ -142,6 +143,17 @@ export const OrderScalarFieldEnum = {
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
+
+
+export const OrderCreateRequestScalarFieldEnum = {
+  userId: 'userId',
+  idempotencyKey: 'idempotencyKey',
+  requestHash: 'requestHash',
+  orderId: 'orderId',
+  createdAt: 'createdAt'
+} as const
+
+export type OrderCreateRequestScalarFieldEnum = (typeof OrderCreateRequestScalarFieldEnum)[keyof typeof OrderCreateRequestScalarFieldEnum]
 
 
 export const OrderItemScalarFieldEnum = {

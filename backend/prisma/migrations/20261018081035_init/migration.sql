@@ -145,6 +145,23 @@ ALTER TABLE "OrderInventoryReservation"
     ON DELETE RESTRICT ON UPDATE CASCADE;
 
 
+
+-- New requests only; existing orders need no idempotency backfill.
+CREATE TABLE "OrderCreateRequest" (
+    "userId" INTEGER NOT NULL,
+    "idempotencyKey" VARCHAR(100) NOT NULL,
+    "requestHash" CHAR(64) NOT NULL,
+    "orderId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "OrderCreateRequest_pkey" PRIMARY KEY ("userId", "idempotencyKey")
+);
+CREATE UNIQUE INDEX "OrderCreateRequest_orderId_key" ON "OrderCreateRequest"("orderId");
+ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_orderId_fkey"
+    FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
 -- =========================================
 -- 3. CREATE INDEXES
 -- =========================================

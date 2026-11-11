@@ -1,6 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { hash } from 'bcryptjs';
+import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { calcServings } from '../src/products/availability';
@@ -59,6 +60,7 @@ export function createOrder(
 ) {
     return request(app.getHttpServer())
         .post('/orders')
+        .set('Idempotency-Key', randomUUID())
         .set('Authorization', `Bearer ${token}`)
         .send({ items, ...(voucherCode ? { voucherCode } : {}) });
 }
@@ -148,6 +150,8 @@ export async function cleanupUsers(prisma: PrismaService, userIds: number[]) {
     await prisma.loyaltyTransaction.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+    await prisma.orderInventoryReservation.deleteMany({ where: { orderId: { in: orderIds } } });
+    await prisma.orderCreateRequest.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
 }

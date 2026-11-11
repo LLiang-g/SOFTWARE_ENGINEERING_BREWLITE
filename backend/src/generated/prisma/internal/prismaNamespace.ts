@@ -403,6 +403,7 @@ export const ModelName = {
   User: 'User',
   Voucher: 'Voucher',
   Order: 'Order',
+  OrderCreateRequest: 'OrderCreateRequest',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
   OrderInventoryReservation: 'OrderInventoryReservation',
@@ -422,7 +423,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "product" | "ingredient" | "recipe" | "user" | "voucher" | "order" | "orderItem" | "payment" | "orderInventoryReservation" | "loyaltyTransaction"
+    modelProps: "product" | "ingredient" | "recipe" | "user" | "voucher" | "order" | "orderCreateRequest" | "orderItem" | "payment" | "orderInventoryReservation" | "loyaltyTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -870,6 +871,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OrderCreateRequest: {
+      payload: Prisma.$OrderCreateRequestPayload<ExtArgs>
+      fields: Prisma.OrderCreateRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrderCreateRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrderCreateRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.OrderCreateRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrderCreateRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>
+        }
+        findMany: {
+          args: Prisma.OrderCreateRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>[]
+        }
+        create: {
+          args: Prisma.OrderCreateRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>
+        }
+        createMany: {
+          args: Prisma.OrderCreateRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrderCreateRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.OrderCreateRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>
+        }
+        update: {
+          args: Prisma.OrderCreateRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrderCreateRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrderCreateRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrderCreateRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.OrderCreateRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderCreateRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.OrderCreateRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrderCreateRequest>
+        }
+        groupBy: {
+          args: Prisma.OrderCreateRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderCreateRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrderCreateRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderCreateRequestCountAggregateOutputType> | number
+        }
+      }
+    }
     OrderItem: {
       payload: Prisma.$OrderItemPayload<ExtArgs>
       fields: Prisma.OrderItemFieldRefs
@@ -1270,6 +1345,17 @@ export const OrderScalarFieldEnum = {
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
 
 
+export const OrderCreateRequestScalarFieldEnum = {
+  userId: 'userId',
+  idempotencyKey: 'idempotencyKey',
+  requestHash: 'requestHash',
+  orderId: 'orderId',
+  createdAt: 'createdAt'
+} as const
+
+export type OrderCreateRequestScalarFieldEnum = (typeof OrderCreateRequestScalarFieldEnum)[keyof typeof OrderCreateRequestScalarFieldEnum]
+
+
 export const OrderItemScalarFieldEnum = {
   id: 'id',
   orderId: 'orderId',
@@ -1638,6 +1724,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   voucher?: Prisma.VoucherOmit
   order?: Prisma.OrderOmit
+  orderCreateRequest?: Prisma.OrderCreateRequestOmit
   orderItem?: Prisma.OrderItemOmit
   payment?: Prisma.PaymentOmit
   orderInventoryReservation?: Prisma.OrderInventoryReservationOmit
