@@ -6,10 +6,11 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { OrdersGateway } from '../src/realtime/orders.gateway';
 import { MockGatewayService } from '../src/payments/mock-gateway.service';
 import { LoyaltyService } from '../src/promotions/loyalty.service';
+import { calcServings } from '../src/products/availability';
 import type { OrderStatus } from '../src/generated/prisma/client';
 import {
     cancelOrder, cleanupUsers, createBarista, createOrder, createTestApp,
-    createTestProduct, pay, registerUser,
+    createTestProduct, deleteTestProducts, pay, registerUser, servingsOf,
 } from './helpers';
 
 describe('API nhân viên và WebSocket', () => {
@@ -71,7 +72,7 @@ describe('API nhân viên và WebSocket', () => {
     afterAll(async () => {
         sockets.forEach((socket) => socket.disconnect());
         if (userId) await cleanupUsers(prisma, [userId, otherUserId, baristaId].filter(Boolean));
-        if (productId) await prisma.product.deleteMany({ where: { id: productId } });
+        if (productId) await deleteTestProducts(prisma, [productId]);
         await app?.close();
     });
 
@@ -105,11 +106,15 @@ describe('API nhân viên và WebSocket', () => {
                 cleanup();
                 try {
                     if (readStock) {
-                        const [order, product] = await prisma.$transaction([
+                        const [order, recipes] = await prisma.$transaction([
                             prisma.order.findUnique({ where: { id: orderId } }),
-                            prisma.product.findUniqueOrThrow({ where: { id: productId } }),
+                            prisma.recipe.findMany({
+                                where: { productId },
+                                select: { quantity: true, ingredient: { select: { stock: true } } },
+                            }),
                         ], { isolationLevel: 'RepeatableRead' });
-                        resolve({ args, status: order?.status, stock: product.stock });
+                        const stock = calcServings(recipes.map((r) => ({ quantity: r.quantity, stock: r.ingredient.stock })));
+                        resolve({ args, status: order?.status, stock });
                         return;
                     }
                     const order = await prisma.order.findUnique({ where: { id: orderId } });
@@ -202,13 +207,13 @@ describe('API nhân viên và WebSocket', () => {
 
     it('duyệt, pha xong, giao khách; không tạo Payment/trừ kho/cộng điểm lần nữa', async () => {
         const id = await newOrder(true);
-        const stock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const stock = (await servingsOf(prisma, productId));
         const points = (await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints;
         for (const status of ['PREPARING', 'READY', 'COMPLETED']) {
             const response = await update(id, status).expect(200);
             expect(response.body.status).toBe(status);
         }
-        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(stock);
+        expect((await servingsOf(prisma, productId))).toBe(stock);
         expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints).toBe(points);
         expect(await prisma.payment.count({ where: { orderId: id } })).toBe(1);
         await update(id, 'PREPARING').expect(409);
@@ -328,7 +333,7 @@ describe('API nhân viên và WebSocket', () => {
         ['READY', 'COMPLETED'],
     ] as const)('8 nhân viên cùng đổi %s → %s: một cập nhật, một sự kiện trên mỗi client', async (from, to) => {
         const { id } = await paidOrderAt(from);
-        const stock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const stock = (await servingsOf(prisma, productId));
         const points = (await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints;
         const messages = await recordChanges(async () => {
             const responses = await Promise.all(Array.from({ length: 8 }, () => update(id, to)));
@@ -338,7 +343,7 @@ describe('API nhân viên và WebSocket', () => {
         expect(messages).toEqual([[[]], [[]]]);
         expect((await prisma.order.findUniqueOrThrow({ where: { id } })).status).toBe(to);
         expect(await prisma.payment.count({ where: { orderId: id } })).toBe(1);
-        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(stock);
+        expect((await servingsOf(prisma, productId))).toBe(stock);
         expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints).toBe(points);
     });
 
@@ -357,7 +362,7 @@ describe('API nhân viên và WebSocket', () => {
     it('lỗi cộng điểm sau khi đã ghi Payment/PAID rollback toàn bộ và không phát sự kiện', async () => {
         const id = await newOrder();
         const before = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-        const stock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const stock = (await servingsOf(prisma, productId));
         const award = vi.spyOn(app.get(LoyaltyService), 'award').mockRejectedValueOnce(new Error('Test loyalty rollback'));
         const messages = await recordChanges(async () => {
             await pay(app, token, id, key()).expect(500);
@@ -367,7 +372,7 @@ describe('API nhân viên và WebSocket', () => {
         expect(await prisma.payment.count({ where: { orderId: id } })).toBe(0);
         expect((await prisma.order.findUniqueOrThrow({ where: { id } })).status).toBe('PENDING');
         expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).loyaltyPoints).toBe(before.loyaltyPoints);
-        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(stock);
+        expect((await servingsOf(prisma, productId))).toBe(stock);
         const changes = sockets.map((socket) => nextChange(socket, id));
         await pay(app, token, id, key()).expect(201);
         expect(await Promise.all(changes)).toEqual([
@@ -377,7 +382,7 @@ describe('API nhân viên và WebSocket', () => {
 
     it('hủy đơn chỉ thông báo khi tồn kho đã được hoàn, hủy lại không phát hoặc hoàn thêm', async () => {
         const id = await newOrder();
-        const reservedStock = (await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock;
+        const reservedStock = (await servingsOf(prisma, productId));
         const changes = sockets.map((socket) => nextChange(socket, id, true));
         await cancelOrder(app, token, id).expect(200);
         expect(await Promise.all(changes)).toEqual([
@@ -386,7 +391,7 @@ describe('API nhân viên và WebSocket', () => {
         ]);
         const messages = await recordChanges(async () => { await cancelOrder(app, token, id).expect(409); });
         expect(messages).toEqual([[], []]);
-        expect((await prisma.product.findUniqueOrThrow({ where: { id: productId } })).stock).toBe(reservedStock + 1);
+        expect((await servingsOf(prisma, productId))).toBe(reservedStock + 1);
     });
 
     it('thất bại lần đầu phát sự kiện; thất bại không đổi trạng thái không phát; thử lại thành công vào hàng đợi', async () => {

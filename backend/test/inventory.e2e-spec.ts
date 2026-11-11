@@ -8,7 +8,9 @@ import {
     createOrder,
     createTestApp,
     createTestProduct,
+    deleteTestProducts,
     registerUser,
+    servingsOf,
 } from './helpers';
 
 describe('Tồn kho (e2e)', () => {
@@ -25,9 +27,7 @@ describe('Tồn kho (e2e)', () => {
 
     afterAll(async () => {
         if (userId) await cleanupUsers(prisma, [userId]);
-        if (productIds.length > 0) {
-            await prisma.product.deleteMany({ where: { id: { in: productIds } } });
-        }
+        await deleteTestProducts(prisma, productIds);
         await app?.close();
     });
 
@@ -38,7 +38,7 @@ describe('Tồn kho (e2e)', () => {
     }
 
     async function stockOf(id: number): Promise<number> {
-        return (await prisma.product.findUniqueOrThrow({ where: { id } })).stock;
+        return servingsOf(prisma, id);
     }
 
     it('(c) 10 đơn đồng thời cho món còn 3 phần: đúng 3 đơn thành công, không bán vượt', async () => {

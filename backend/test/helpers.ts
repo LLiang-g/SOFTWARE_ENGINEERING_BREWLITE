@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { hash } from 'bcryptjs';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { calcServings } from '../src/products/availability';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 export async function createTestApp() {
@@ -86,14 +87,54 @@ export function pay(
     return req.send({ orderId, method: 'WALLET', ...extra });
 }
 
-export function createTestProduct(prisma: PrismaService, stock = 100) {
+// Mỗi ly của món test dùng 10 đơn vị một nguyên liệu riêng, nên servings ly = kho / 10.
+const TEST_UNIT = 10;
+
+/** Tạo món test cùng một nguyên liệu riêng và công thức, đủ để pha đúng `servings` ly. */
+export async function createTestProduct(
+    prisma: PrismaService,
+    servings = 100,
+    overrides: { name?: string; price?: number } = {},
+) {
+    const ingredient = await prisma.ingredient.create({
+        data: {
+            name: `E2E nguyên liệu ${Date.now()}-${counter++}`,
+            unit: 'g',
+            stock: servings * TEST_UNIT,
+        },
+    });
     return prisma.product.create({
         data: {
-            name: 'E2E test',
-            price: 40000,
+            name: overrides.name ?? 'E2E test',
+            price: overrides.price ?? 40000,
             imageUrl: '/test.jpg',
-            stock,
+            recipes: { create: { ingredientId: ingredient.id, quantity: TEST_UNIT } },
         },
+    });
+}
+
+/** Số ly còn lại của món, tính từ kho nguyên liệu giống như API. */
+export async function servingsOf(prisma: PrismaService, productId: number) {
+    const recipes = await prisma.recipe.findMany({
+        where: { productId },
+        select: { quantity: true, ingredient: { select: { stock: true } } },
+    });
+    return calcServings(
+        recipes.map((r) => ({ quantity: r.quantity, stock: r.ingredient.stock })),
+    );
+}
+
+/** Xóa món test cùng công thức và các nguyên liệu mà công thức đó dùng. */
+export async function deleteTestProducts(prisma: PrismaService, productIds: number[]) {
+    if (productIds.length === 0) return;
+    const recipes = await prisma.recipe.findMany({
+        where: { productId: { in: productIds } },
+        select: { ingredientId: true },
+    });
+    await prisma.recipe.deleteMany({ where: { productId: { in: productIds } } });
+    await prisma.product.deleteMany({ where: { id: { in: productIds } } });
+    await prisma.ingredient.deleteMany({
+        where: { id: { in: recipes.map((r) => r.ingredientId) } },
     });
 }
 

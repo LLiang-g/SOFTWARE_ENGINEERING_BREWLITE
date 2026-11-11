@@ -1,29 +1,55 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SIZE_EXTRA, TOPPINGS } from '../common/pricing';
+import { calcServings } from './availability';
+
+const PRODUCT_SELECT = {
+    id: true,
+    name: true,
+    price: true,
+    imageUrl: true,
+    recipes: {
+        select: { quantity: true, ingredient: { select: { stock: true } } },
+    },
+} as const;
+
+type ProductRow = {
+    recipes: { quantity: number; ingredient: { stock: number } }[];
+};
+
+// Số ly còn lại không lưu trong database: tính từ kho nguyên liệu theo công thức.
+function withAvailable<T extends ProductRow>({ recipes, ...product }: T) {
+    return {
+        ...product,
+        available: calcServings(
+            recipes.map((r) => ({ quantity: r.quantity, stock: r.ingredient.stock })),
+        ),
+    };
+}
 
 @Injectable()
 export class ProductsService {
     constructor(private readonly prisma: PrismaService) {}
 
-    findAll() {
-        return this.prisma.product.findMany({
-            select: { id: true, name: true, price: true, imageUrl: true },
+    async findAll() {
+        const products = await this.prisma.product.findMany({
+            select: PRODUCT_SELECT,
             orderBy: { id: 'asc' },
         });
+        return products.map(withAvailable);
     }
 
     async findOne(id: number) {
-        const product = await this.prisma.product.findUnique({
+        const row = await this.prisma.product.findUnique({
             where: { id },
-            select: { id: true, name: true, price: true, imageUrl: true },
+            select: PRODUCT_SELECT,
         });
-        if (!product) {
+        if (!row) {
             throw new NotFoundException('Không tìm thấy sản phẩm');
         }
 
         return {
-            ...product,
+            ...withAvailable(row),
             options: {
                 sizes: Object.entries(SIZE_EXTRA).map(([code, extra]) => ({
                     code,

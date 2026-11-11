@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
-    cleanupUsers, createOrder, createTestApp, createTestProduct, pay, registerUser,
+    cleanupUsers, createOrder, createTestApp, createTestProduct, deleteTestProducts, pay, registerUser,
 } from './helpers';
 
 describe('Sổ cái điểm thưởng', () => {
@@ -17,14 +17,12 @@ describe('Sổ cái điểm thưởng', () => {
     beforeAll(async () => {
         ({ app, prisma } = await createTestApp());
         productId = (await createTestProduct(prisma)).id; // 40.000đ, size S: 4 điểm
-        cheapProductId = (await prisma.product.create({
-            data: { name: 'E2E rẻ', price: 9000, imageUrl: '/test.jpg', stock: 100 },
-        })).id; // 9.000đ: chưa đủ 1 điểm
+        cheapProductId = (await createTestProduct(prisma, 100, { name: 'E2E rẻ', price: 9000 })).id; // 9.000đ: chưa đủ 1 điểm
     });
 
     afterAll(async () => {
         await cleanupUsers(prisma, userIds);
-        await prisma.product.deleteMany({ where: { id: { in: [productId, cheapProductId] } } });
+        await deleteTestProducts(prisma, [productId, cheapProductId]);
         await app?.close();
     });
 
