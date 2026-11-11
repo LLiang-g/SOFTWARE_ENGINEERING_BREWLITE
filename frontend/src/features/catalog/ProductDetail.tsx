@@ -26,6 +26,10 @@ export default function ProductDetail({
         if (timer.current) clearTimeout(timer.current);
     }, []);
 
+    const soldOut = product.available <= 0;
+    const left = product.availableBySize[size] ?? 0;
+    const maxQty = Math.max(1, Math.min(99, left));
+
     const unitPrice = calcUnitPrice(
         product.price,
         size,
@@ -40,6 +44,7 @@ export default function ProductDetail({
     }
 
     function handleAddToCart() {
+        if (soldOut) return;
         addItem(
             {
                 productId: product.id,
@@ -91,20 +96,29 @@ export default function ProductDetail({
                     {product.name}
                 </h1>
                 <p className="mt-1 text-muted tabular-nums">Giá gốc {formatPrice(product.price)}</p>
+                {soldOut && <p className="mt-2 font-semibold text-chili">Món này tạm hết hàng</p>}
+                {!soldOut && left <= 5 && (
+                    <p className="mt-2 text-sm font-semibold text-chili">Chỉ còn {left} ly</p>
+                )}
 
                 <section className="mt-7" aria-labelledby="size-title">
                     <h2 id="size-title" className="font-semibold">Chọn size</h2>
                     <div role="radiogroup" aria-labelledby="size-title" className="mt-3 grid grid-cols-3 gap-2.5">
                         {product.options.sizes.map((s) => {
                             const selected = size === s.code;
+                            const unavailable = (product.availableBySize[s.code] ?? 0) <= 0;
                             return (
                                 <button
                                     key={s.code}
                                     type="button"
                                     role="radio"
                                     aria-checked={selected}
-                                    onClick={() => setSize(s.code)}
-                                    className={`flex min-h-[68px] flex-col items-center justify-center rounded-2xl border-2 px-2 py-2 transition ${
+                                    disabled={unavailable}
+                                    onClick={() => {
+                                        setSize(s.code);
+                                        setQty((q) => Math.min(q, Math.max(1, product.availableBySize[s.code])));
+                                    }}
+                                    className={`flex min-h-[68px] flex-col items-center justify-center rounded-2xl border-2 px-2 py-2 transition disabled:cursor-not-allowed disabled:opacity-45 ${
                                         selected
                                             ? 'border-espresso bg-espresso text-white'
                                             : 'border-line bg-paper hover:border-roast'
@@ -112,7 +126,7 @@ export default function ProductDetail({
                                 >
                                     <span className="font-display text-xl leading-none font-bold">{s.code}</span>
                                     <span className={`mt-1 text-xs tabular-nums ${selected ? 'text-white/80' : 'text-muted'}`}>
-                                        {s.extra > 0 ? `+${formatPrice(s.extra)}` : 'Giá gốc'}
+                                        {unavailable ? 'Hết' : s.extra > 0 ? `+${formatPrice(s.extra)}` : 'Giá gốc'}
                                     </span>
                                 </button>
                             );
@@ -127,14 +141,19 @@ export default function ProductDetail({
                             <span className="text-sm text-muted">Không bắt buộc</span>
                         </div>
                         <div className="mt-3 space-y-2.5">
-                            {product.options.toppings.map((t) => (
+                            {product.options.toppings.map((t) => {
+                                const out = t.available === 0;
+                                return (
                                 <label
                                     key={t.code}
-                                    className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 border-line bg-paper px-4 transition has-[:checked]:border-espresso"
+                                    className={`flex min-h-14 items-center gap-3 rounded-2xl border-2 border-line bg-paper px-4 transition has-[:checked]:border-espresso ${
+                                        out ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                                    }`}
                                 >
                                     <input
                                         type="checkbox"
                                         checked={toppings.includes(t.code)}
+                                        disabled={out}
                                         onChange={() => toggleTopping(t.code)}
                                         className="peer sr-only"
                                     />
@@ -142,9 +161,12 @@ export default function ProductDetail({
                                         <IconCheck className="h-4 w-4" />
                                     </span>
                                     <span className="flex-1">{t.name}</span>
-                                    <span className="text-sm text-muted tabular-nums">+{formatPrice(t.price)}</span>
+                                    <span className="text-sm text-muted tabular-nums">
+                                        {out ? 'Hết' : `+${formatPrice(t.price)}`}
+                                    </span>
                                 </label>
-                            ))}
+                                );
+                            })}
                         </div>
                     </section>
                 )}
@@ -169,7 +191,7 @@ export default function ProductDetail({
                             <button
                                 type="button"
                                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                                disabled={qty <= 1}
+                                disabled={soldOut || qty <= 1}
                                 aria-label="Giảm số lượng"
                                 className="flex h-full w-11 items-center justify-center rounded-full disabled:opacity-35"
                             >
@@ -180,8 +202,8 @@ export default function ProductDetail({
                             </span>
                             <button
                                 type="button"
-                                onClick={() => setQty((q) => Math.min(99, q + 1))}
-                                disabled={qty >= 99}
+                                onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
+                                disabled={soldOut || qty >= maxQty}
                                 aria-label="Tăng số lượng"
                                 className="flex h-full w-11 items-center justify-center rounded-full disabled:opacity-35"
                             >
@@ -191,10 +213,11 @@ export default function ProductDetail({
                         <button
                             type="button"
                             onClick={handleAddToCart}
-                            className="flex h-12 flex-1 items-center justify-between rounded-full bg-espresso px-5 font-semibold text-white transition hover:bg-roast active:scale-[0.99]"
+                            disabled={soldOut}
+                            className="flex h-12 flex-1 items-center justify-between rounded-full bg-espresso px-5 font-semibold text-white transition hover:bg-roast active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-line disabled:text-muted disabled:hover:bg-line"
                         >
-                            <span>Thêm vào giỏ</span>
-                            <span className="tabular-nums">{formatPrice(unitPrice * qty)}</span>
+                            <span>{soldOut ? 'Hết hàng' : 'Thêm vào giỏ'}</span>
+                            {!soldOut && <span className="tabular-nums">{formatPrice(unitPrice * qty)}</span>}
                         </button>
                     </div>
                 </div>

@@ -59,7 +59,8 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
-  LoyaltyTransaction: 'LoyaltyTransaction'
+  LoyaltyTransaction: 'LoyaltyTransaction',
+  ToppingRecipe: 'ToppingRecipe'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -102,7 +103,8 @@ export const RecipeScalarFieldEnum = {
   id: 'id',
   productId: 'productId',
   ingredientId: 'ingredientId',
-  quantity: 'quantity'
+  quantity: 'quantity',
+  scalesWithSize: 'scalesWithSize'
 } as const
 
 export type RecipeScalarFieldEnum = (typeof RecipeScalarFieldEnum)[keyof typeof RecipeScalarFieldEnum]
@@ -179,6 +181,16 @@ export const LoyaltyTransactionScalarFieldEnum = {
 } as const
 
 export type LoyaltyTransactionScalarFieldEnum = (typeof LoyaltyTransactionScalarFieldEnum)[keyof typeof LoyaltyTransactionScalarFieldEnum]
+
+
+export const ToppingRecipeScalarFieldEnum = {
+  id: 'id',
+  toppingCode: 'toppingCode',
+  ingredientId: 'ingredientId',
+  quantity: 'quantity'
+} as const
+
+export type ToppingRecipeScalarFieldEnum = (typeof ToppingRecipeScalarFieldEnum)[keyof typeof ToppingRecipeScalarFieldEnum]
 
 
 export const SortOrder = {

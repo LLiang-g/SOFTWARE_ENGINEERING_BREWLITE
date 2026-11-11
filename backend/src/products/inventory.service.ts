@@ -4,48 +4,31 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
-import { calcServings } from './availability';
+import { TOPPINGS, type SizeCode } from '../common/pricing';
+import { calcServings, usagePerServing } from './availability';
 
-export type StockLine = { productId: number; qty: number };
+/** Một dòng của đơn: món, size, topping và số ly. */
+export type StockLine = {
+    productId: number;
+    qty: number;
+    size: SizeCode;
+    toppings: string[];
+};
 
-type Recipe = { ingredientId: number; quantity: number };
+type DrinkRecipe = { ingredientId: number; quantity: number; scalesWithSize: boolean };
+type ToppingRecipeRow = { toppingCode: string; ingredientId: number; quantity: number };
+type ProductRow = { id: number; name: string; recipes: DrinkRecipe[] };
 
 @Injectable()
 export class InventoryService {
     /**
-     * Trừ nguyên liệu cho các món (productId -> tổng số ly). Gọi bên trong một giao dịch.
-     * Khóa các dòng nguyên liệu theo thứ tự id, kiểm tra đủ hàng rồi mới trừ.
+     * Trừ nguyên liệu cho các dòng của đơn. Gọi bên trong một giao dịch.
+     * Cộng nhu cầu của cả đơn, khóa các dòng nguyên liệu theo thứ tự id,
+     * kiểm tra đủ hàng rồi mới trừ.
      */
-    async reserve(tx: Prisma.TransactionClient, needs: Map<number, number>) {
-        const products = await tx.product.findMany({
-            where: { id: { in: [...needs.keys()] } },
-            select: {
-                id: true,
-                name: true,
-                recipes: { select: { ingredientId: true, quantity: true } },
-            },
-        });
-        const byId = new Map(products.map((p) => [p.id, p]));
-
-        const demand = new Map<number, number>();
-        for (const productId of [...needs.keys()].sort((a, b) => a - b)) {
-            const product = byId.get(productId);
-            if (!product) {
-                throw new BadRequestException(`Sản phẩm #${productId} không tồn tại`);
-            }
-            if (product.recipes.length === 0) {
-                throw new ConflictException(
-                    `${product.name} chưa có công thức nên chưa bán được`,
-                );
-            }
-            const qty = needs.get(productId) as number;
-            for (const line of product.recipes) {
-                demand.set(
-                    line.ingredientId,
-                    (demand.get(line.ingredientId) ?? 0) + line.quantity * qty,
-                );
-            }
-        }
+    async reserve(tx: Prisma.TransactionClient, lines: StockLine[]) {
+        const { productById, toppingRecipes } = await this.load(tx, lines);
+        const demand = this.demandFor(lines, productById, toppingRecipes, true);
 
         // Luôn khóa theo id tăng dần để các giao dịch không khóa chéo nhau.
         const ids = [...demand.keys()].sort((a, b) => a - b);
@@ -58,7 +41,7 @@ export class InventoryService {
 
         for (const id of ids) {
             if ((stockById.get(id) ?? 0) < (demand.get(id) as number)) {
-                throw this.shortage(id, products, stockById);
+                throw this.shortage(id, lines, productById, toppingRecipes, stockById);
             }
         }
 
@@ -70,25 +53,12 @@ export class InventoryService {
         }
     }
 
-    /** Hoàn nguyên liệu (khi hủy đơn). Gọi bên trong một giao dịch. */
+    /** Hoàn nguyên liệu (khi hủy đơn) theo đúng size và topping của từng dòng. */
     async release(tx: Prisma.TransactionClient, lines: StockLine[]) {
-        const totals = new Map<number, number>();
-        for (const l of lines) {
-            totals.set(l.productId, (totals.get(l.productId) ?? 0) + l.qty);
-        }
+        const { productById, toppingRecipes } = await this.load(tx, lines);
+        const restore = this.demandFor(lines, productById, toppingRecipes, false);
 
-        const recipes = await tx.recipe.findMany({
-            where: { productId: { in: [...totals.keys()] } },
-            select: { productId: true, ingredientId: true, quantity: true },
-        });
-        const restore = new Map<number, number>();
-        for (const r of recipes) {
-            const amount = r.quantity * (totals.get(r.productId) as number);
-            restore.set(r.ingredientId, (restore.get(r.ingredientId) ?? 0) + amount);
-        }
-
-        const ids = [...restore.keys()].sort((a, b) => a - b);
-        for (const id of ids) {
+        for (const id of [...restore.keys()].sort((a, b) => a - b)) {
             await tx.ingredient.updateMany({
                 where: { id },
                 data: { stock: { increment: restore.get(id) as number } },
@@ -96,25 +66,127 @@ export class InventoryService {
         }
     }
 
-    /** Báo lỗi theo món bị thiếu: "<món> chỉ còn N phần", N tính từ kho hiện tại. */
+    private async load(tx: Prisma.TransactionClient, lines: StockLine[]) {
+        const productIds = [...new Set(lines.map((l) => l.productId))];
+        const toppingCodes = [...new Set(lines.flatMap((l) => l.toppings))];
+
+        const products = await tx.product.findMany({
+            where: { id: { in: productIds } },
+            select: {
+                id: true,
+                name: true,
+                recipes: {
+                    select: { ingredientId: true, quantity: true, scalesWithSize: true },
+                },
+            },
+        });
+        const toppingRecipes =
+            toppingCodes.length === 0
+                ? []
+                : await tx.toppingRecipe.findMany({
+                      where: { toppingCode: { in: toppingCodes } },
+                      select: { toppingCode: true, ingredientId: true, quantity: true },
+                  });
+
+        return {
+            productById: new Map<number, ProductRow>(products.map((p) => [p.id, p])),
+            toppingRecipes,
+        };
+    }
+
+    /**
+     * Tổng nguyên liệu cần cho các dòng (ingredientId -> lượng).
+     * strict = true khi đặt hàng: món không tồn tại hoặc chưa có công thức thì báo lỗi.
+     * strict = false khi hoàn kho: bỏ qua món đã mất công thức.
+     */
+    private demandFor(
+        lines: StockLine[],
+        productById: Map<number, ProductRow>,
+        toppingRecipes: ToppingRecipeRow[],
+        strict: boolean,
+    ) {
+        const demand = new Map<number, number>();
+        const add = (ingredientId: number, amount: number) =>
+            demand.set(ingredientId, (demand.get(ingredientId) ?? 0) + amount);
+
+        for (const line of lines) {
+            const product = productById.get(line.productId);
+            if (!product) {
+                if (strict) {
+                    throw new BadRequestException(`Sản phẩm #${line.productId} không tồn tại`);
+                }
+                continue;
+            }
+            if (product.recipes.length === 0 && strict) {
+                throw new ConflictException(
+                    `${product.name} chưa có công thức nên chưa bán được`,
+                );
+            }
+            for (const r of product.recipes) {
+                add(r.ingredientId, usagePerServing(r.quantity, r.scalesWithSize, line.size) * line.qty);
+            }
+            for (const code of line.toppings) {
+                for (const t of toppingRecipes) {
+                    if (t.toppingCode === code) add(t.ingredientId, t.quantity * line.qty);
+                }
+            }
+        }
+        return demand;
+    }
+
+    /**
+     * Báo lỗi theo món hoặc topping bị thiếu, ví dụ "Cà phê sữa chỉ còn 2 phần".
+     * Số phần còn lại tính từ kho hiện tại, theo size của dòng đang đặt.
+     */
     private shortage(
         ingredientId: number,
-        products: { id: number; name: string; recipes: Recipe[] }[],
+        lines: StockLine[],
+        productById: Map<number, ProductRow>,
+        toppingRecipes: ToppingRecipeRow[],
         stockById: Map<number, number>,
     ) {
-        const affected = products
-            .filter((p) => p.recipes.some((r) => r.ingredientId === ingredientId))
-            .map((p) => ({
-                name: p.name,
+        const stockOf = (id: number) => stockById.get(id) ?? 0;
+        const candidates: { name: string; left: number }[] = [];
+
+        const seenProducts = new Set<string>();
+        for (const line of lines) {
+            const product = productById.get(line.productId);
+            const key = `${line.productId}:${line.size}`;
+            if (!product || seenProducts.has(key)) continue;
+            if (!product.recipes.some((r) => r.ingredientId === ingredientId)) continue;
+            seenProducts.add(key);
+            candidates.push({
+                name: product.name,
                 left: calcServings(
-                    p.recipes.map((r) => ({
+                    product.recipes.map((r) => ({
                         quantity: r.quantity,
-                        stock: stockById.get(r.ingredientId) ?? 0,
+                        scalesWithSize: r.scalesWithSize,
+                        stock: stockOf(r.ingredientId),
+                    })),
+                    line.size,
+                ),
+            });
+        }
+
+        for (const code of new Set(lines.flatMap((l) => l.toppings))) {
+            const rows = toppingRecipes.filter((t) => t.toppingCode === code);
+            if (!rows.some((t) => t.ingredientId === ingredientId)) continue;
+            const name = TOPPINGS.find((t) => t.code === code)?.name ?? code;
+            candidates.push({
+                name: `Topping ${name}`,
+                left: calcServings(
+                    rows.map((t) => ({
+                        quantity: t.quantity,
+                        scalesWithSize: false,
+                        stock: stockOf(t.ingredientId),
                     })),
                 ),
-            }))
-            .sort((a, b) => a.left - b.left);
-        const worst = affected[0];
-        return new ConflictException(`${worst.name} chỉ còn ${worst.left} phần`);
+            });
+        }
+
+        const worst = [...candidates].sort((a, b) => a.left - b.left)[0];
+        return new ConflictException(
+            worst ? `${worst.name} chỉ còn ${worst.left} phần` : 'Không đủ nguyên liệu',
+        );
     }
 }

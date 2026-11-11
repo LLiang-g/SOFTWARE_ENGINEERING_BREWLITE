@@ -8,6 +8,13 @@ export const SIZE_EXTRA: Record<SizeCode, number> = {
     L: 10000,
 };
 
+// Hệ số nguyên liệu theo size, tính bằng phần trăm so với size S (nhân xong làm tròn lên).
+export const SIZE_FACTOR_PERCENT: Record<SizeCode, number> = {
+    S: 100,
+    M: 125,
+    L: 150,
+};
+
 export const TOPPINGS = [
     { code: 'TRAN_CHAU', name: 'Trân châu', price: 5000 },
     { code: 'KEM', name: 'Kem', price: 5000 },

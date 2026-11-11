@@ -13,6 +13,8 @@ describe('Nguyên liệu và công thức (e2e)', () => {
     let userId: number;
     const productIds: number[] = [];
     const ingredientIds: number[] = [];
+    // Công thức gốc của từng topping, chụp một lần ở lần thay đầu tiên để trả lại đúng khi xong.
+    const originalToppings = new Map<string, { toppingCode: string; ingredientId: number; quantity: number }[]>();
     let sequence = 0;
 
     beforeAll(async () => {
@@ -22,6 +24,10 @@ describe('Nguyên liệu và công thức (e2e)', () => {
 
     afterAll(async () => {
         if (userId) await cleanupUsers(prisma, [userId]);
+        for (const [code, rows] of originalToppings) {
+            await prisma.toppingRecipe.deleteMany({ where: { toppingCode: code } });
+            await prisma.toppingRecipe.createMany({ data: rows });
+        }
         await prisma.recipe.deleteMany({ where: { productId: { in: productIds } } });
         await prisma.product.deleteMany({ where: { id: { in: productIds } } });
         await prisma.ingredient.deleteMany({ where: { id: { in: ingredientIds } } });
@@ -36,7 +42,22 @@ describe('Nguyên liệu và công thức (e2e)', () => {
         return row.id;
     }
 
-    async function drink(recipe: { ingredientId: number; quantity: number }[]) {
+    // Tạm thay công thức của một topping bằng dòng test, rồi trả lại công thức cũ sau khi chạy xong.
+    async function toppingUses(code: string, lines: { ingredientId: number; quantity: number }[]) {
+        if (!originalToppings.has(code)) {
+            const saved = await prisma.toppingRecipe.findMany({ where: { toppingCode: code } });
+            originalToppings.set(
+                code,
+                saved.map(({ toppingCode, ingredientId, quantity }) => ({ toppingCode, ingredientId, quantity })),
+            );
+        }
+        await prisma.toppingRecipe.deleteMany({ where: { toppingCode: code } });
+        await prisma.toppingRecipe.createMany({
+            data: lines.map((l) => ({ toppingCode: code, ...l })),
+        });
+    }
+
+    async function drink(recipe: { ingredientId: number; quantity: number; scalesWithSize?: boolean }[]) {
         const row = await prisma.product.create({
             data: {
                 name: `E2E món ${Date.now()}-${sequence++}`,
@@ -181,5 +202,136 @@ describe('Nguyên liệu và công thức (e2e)', () => {
             prisma.recipe.create({ data: { productId, ingredientId: stuff, quantity: 7 } }),
         ).rejects.toMatchObject({ code: 'P2002' });
         expect(await stockOf(stuff)).toBe(10);
+    });
+
+    describe('hệ số theo size', () => {
+        it('size lớn dùng nhiều nguyên liệu hơn, ly nhựa giữ nguyên', async () => {
+            const milk = await ingredient(1000);
+            const cup = await ingredient(10);
+            const productId = await drink([
+                { ingredientId: milk, quantity: 100 },
+                { ingredientId: cup, quantity: 1, scalesWithSize: false },
+            ]);
+
+            await createOrder(app, token, [{ productId, size: 'L', qty: 2 }]).expect(201);
+            expect([await stockOf(milk), await stockOf(cup)]).toEqual([700, 8]);
+
+            await createOrder(app, token, [{ productId, size: 'M', qty: 1 }]).expect(201);
+            expect([await stockOf(milk), await stockOf(cup)]).toEqual([575, 7]);
+        });
+
+        it('API trả số ly còn lại theo từng size', async () => {
+            const milk = await ingredient(1000);
+            const cup = await ingredient(7);
+            const productId = await drink([
+                { ingredientId: milk, quantity: 100 },
+                { ingredientId: cup, quantity: 1, scalesWithSize: false },
+            ]);
+
+            const one = await request(app.getHttpServer()).get(`/products/${productId}`).expect(200);
+            expect(one.body.availableBySize).toEqual({ S: 7, M: 7, L: 6 });
+            expect(one.body.available).toBe(7);
+
+            const list = await request(app.getHttpServer()).get('/products').expect(200);
+            const item = list.body.find((p: { id: number }) => p.id === productId);
+            expect(item.availableBySize).toEqual({ S: 7, M: 7, L: 6 });
+        });
+
+        it('kho chỉ đủ ly nhỏ thì đơn size lớn bị từ chối, size nhỏ vẫn đặt được', async () => {
+            const milk = await ingredient(140);
+            const productId = await drink([{ ingredientId: milk, quantity: 100 }]);
+
+            const large = await createOrder(app, token, [{ productId, size: 'L', qty: 1 }]);
+            expect(large.status).toBe(409);
+            expect(large.body.message).toContain('chỉ còn 0 phần');
+            expect(await stockOf(milk)).toBe(140);
+
+            await createOrder(app, token, [{ productId, size: 'S', qty: 1 }]).expect(201);
+            expect(await stockOf(milk)).toBe(40);
+        });
+
+        it('hủy đơn hoàn đúng lượng theo size và topping', async () => {
+            const milk = await ingredient(1000);
+            const pearls = await ingredient(500);
+            await toppingUses('TRAN_CHAU', [{ ingredientId: pearls, quantity: 50 }]);
+            const productId = await drink([{ ingredientId: milk, quantity: 100 }]);
+
+            const created = await createOrder(app, token, [
+                { productId, size: 'L', qty: 2, toppings: ['TRAN_CHAU'] },
+            ]).expect(201);
+            expect([await stockOf(milk), await stockOf(pearls)]).toEqual([700, 400]);
+
+            await cancelOrder(app, token, created.body.id).expect(200);
+            expect([await stockOf(milk), await stockOf(pearls)]).toEqual([1000, 500]);
+        });
+    });
+
+    describe('topping dùng nguyên liệu', () => {
+        it('topping trừ nguyên liệu theo số ly, không nhân theo size', async () => {
+            const coffee = await ingredient(1000);
+            const pearls = await ingredient(100);
+            await toppingUses('TRAN_CHAU', [{ ingredientId: pearls, quantity: 50 }]);
+            const productId = await drink([{ ingredientId: coffee, quantity: 20 }]);
+
+            await createOrder(app, token, [
+                { productId, size: 'L', qty: 2, toppings: ['TRAN_CHAU'] },
+            ]).expect(201);
+
+            expect(await stockOf(pearls)).toBe(0);
+            expect(await stockOf(coffee)).toBe(940);
+        });
+
+        it('API trả số phần topping còn lại, null nếu topping không theo dõi kho', async () => {
+            const pearls = await ingredient(120);
+            await toppingUses('TRAN_CHAU', [{ ingredientId: pearls, quantity: 50 }]);
+            await toppingUses('KEM', []);
+            const coffee = await ingredient(100);
+            const productId = await drink([{ ingredientId: coffee, quantity: 20 }]);
+
+            const one = await request(app.getHttpServer()).get(`/products/${productId}`).expect(200);
+            const byCode = Object.fromEntries(
+                one.body.options.toppings.map((t: { code: string; available: number | null }) => [t.code, t.available]),
+            );
+            expect(byCode.TRAN_CHAU).toBe(2);
+            expect(byCode.KEM).toBeNull();
+
+            // Topping không theo dõi kho vẫn đặt được và không trừ gì thêm.
+            await createOrder(app, token, [
+                { productId, size: 'S', qty: 1, toppings: ['KEM'] },
+            ]).expect(201);
+            expect(await stockOf(coffee)).toBe(80);
+        });
+
+        it('hết topping thì cả đơn bị từ chối, nguyên liệu của món không bị trừ', async () => {
+            const coffee = await ingredient(1000);
+            const pearls = await ingredient(40);
+            await toppingUses('TRAN_CHAU', [{ ingredientId: pearls, quantity: 50 }]);
+            const productId = await drink([{ ingredientId: coffee, quantity: 20 }]);
+
+            const res = await createOrder(app, token, [
+                { productId, size: 'S', qty: 1, toppings: ['TRAN_CHAU'] },
+            ]);
+
+            expect(res.status).toBe(409);
+            expect(res.body.message).toBe('Topping Trân châu chỉ còn 0 phần');
+            expect(await stockOf(coffee)).toBe(1000);
+            expect(await stockOf(pearls)).toBe(40);
+        });
+
+        it('database chặn lượng dùng của topping bằng 0 hoặc trùng nguyên liệu', async () => {
+            const stuff = await ingredient(10);
+            await toppingUses('KEM', [{ ingredientId: stuff, quantity: 5 }]);
+
+            await expect(
+                prisma.toppingRecipe.create({
+                    data: { toppingCode: 'KEM', ingredientId: await ingredient(1), quantity: 0 },
+                }),
+            ).rejects.toThrow();
+            await expect(
+                prisma.toppingRecipe.create({
+                    data: { toppingCode: 'KEM', ingredientId: stuff, quantity: 7 },
+                }),
+            ).rejects.toMatchObject({ code: 'P2002' });
+        });
     });
 });

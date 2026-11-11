@@ -7,6 +7,7 @@ import ProductImage from './ProductImage';
 
 export default function ProductCard({ product }: { product: Product }) {
     const tint = DRINK_TINT[drinkKindFor(product.name)];
+    const soldOut = product.available <= 0;
 
     return (
         <Link href={`/products/${product.id}`} className="group block rounded-[22px]">
@@ -14,15 +15,27 @@ export default function ProductCard({ product }: { product: Product }) {
                 className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[22px]"
                 style={{ backgroundColor: tint }}
             >
-                <ProductImage src={product.imageUrl} alt={product.name} />
-                <span
-                    aria-hidden="true"
-                    className="absolute right-2.5 bottom-2.5 flex h-10 w-10 items-center justify-center rounded-full bg-espresso text-white transition group-hover:scale-105 group-active:scale-95"
+                <div
+                    className={`flex h-full w-full items-center justify-center ${
+                        soldOut ? 'opacity-55 grayscale' : ''
+                    }`}
                 >
-                    <IconPlus className="h-5 w-5" />
-                </span>
+                    <ProductImage src={product.imageUrl} alt={product.name} />
+                </div>
+                {soldOut ? (
+                    <span className="absolute top-2.5 left-2.5 rounded-full bg-espresso px-3 py-1 text-xs font-semibold text-white">
+                        Hết hàng
+                    </span>
+                ) : (
+                    <span
+                        aria-hidden="true"
+                        className="absolute right-2.5 bottom-2.5 flex h-10 w-10 items-center justify-center rounded-full bg-espresso text-white transition group-hover:scale-105 group-active:scale-95"
+                    >
+                        <IconPlus className="h-5 w-5" />
+                    </span>
+                )}
             </div>
-            <h3 className="mt-3 leading-snug font-semibold">{product.name}</h3>
+            <h3 className={`mt-3 leading-snug font-semibold ${soldOut ? 'text-muted' : ''}`}>{product.name}</h3>
             <p className="mt-0.5 text-[15px] text-muted tabular-nums">{formatPrice(product.price)}</p>
         </Link>
     );

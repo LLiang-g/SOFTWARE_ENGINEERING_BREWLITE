@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SIZE_EXTRA, TOPPINGS } from '../common/pricing';
-import { calcServings } from './availability';
+import { calcServings, calcServingsBySize } from './availability';
 
 const PRODUCT_SELECT = {
     id: true,
@@ -9,22 +9,33 @@ const PRODUCT_SELECT = {
     price: true,
     imageUrl: true,
     recipes: {
-        select: { quantity: true, ingredient: { select: { stock: true } } },
+        select: {
+            quantity: true,
+            scalesWithSize: true,
+            ingredient: { select: { stock: true } },
+        },
     },
 } as const;
 
 type ProductRow = {
-    recipes: { quantity: number; ingredient: { stock: number } }[];
+    recipes: {
+        quantity: number;
+        scalesWithSize: boolean;
+        ingredient: { stock: number };
+    }[];
 };
 
 // Số ly còn lại không lưu trong database: tính từ kho nguyên liệu theo công thức.
+// available là số ly size S (nhiều nhất), availableBySize cho từng size.
 function withAvailable<T extends ProductRow>({ recipes, ...product }: T) {
-    return {
-        ...product,
-        available: calcServings(
-            recipes.map((r) => ({ quantity: r.quantity, stock: r.ingredient.stock })),
-        ),
-    };
+    const availableBySize = calcServingsBySize(
+        recipes.map((r) => ({
+            quantity: r.quantity,
+            scalesWithSize: r.scalesWithSize,
+            stock: r.ingredient.stock,
+        })),
+    );
+    return { ...product, available: availableBySize.S, availableBySize };
 }
 
 @Injectable()
@@ -48,6 +59,14 @@ export class ProductsService {
             throw new NotFoundException('Không tìm thấy sản phẩm');
         }
 
+        const toppingRecipes = await this.prisma.toppingRecipe.findMany({
+            select: {
+                toppingCode: true,
+                quantity: true,
+                ingredient: { select: { stock: true } },
+            },
+        });
+
         return {
             ...withAvailable(row),
             options: {
@@ -55,7 +74,23 @@ export class ProductsService {
                     code,
                     extra,
                 })),
-                toppings: TOPPINGS,
+                // available = null: topping chưa khai báo nguyên liệu nên không theo dõi kho.
+                toppings: TOPPINGS.map((topping) => {
+                    const lines = toppingRecipes.filter((r) => r.toppingCode === topping.code);
+                    return {
+                        ...topping,
+                        available:
+                            lines.length === 0
+                                ? null
+                                : calcServings(
+                                      lines.map((r) => ({
+                                          quantity: r.quantity,
+                                          scalesWithSize: false,
+                                          stock: r.ingredient.stock,
+                                      })),
+                                  ),
+                    };
+                }),
             },
         };
     }

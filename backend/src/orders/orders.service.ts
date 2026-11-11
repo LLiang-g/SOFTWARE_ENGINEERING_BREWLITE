@@ -46,7 +46,6 @@ export class OrdersService {
                 });
                 const byId = new Map(products.map((p) => [p.id, p]));
 
-                const needs = new Map<number, number>();
                 const lines = dto.items.map((item) => {
                     const product = byId.get(item.productId);
                     if (!product) {
@@ -56,7 +55,6 @@ export class OrdersService {
                     }
                     const toppings = item.toppings ?? [];
                     const unitPrice = calcUnitPrice(product.price, item.size, toppings);
-                    needs.set(item.productId, (needs.get(item.productId) ?? 0) + item.qty);
                     return {
                         productId: item.productId,
                         size: item.size,
@@ -79,7 +77,15 @@ export class OrdersService {
                 }
 
                 // Trừ kho và tạo đơn nằm chung một giao dịch: lỗi ở đâu thì hoàn tác tất cả.
-                await this.inventory.reserve(tx, needs);
+                await this.inventory.reserve(
+                    tx,
+                    lines.map((l) => ({
+                        productId: l.productId,
+                        qty: l.qty,
+                        size: l.size,
+                        toppings: l.toppings,
+                    })),
+                );
 
                 return tx.order.create({
                     data: {
@@ -136,7 +142,12 @@ export class OrdersService {
             // Chỉ hoàn kho khi chính giao dịch này đổi được trạng thái: hủy hai lần không hoàn hai lần.
             await this.inventory.release(
                 tx,
-                order.items.map((i) => ({ productId: i.productId, qty: i.qty })),
+                order.items.map((i) => ({
+                    productId: i.productId,
+                    qty: i.qty,
+                    size: i.size,
+                    toppings: i.toppings,
+                })),
             );
         });
 

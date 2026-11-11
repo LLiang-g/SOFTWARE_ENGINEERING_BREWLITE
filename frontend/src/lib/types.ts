@@ -3,11 +3,15 @@ export type Product = {
     name: string;
     price: number;
     imageUrl: string;
+    // Số ly còn lại tính từ kho nguyên liệu: available là size S, availableBySize cho từng size.
+    available: number;
+    availableBySize: Record<SizeCode, number>;
 };
 
 export type SizeCode = 'S' | 'M' | 'L';
 export type SizeOption = { code: SizeCode; extra: number };
-export type ToppingOption = { code: string; name: string; price: number };
+// available: null nghĩa là topping không theo dõi kho.
+export type ToppingOption = { code: string; name: string; price: number; available: number | null };
 export type ProductOptions = {
     sizes: SizeOption[];
     toppings: ToppingOption[];

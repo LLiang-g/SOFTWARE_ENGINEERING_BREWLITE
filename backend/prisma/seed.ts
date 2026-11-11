@@ -32,6 +32,8 @@ async function main() {
         { name: 'Syrup đào', unit: 'ml', stock: 1500 },
         { name: 'Đào ngâm', unit: 'miếng', stock: 100 },
         { name: 'Ly nhựa', unit: 'cái', stock: 200 },
+        { name: 'Trân châu', unit: 'g', stock: 2500 },
+        { name: 'Kem sữa', unit: 'ml', stock: 1500 },
     ];
     const ingredientId = new Map<string, number>();
     for (const i of ingredients) {
@@ -43,21 +45,39 @@ async function main() {
         ingredientId.set(i.name, row.id);
     }
 
-    // productId -> [tên nguyên liệu, lượng dùng cho một ly]
-    const recipes: Record<number, [string, number][]> = {
-        1: [['Cà phê rang xay', 20], ['Sữa đặc', 30], ['Ly nhựa', 1]],
-        2: [['Cà phê rang xay', 18], ['Ly nhựa', 1]],
-        3: [['Cà phê rang xay', 18], ['Sữa tươi', 150], ['Ly nhựa', 1]],
-        4: [['Trà đen', 10], ['Syrup đào', 30], ['Đào ngâm', 2], ['Ly nhựa', 1]],
+    // productId -> [tên nguyên liệu, lượng dùng cho một ly ở size S, có nhân theo size không].
+    // Lượng dùng nhân theo hệ số size (SIZE_FACTOR_PERCENT), trừ nguyên liệu như ly nhựa.
+    const recipes: Record<number, [string, number, boolean?][]> = {
+        1: [['Cà phê rang xay', 20], ['Sữa đặc', 30], ['Ly nhựa', 1, false]],
+        2: [['Cà phê rang xay', 18], ['Ly nhựa', 1, false]],
+        3: [['Cà phê rang xay', 18], ['Sữa tươi', 150], ['Ly nhựa', 1, false]],
+        4: [['Trà đen', 10], ['Syrup đào', 30], ['Đào ngâm', 2], ['Ly nhựa', 1, false]],
     };
     for (const [productId, lines] of Object.entries(recipes)) {
-        for (const [name, quantity] of lines) {
+        for (const [name, quantity, scales] of lines) {
+            const scalesWithSize = scales ?? true;
             const key = {
                 productId: Number(productId),
                 ingredientId: ingredientId.get(name) as number,
             };
             await prisma.recipe.upsert({
                 where: { productId_ingredientId: key },
+                update: { quantity, scalesWithSize },
+                create: { ...key, quantity, scalesWithSize },
+            });
+        }
+    }
+
+    // toppingCode (trong TOPPINGS) -> [tên nguyên liệu, lượng dùng cho một ly]. Không nhân theo size.
+    const toppingRecipes: Record<string, [string, number][]> = {
+        TRAN_CHAU: [['Trân châu', 50]],
+        KEM: [['Kem sữa', 30]],
+    };
+    for (const [toppingCode, lines] of Object.entries(toppingRecipes)) {
+        for (const [name, quantity] of lines) {
+            const key = { toppingCode, ingredientId: ingredientId.get(name) as number };
+            await prisma.toppingRecipe.upsert({
+                where: { toppingCode_ingredientId: key },
                 update: { quantity },
                 create: { ...key, quantity },
             });
@@ -90,7 +110,7 @@ async function main() {
         },
     });
 
-    console.log(`Seed xong: 4 sản phẩm, ${ingredients.length} nguyên liệu, công thức 4 món, 1 voucher BREW10, tài khoản barista ${baristaEmail}`);
+    console.log(`Seed xong: 4 sản phẩm, ${ingredients.length} nguyên liệu, công thức 4 món và 2 topping, 1 voucher BREW10, tài khoản barista ${baristaEmail}`);
 }
 
 main()

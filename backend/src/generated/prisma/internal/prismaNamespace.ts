@@ -405,7 +405,8 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
-  LoyaltyTransaction: 'LoyaltyTransaction'
+  LoyaltyTransaction: 'LoyaltyTransaction',
+  ToppingRecipe: 'ToppingRecipe'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "product" | "ingredient" | "recipe" | "user" | "voucher" | "order" | "orderItem" | "payment" | "loyaltyTransaction"
+    modelProps: "product" | "ingredient" | "recipe" | "user" | "voucher" | "order" | "orderItem" | "payment" | "loyaltyTransaction" | "toppingRecipe"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1091,6 +1092,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ToppingRecipe: {
+      payload: Prisma.$ToppingRecipePayload<ExtArgs>
+      fields: Prisma.ToppingRecipeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ToppingRecipeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ToppingRecipeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>
+        }
+        findFirst: {
+          args: Prisma.ToppingRecipeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ToppingRecipeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>
+        }
+        findMany: {
+          args: Prisma.ToppingRecipeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>[]
+        }
+        create: {
+          args: Prisma.ToppingRecipeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>
+        }
+        createMany: {
+          args: Prisma.ToppingRecipeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ToppingRecipeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>[]
+        }
+        delete: {
+          args: Prisma.ToppingRecipeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>
+        }
+        update: {
+          args: Prisma.ToppingRecipeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>
+        }
+        deleteMany: {
+          args: Prisma.ToppingRecipeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ToppingRecipeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ToppingRecipeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>[]
+        }
+        upsert: {
+          args: Prisma.ToppingRecipeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToppingRecipePayload>
+        }
+        aggregate: {
+          args: Prisma.ToppingRecipeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateToppingRecipe>
+        }
+        groupBy: {
+          args: Prisma.ToppingRecipeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToppingRecipeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ToppingRecipeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToppingRecipeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1154,7 +1229,8 @@ export const RecipeScalarFieldEnum = {
   id: 'id',
   productId: 'productId',
   ingredientId: 'ingredientId',
-  quantity: 'quantity'
+  quantity: 'quantity',
+  scalesWithSize: 'scalesWithSize'
 } as const
 
 export type RecipeScalarFieldEnum = (typeof RecipeScalarFieldEnum)[keyof typeof RecipeScalarFieldEnum]
@@ -1233,6 +1309,16 @@ export const LoyaltyTransactionScalarFieldEnum = {
 export type LoyaltyTransactionScalarFieldEnum = (typeof LoyaltyTransactionScalarFieldEnum)[keyof typeof LoyaltyTransactionScalarFieldEnum]
 
 
+export const ToppingRecipeScalarFieldEnum = {
+  id: 'id',
+  toppingCode: 'toppingCode',
+  ingredientId: 'ingredientId',
+  quantity: 'quantity'
+} as const
+
+export type ToppingRecipeScalarFieldEnum = (typeof ToppingRecipeScalarFieldEnum)[keyof typeof ToppingRecipeScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1292,6 +1378,13 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -1316,13 +1409,6 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1555,6 +1641,7 @@ export type GlobalOmitConfig = {
   orderItem?: Prisma.OrderItemOmit
   payment?: Prisma.PaymentOmit
   loyaltyTransaction?: Prisma.LoyaltyTransactionOmit
+  toppingRecipe?: Prisma.ToppingRecipeOmit
 }
 
 /* Types for Logging */

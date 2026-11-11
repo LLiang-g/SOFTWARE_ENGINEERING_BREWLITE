@@ -84,3 +84,8 @@ export type Payment = Prisma.PaymentModel
  * 
  */
 export type LoyaltyTransaction = Prisma.LoyaltyTransactionModel
+/**
+ * Model ToppingRecipe
+ * 
+ */
+export type ToppingRecipe = Prisma.ToppingRecipeModel
