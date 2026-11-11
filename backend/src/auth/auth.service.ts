@@ -6,10 +6,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
 import { UsersService } from '../users/users.service';
+import type { Role } from '../generated/prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
-type PublicUser = { id: number; email: string; loyaltyPoints: number };
+type PublicUser = {
+    id: number;
+    email: string;
+    role: Role;
+    loyaltyPoints: number;
+};
 
 @Injectable()
 export class AuthService {
@@ -42,6 +48,7 @@ export class AuthService {
         return this.buildResponse({
             id: user.id,
             email: user.email,
+            role: user.role,
             loyaltyPoints: user.loyaltyPoints,
         });
     }

@@ -3,14 +3,14 @@
 import { useCallback, useState } from 'react';
 import OrdersLiveStatus from '@/features/orders/OrdersLiveStatus';
 import { useOrdersLive } from '@/features/orders/useOrdersLive';
-import { SAMPLE_ORDERS } from '@/features/staff/sample-orders';
+import { useAuthStore } from '@/features/auth/auth.store';
 import { formatDateTime, formatPrice, ORDER_STATUS_LABEL } from '@/lib/format';
 import { ApiError } from '@/lib/orders-api';
 import type { OrderView } from '@/lib/types';
 import { getStaffOrders, updateStaffOrder, type NextStaffStatus } from './staff-api';
 
-const USE_DEMO = process.env.NEXT_PUBLIC_STAFF_API_ENABLED !== 'true';
 const LOAD_ERROR = 'Không tải được đơn hàng. Bạn hãy thử tải lại.';
+const NO_PERMISSION = 'Tài khoản này không có quyền barista.';
 
 const COLUMNS = [
     { status: 'PAID', title: 'Chờ duyệt', action: 'Duyệt đơn', nextStatus: 'PREPARING' },
@@ -20,7 +20,7 @@ const COLUMNS = [
 ] as const;
 
 export default function StaffBoard() {
-    const [orders, setOrders] = useState<OrderView[] | null>(USE_DEMO ? SAMPLE_ORDERS : null);
+    const [orders, setOrders] = useState<OrderView[] | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
     const [sendingId, setSendingId] = useState<number | null>(null);
@@ -30,11 +30,17 @@ export default function StaffBoard() {
             if (signal.aborted) return;
             setOrders(data);
             setLoadError(null);
-        } catch {
-            if (!signal.aborted) setLoadError(LOAD_ERROR);
+        } catch (error) {
+            if (signal.aborted) return;
+            if (error instanceof ApiError && error.status === 401) {
+                // Phiên hết hạn: đăng xuất để cổng đăng nhập đưa về trang đăng nhập.
+                useAuthStore.getState().logout();
+                return;
+            }
+            setLoadError(error instanceof ApiError && error.status === 403 ? NO_PERMISSION : LOAD_ERROR);
         }
     }, []);
-    const { connected, isLoading, refresh } = useOrdersLive(!USE_DEMO, loadOrders);
+    const { connected, isLoading, refresh } = useOrdersLive(true, loadOrders);
 
     function reloadOrders() {
         setActionError(null);
@@ -47,16 +53,14 @@ export default function StaffBoard() {
         setSendingId(order.id);
         setActionError(null);
         try {
-            if (USE_DEMO) {
-                setOrders((current) => current?.map((item) =>
-                    item.id === order.id ? { ...item, status } : item,
-                ) ?? null);
-            } else {
-                await updateStaffOrder(order.id, status);
-                await refresh();
-            }
+            await updateStaffOrder(order.id, status);
+            await refresh();
         } catch (error) {
-            if (error instanceof ApiError && error.status === 409) {
+            if (error instanceof ApiError && error.status === 401) {
+                useAuthStore.getState().logout();
+            } else if (error instanceof ApiError && error.status === 403) {
+                setActionError(NO_PERMISSION);
+            } else if (error instanceof ApiError && error.status === 409) {
                 setActionError('Đơn đã thay đổi. Hãy kiểm tra trạng thái sau khi tải lại.');
                 await refresh();
             } else {
@@ -73,14 +77,7 @@ export default function StaffBoard() {
         <main className="flex-1 bg-stone-50 text-gray-900">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
                 <h1 className="text-2xl font-bold sm:text-3xl">Đơn hàng tại quầy</h1>
-                {USE_DEMO && (
-                    <p className="mt-2 text-sm text-gray-600">
-                        Đang dùng đơn mẫu. Thay đổi sẽ mất khi tải lại trang.
-                    </p>
-                )}
-                {!USE_DEMO && (
-                    <OrdersLiveStatus connected={connected} busy={isLoading || sendingId !== null} refresh={reloadOrders} />
-                )}
+                <OrdersLiveStatus connected={connected} busy={isLoading || sendingId !== null} refresh={reloadOrders} />
                 {loadError && (
                     <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
                         <p role="alert">{loadError}</p>

@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-const PUBLIC_FIELDS = { id: true, email: true, loyaltyPoints: true } as const;
+const PUBLIC_FIELDS = {
+    id: true,
+    email: true,
+    role: true,
+    loyaltyPoints: true,
+} as const;
 
 @Injectable()
 export class UsersService {

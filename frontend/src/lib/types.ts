@@ -19,6 +19,8 @@ export type AuthUser = {
     id: number;
     email: string;
     loyaltyPoints: number;
+    // Phiên đăng nhập cũ lưu trước khi có vai trò sẽ không có trường này.
+    role?: 'CUSTOMER' | 'BARISTA';
 };
 
 export type AuthResponse = {

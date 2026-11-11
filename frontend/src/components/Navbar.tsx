@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuthStore } from '@/features/auth/auth.store';
 import AuthNav from '@/features/auth/AuthNav';
 import CartBadge from '@/features/cart/CartBadge';
 import { selectCount, useCartStore } from '@/features/cart/cart.store';
@@ -14,6 +15,9 @@ const HIDE_TABS = [/^\/products(\/|$)/, /^\/cart(\/|$)/, /^\/login(\/|$)/, /^\/r
 
 export default function Navbar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const user = useAuthStore((s) => s.user);
+    const logout = useAuthStore((s) => s.logout);
     const hydrated = useHydrated();
     const cartCount = useCartStore(selectCount);
 
@@ -29,9 +33,26 @@ export default function Navbar() {
                             Nhân viên
                         </span>
                     </div>
-                    <Link href="/" className="text-sm font-medium text-amber-800 hover:underline">
-                        Trang khách hàng
-                    </Link>
+                    <div className="flex items-center gap-4">
+                        {hydrated && user && (
+                            <span className="hidden max-w-48 truncate text-sm text-gray-600 sm:inline">{user.email}</span>
+                        )}
+                        <Link href="/" className="text-sm font-medium text-amber-800 hover:underline">
+                            Trang khách hàng
+                        </Link>
+                        {hydrated && user && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    logout();
+                                    router.replace('/login?next=/barista');
+                                }}
+                                className="text-sm font-medium text-amber-800 hover:underline"
+                            >
+                                Đăng xuất
+                            </button>
+                        )}
+                    </div>
                 </nav>
             </header>
         );

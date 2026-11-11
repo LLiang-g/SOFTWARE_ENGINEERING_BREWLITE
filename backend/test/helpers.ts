@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { hash } from 'bcryptjs';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -27,6 +28,19 @@ export async function registerUser(app: INestApplication) {
         token: res.body.accessToken as string,
         userId: res.body.user.id as number,
     };
+}
+
+// Tạo thẳng một tài khoản barista trong database rồi đăng nhập như người dùng thật.
+export async function createBarista(app: INestApplication, prisma: PrismaService) {
+    const email = `barista-${Date.now()}-${counter++}@test.local`;
+    const user = await prisma.user.create({
+        data: { email, passwordHash: await hash('secret123', 4), role: 'BARISTA' },
+    });
+    const res = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email, password: 'secret123' })
+        .expect(200);
+    return { token: res.body.accessToken as string, userId: user.id };
 }
 
 export type OrderItemInput = {
@@ -90,6 +104,7 @@ export async function cleanupUsers(prisma: PrismaService, userIds: number[]) {
         select: { id: true },
     });
     const orderIds = orders.map((o) => o.id);
+    await prisma.loyaltyTransaction.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.order.deleteMany({ where: { id: { in: orderIds } } });

@@ -124,7 +124,7 @@ export class PaymentsService {
             where: { id: order.id },
             data: { status: 'PAID' },
         });
-        await this.loyalty.award(tx, userId, order.total);
+        await this.loyalty.award(tx, userId, order.total, order.id);
 
         return {
             result: { orderId: order.id, status: 'PAID', paymentId: payment.id },

@@ -19,6 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         if (!user) {
             throw new UnauthorizedException();
         }
-        return { id: user.id, email: user.email };
+        // Vai trò lấy từ database mỗi lần gọi API, nên đổi quyền có hiệu lực ngay.
+        return { id: user.id, email: user.email, role: user.role };
     }
 }

@@ -29,13 +29,22 @@ export default function AuthNav() {
     return (
         <div className="flex items-center gap-2">
             <span className="hidden max-w-48 truncate text-sm text-muted lg:inline">{user.email}</span>
-            <span
-                className="inline-flex h-10 items-center gap-1.5 rounded-full bg-crema-soft px-3.5 text-sm font-semibold tabular-nums"
-                aria-label={`${user.loyaltyPoints} điểm tích lũy`}
-            >
-                <IconStar className="h-4 w-4 text-crema" />
-                {user.loyaltyPoints}
-            </span>
+            {user.role === 'BARISTA' ? (
+                <Link
+                    href="/barista"
+                    className="inline-flex h-10 items-center rounded-full bg-crema-soft px-4 text-sm font-semibold hover:bg-crema/40"
+                >
+                    Quầy barista
+                </Link>
+            ) : (
+                <span
+                    className="inline-flex h-10 items-center gap-1.5 rounded-full bg-crema-soft px-3.5 text-sm font-semibold tabular-nums"
+                    aria-label={`${user.loyaltyPoints} điểm tích lũy`}
+                >
+                    <IconStar className="h-4 w-4 text-crema" />
+                    {user.loyaltyPoints}
+                </span>
+            )}
             <button
                 type="button"
                 onClick={() => {

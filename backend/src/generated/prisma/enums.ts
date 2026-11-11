@@ -37,3 +37,19 @@ export const PaymentMethod = {
 } as const
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const Role = {
+  CUSTOMER: 'CUSTOMER',
+  BARISTA: 'BARISTA'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const LoyaltyTransactionType = {
+  EARN: 'EARN',
+  REDEEM: 'REDEEM'
+} as const
+
+export type LoyaltyTransactionType = (typeof LoyaltyTransactionType)[keyof typeof LoyaltyTransactionType]

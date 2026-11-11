@@ -45,7 +45,8 @@ export default function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 ? await login(email, password)
                 : await register(email, password);
             setAuth(data.accessToken, data.user);
-            router.push(next);
+            // Không có đường dẫn quay lại thì barista vào thẳng quầy, khách về trang chủ.
+            router.push(rawNext ? next : data.user.role === 'BARISTA' ? '/barista' : '/');
         } catch (err) {
             setError(
                 err instanceof TypeError
