@@ -3,67 +3,118 @@ import {
     ConflictException,
     Injectable,
 } from '@nestjs/common';
-import type { Prisma } from '../generated/prisma/client';
-
-const MAX_ATTEMPTS = 10;
+import { Prisma } from '../generated/prisma/client';
+import { calcServings } from './availability';
 
 export type StockLine = { productId: number; qty: number };
 
+type Recipe = { ingredientId: number; quantity: number };
+
 @Injectable()
 export class InventoryService {
-    /** Trừ kho cho các món (productId -> tổng số lượng). Gọi bên trong một giao dịch. */
+    /**
+     * Trừ nguyên liệu cho các món (productId -> tổng số ly). Gọi bên trong một giao dịch.
+     * Khóa các dòng nguyên liệu theo thứ tự id, kiểm tra đủ hàng rồi mới trừ.
+     */
     async reserve(tx: Prisma.TransactionClient, needs: Map<number, number>) {
-        // Luôn xử lý theo thứ tự id tăng dần để các giao dịch không khóa chéo nhau.
-        const ids = [...needs.keys()].sort((a, b) => a - b);
-        for (const productId of ids) {
-            await this.reserveOne(tx, productId, needs.get(productId) as number);
+        const products = await tx.product.findMany({
+            where: { id: { in: [...needs.keys()] } },
+            select: {
+                id: true,
+                name: true,
+                recipes: { select: { ingredientId: true, quantity: true } },
+            },
+        });
+        const byId = new Map(products.map((p) => [p.id, p]));
+
+        const demand = new Map<number, number>();
+        for (const productId of [...needs.keys()].sort((a, b) => a - b)) {
+            const product = byId.get(productId);
+            if (!product) {
+                throw new BadRequestException(`Sản phẩm #${productId} không tồn tại`);
+            }
+            if (product.recipes.length === 0) {
+                throw new ConflictException(
+                    `${product.name} chưa có công thức nên chưa bán được`,
+                );
+            }
+            const qty = needs.get(productId) as number;
+            for (const line of product.recipes) {
+                demand.set(
+                    line.ingredientId,
+                    (demand.get(line.ingredientId) ?? 0) + line.quantity * qty,
+                );
+            }
+        }
+
+        // Luôn khóa theo id tăng dần để các giao dịch không khóa chéo nhau.
+        const ids = [...demand.keys()].sort((a, b) => a - b);
+        const rows = await tx.$queryRaw<{ id: number; stock: number }[]>`
+            SELECT id, stock FROM "Ingredient"
+            WHERE id IN (${Prisma.join(ids)})
+            ORDER BY id
+            FOR UPDATE`;
+        const stockById = new Map(rows.map((r) => [r.id, r.stock]));
+
+        for (const id of ids) {
+            if ((stockById.get(id) ?? 0) < (demand.get(id) as number)) {
+                throw this.shortage(id, products, stockById);
+            }
+        }
+
+        for (const id of ids) {
+            await tx.ingredient.update({
+                where: { id },
+                data: { stock: { decrement: demand.get(id) as number } },
+            });
         }
     }
 
-    /** Hoàn kho (khi hủy đơn). Gọi bên trong một giao dịch. */
+    /** Hoàn nguyên liệu (khi hủy đơn). Gọi bên trong một giao dịch. */
     async release(tx: Prisma.TransactionClient, lines: StockLine[]) {
         const totals = new Map<number, number>();
         for (const l of lines) {
             totals.set(l.productId, (totals.get(l.productId) ?? 0) + l.qty);
         }
-        const ids = [...totals.keys()].sort((a, b) => a - b);
-        for (const productId of ids) {
-            await tx.product.updateMany({
-                where: { id: productId },
-                data: {
-                    stock: { increment: totals.get(productId) as number },
-                    version: { increment: 1 },
-                },
+
+        const recipes = await tx.recipe.findMany({
+            where: { productId: { in: [...totals.keys()] } },
+            select: { productId: true, ingredientId: true, quantity: true },
+        });
+        const restore = new Map<number, number>();
+        for (const r of recipes) {
+            const amount = r.quantity * (totals.get(r.productId) as number);
+            restore.set(r.ingredientId, (restore.get(r.ingredientId) ?? 0) + amount);
+        }
+
+        const ids = [...restore.keys()].sort((a, b) => a - b);
+        for (const id of ids) {
+            await tx.ingredient.updateMany({
+                where: { id },
+                data: { stock: { increment: restore.get(id) as number } },
             });
         }
     }
 
-    private async reserveOne(
-        tx: Prisma.TransactionClient,
-        productId: number,
-        qty: number,
+    /** Báo lỗi theo món bị thiếu: "<món> chỉ còn N phần", N tính từ kho hiện tại. */
+    private shortage(
+        ingredientId: number,
+        products: { id: number; name: string; recipes: Recipe[] }[],
+        stockById: Map<number, number>,
     ) {
-        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            const product = await tx.product.findUnique({
-                where: { id: productId },
-                select: { name: true, stock: true, version: true },
-            });
-            if (!product) {
-                throw new BadRequestException(`Sản phẩm #${productId} không tồn tại`);
-            }
-            if (product.stock < qty) {
-                throw new ConflictException(
-                    `${product.name} chỉ còn ${product.stock} phần`,
-                );
-            }
-
-            const updated = await tx.product.updateMany({
-                where: { id: productId, version: product.version, stock: { gte: qty } },
-                data: { stock: { decrement: qty }, version: { increment: 1 } },
-            });
-            if (updated.count === 1) return;
-            // count = 0: có giao dịch khác vừa đổi dòng này, đọc lại và thử lại.
-        }
-        throw new ConflictException('Hệ thống đang bận, vui lòng thử lại');
+        const affected = products
+            .filter((p) => p.recipes.some((r) => r.ingredientId === ingredientId))
+            .map((p) => ({
+                name: p.name,
+                left: calcServings(
+                    p.recipes.map((r) => ({
+                        quantity: r.quantity,
+                        stock: stockById.get(r.ingredientId) ?? 0,
+                    })),
+                ),
+            }))
+            .sort((a, b) => a.left - b.left);
+        const worst = affected[0];
+        return new ConflictException(`${worst.name} chỉ còn ${worst.left} phần`);
     }
 }

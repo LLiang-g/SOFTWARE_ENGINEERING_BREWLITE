@@ -40,13 +40,35 @@ enum LoyaltyTransactionType {
 }
 
 model Product {
-  id        Int         @id @default(autoincrement())
-  name      String
-  price     Int
-  imageUrl  String
-  stock     Int         @default(0)
-  version   Int         @default(0)
-  items     OrderItem[]
+  id       Int         @id @default(autoincrement())
+  name     String
+  price    Int
+  imageUrl String
+  items    OrderItem[]
+  recipes  Recipe[]
+}
+
+// Nguyên liệu trong kho. stock tính theo đơn vị nhỏ nhất (g, ml, cái) và không bao giờ âm.
+model Ingredient {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  unit    String
+  stock   Int      @default(0)
+  recipes Recipe[]
+}
+
+// Công thức món: một dòng cho mỗi nguyên liệu, quantity là lượng dùng cho một ly.
+// Số ly còn lại của món không lưu mà tính từ kho nguyên liệu qua các dòng này.
+model Recipe {
+  id           Int @id @default(autoincrement())
+  productId    Int
+  ingredientId Int
+  quantity     Int
+
+  product    Product    @relation(fields: [productId], references: [id])
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([productId, ingredientId])
 }
 
 model User {

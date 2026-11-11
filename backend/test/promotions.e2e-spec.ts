@@ -7,6 +7,8 @@ import {
     createOrder,
     createTestApp,
     createTestProduct,
+    deleteTestProducts,
+    servingsOf,
     pay,
     registerUser,
 } from './helpers';
@@ -62,7 +64,7 @@ describe('Khuyến mãi và điểm thưởng (e2e)', () => {
             await prisma.voucher.deleteMany({ where: { id: { in: voucherIds } } });
         }
         if (productId) {
-            await prisma.product.deleteMany({ where: { id: productId } });
+            await deleteTestProducts(prisma, [productId]);
         }
         await app?.close();
     });
@@ -112,9 +114,7 @@ describe('Khuyến mãi và điểm thưởng (e2e)', () => {
     });
 
     it('mã không hợp lệ làm đơn bị từ chối, không tạo đơn và không trừ kho', async () => {
-        const stockBefore = (
-            await prisma.product.findUniqueOrThrow({ where: { id: productId } })
-        ).stock;
+        const stockBefore = await servingsOf(prisma, productId);
         const ordersBefore = await prisma.order.count({ where: { userId } });
 
         const res = await createOrder(
@@ -125,10 +125,7 @@ describe('Khuyến mãi và điểm thưởng (e2e)', () => {
         );
 
         expect(res.status).toBe(400);
-        expect(
-            (await prisma.product.findUniqueOrThrow({ where: { id: productId } }))
-                .stock,
-        ).toBe(stockBefore);
+        expect(await servingsOf(prisma, productId)).toBe(stockBefore);
         expect(await prisma.order.count({ where: { userId } })).toBe(ordersBefore);
     });
 

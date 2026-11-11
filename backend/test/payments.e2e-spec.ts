@@ -7,6 +7,7 @@ import {
     createOrder,
     createTestApp,
     createTestProduct,
+    deleteTestProducts,
     pay,
     registerUser,
 } from './helpers';
@@ -27,7 +28,7 @@ describe('Thanh toán (e2e)', () => {
     afterAll(async () => {
         if (userId) await cleanupUsers(prisma, [userId]);
         if (productId) {
-            await prisma.product.deleteMany({ where: { id: productId } });
+            await deleteTestProducts(prisma, [productId]);
         }
         await app?.close();
     });
