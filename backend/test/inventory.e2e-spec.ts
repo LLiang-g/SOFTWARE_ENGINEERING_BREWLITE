@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
+import request from 'supertest';
 import {
     cancelOrder,
     cleanupUsers,
@@ -130,5 +131,100 @@ describe('Tồn kho (e2e)', () => {
 
         await cancelOrder(app, token, created.body.id).expect(409);
         expect(await stockOf(productId)).toBe(5);
+    });
+
+    it('từ chối giỏ hàng có mảng lồng nhau trước khi tạo đơn hoặc trừ kho', async () => {
+        const productId = await newProduct(5);
+        const before = await prisma.order.count({ where: { userId } });
+        await request(app.getHttpServer())
+            .post('/orders')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ items: [[{ productId, size: 'S', qty: 1 }]] })
+            .expect(400);
+        expect(await stockOf(productId)).toBe(5);
+        expect(await prisma.order.count({ where: { userId } })).toBe(before);
+    });
+
+    it('không cho hủy đơn đã thanh toán bằng API hủy thông thường', async () => {
+        const productId = await newProduct(5);
+        const created = await createOrder(app, token, [
+            { productId, size: 'S', qty: 2 },
+        ]).expect(201);
+        // Chuẩn bị trạng thái đã thanh toán; không gọi cổng thanh toán trong test tồn kho.
+        await prisma.order.update({ where: { id: created.body.id }, data: { status: 'PAID' } });
+        await cancelOrder(app, token, created.body.id).expect(409);
+        expect(await stockOf(productId)).toBe(3);
+        expect((await prisma.order.findUniqueOrThrow({ where: { id: created.body.id } })).status).toBe('PAID');
+    });
+
+    it('hai yêu cầu hủy đồng thời chỉ hoàn kho một lần', async () => {
+        const productId = await newProduct(5);
+        const created = await createOrder(app, token, [
+            { productId, size: 'S', qty: 2 },
+        ]).expect(201);
+        const responses = await Promise.all([
+            cancelOrder(app, token, created.body.id),
+            cancelOrder(app, token, created.body.id),
+        ]);
+        expect(responses.map((res) => res.status).sort()).toEqual([200, 409]);
+        expect(await stockOf(productId)).toBe(5);
+    });
+
+    it('server tự tính giá size/topping và trừ tổng số ly của cùng món', async () => {
+        const productId = await newProduct(5);
+        const created = await request(app.getHttpServer())
+            .post('/orders')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                total: 1,
+                items: [
+                    { productId, size: 'M', toppings: ['KEM'], qty: 2, lineTotal: 1 },
+                    { productId, size: 'L', qty: 1 },
+                ],
+            }).expect(201);
+        expect(created.body.total).toBe(150000);
+        expect(created.body.items.map((item: { lineTotal: number }) => item.lineTotal)).toEqual([100000, 50000]);
+        expect(await stockOf(productId)).toBe(2);
+        await cancelOrder(app, token, created.body.id).expect(200);
+        expect(await stockOf(productId)).toBe(5);
+    });
+
+    it('chưa đăng nhập không thể đặt đơn hoặc trừ kho', async () => {
+        const productId = await newProduct(5);
+        await request(app.getHttpServer()).post('/orders')
+            .send({ items: [{ productId, size: 'S', qty: 1 }] }).expect(401);
+        expect(await stockOf(productId)).toBe(5);
+    });
+
+    it.each([0, -1, 1.5, 100, '2', null])('từ chối số lượng không hợp lệ %s, không trừ kho', async (qty) => {
+        const productId = await newProduct(5);
+        await request(app.getHttpServer()).post('/orders')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ items: [{ productId, size: 'S', qty }] }).expect(400);
+        expect(await stockOf(productId)).toBe(5);
+        expect(await prisma.orderItem.count({ where: { productId } })).toBe(0);
+    });
+
+    it.each([
+        { productId: 2147483648, size: 'S', qty: 1 },
+        { size: 'XL', qty: 1 },
+        { size: 'S', qty: 1, toppings: ['KHONG_TON_TAI'] },
+        { size: 'S', qty: 1, toppings: ['KEM', 'KEM'] },
+    ])('dữ liệu món không hợp lệ không tạo đơn hoặc trừ kho: %j', async (item) => {
+        const productId = await newProduct(5);
+        const before = await prisma.order.count({ where: { userId } });
+        await request(app.getHttpServer()).post('/orders')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ items: [{ productId, ...item }] }).expect(400);
+        expect(await stockOf(productId)).toBe(5);
+        expect(await prisma.order.count({ where: { userId } })).toBe(before);
+    });
+
+    it('mã giảm giá không tồn tại không tạo đơn hoặc trừ kho', async () => {
+        const productId = await newProduct(5);
+        await createOrder(app, token, [{ productId, size: 'S', qty: 1 }],
+            `MISSING-${Date.now()}`).expect(400);
+        expect(await stockOf(productId)).toBe(5);
+        expect(await prisma.orderItem.count({ where: { productId } })).toBe(0);
     });
 });

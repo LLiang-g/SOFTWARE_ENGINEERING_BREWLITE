@@ -6,6 +6,7 @@ import {
     IsArray,
     IsEnum,
     IsInt,
+    IsObject,
     IsOptional,
     IsString,
     Max,
@@ -18,6 +19,7 @@ import { Size } from '../../generated/prisma/client';
 export class OrderItemDto {
     @IsInt({ message: 'productId không hợp lệ' })
     @Min(1, { message: 'productId không hợp lệ' })
+    @Max(2147483647, { message: 'productId không hợp lệ' })
     productId: number;
 
     @IsEnum(Size, { message: 'Size phải là S, M hoặc L' })
@@ -39,6 +41,7 @@ export class CreateOrderDto {
     @IsArray()
     @ArrayMinSize(1, { message: 'Giỏ hàng đang trống' })
     @ArrayMaxSize(50, { message: 'Đơn có quá nhiều dòng' })
+    @IsObject({ each: true, message: 'Mỗi dòng giỏ hàng phải là một đối tượng' })
     @ValidateNested({ each: true })
     @Type(() => OrderItemDto)
     items: OrderItemDto[];

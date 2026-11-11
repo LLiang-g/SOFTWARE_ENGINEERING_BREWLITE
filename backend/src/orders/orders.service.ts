@@ -121,6 +121,11 @@ export class OrdersService {
             throw new NotFoundException('Không tìm thấy đơn hàng');
         }
 
+        // Hủy tự phục vụ chỉ áp dụng cho đơn chưa thanh toán.
+        // Đơn đã trả tiền cần quy trình hoàn tiền riêng trước khi hoàn kho.
+        if (order.status !== 'PENDING' && order.status !== 'PAYMENT_FAILED') {
+            throw new ConflictException('Chỉ có thể hủy đơn chưa thanh toán');
+        }
         assertTransition(order.status, 'CANCELLED');
 
         await this.prisma.$transaction(async (tx) => {
