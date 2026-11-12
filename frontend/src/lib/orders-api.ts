@@ -36,9 +36,10 @@ export type NewOrderItem = {
     qty: number;
 };
 
-export function createOrder(items: NewOrderItem[], voucherCode?: string) {
+export function createOrder(items: NewOrderItem[], voucherCode: string | undefined, idempotencyKey: string) {
     return authFetch<OrderView>('/orders', {
         method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKey },
         body: JSON.stringify({
             items,
             ...(voucherCode ? { voucherCode } : {}),

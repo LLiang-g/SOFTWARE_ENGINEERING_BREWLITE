@@ -8,6 +8,9 @@ export default defineConfig({
         testTimeout: 30000,
         hookTimeout: 30000,
         fileParallelism: false,
+
+        // Test cũ dùng mock; file VNPay chủ động stubEnv và giả lập gateway riêng.
+        env: { VNPAY_ENABLED: 'false', PAYMENT_MOCK_ENABLED: 'true' },
     },
     plugins: [swc.vite({ module: { type: 'es6' } })],
 });

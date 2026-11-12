@@ -85,6 +85,21 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model VnpayAttempt
+ * 
+ */
+export type VnpayAttempt = Prisma.VnpayAttemptModel
+/**
+ * Model PaymentStartRequest
+ * 
+ */
+export type PaymentStartRequest = Prisma.PaymentStartRequestModel
+/**
+ * Model PaymentAudit
+ * 
+ */
+export type PaymentAudit = Prisma.PaymentAuditModel
+/**
  * Model OrderInventoryReservation
  * 
  */

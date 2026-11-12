@@ -162,6 +162,71 @@ ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_orderId_fkey
     FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 
+
+-- Additive migration after patches 04 and 05. No reset, seed or data deletion.
+ALTER TYPE "PaymentMethod" ADD VALUE 'VNPAY';
+CREATE TYPE "VnpayAttemptStatus" AS ENUM ('PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED', 'REVIEW');
+
+CREATE TABLE "VnpayAttempt" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "txnRef" VARCHAR(32) NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "status" "VnpayAttemptStatus" NOT NULL DEFAULT 'PENDING',
+    "paymentUrl" TEXT NOT NULL,
+    "merchantCode" TEXT NOT NULL,
+    "createDate" VARCHAR(14) NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "providerTxnNo" TEXT,
+    "responseCode" TEXT,
+    "transactionStatus" TEXT,
+    "paidAt" TIMESTAMP(3),
+    "reviewReason" TEXT,
+    "lastCheckedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "VnpayAttempt_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "VnpayAttempt_amount_positive" CHECK ("amount" > 0)
+);
+CREATE UNIQUE INDEX "VnpayAttempt_txnRef_key" ON "VnpayAttempt"("txnRef");
+CREATE UNIQUE INDEX "VnpayAttempt_providerTxnNo_key" ON "VnpayAttempt"("providerTxnNo");
+CREATE INDEX "VnpayAttempt_orderId_createdAt_idx" ON "VnpayAttempt"("orderId", "createdAt");
+ALTER TABLE "VnpayAttempt" ADD CONSTRAINT "VnpayAttempt_orderId_fkey"
+    FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE "Payment" ADD COLUMN "vnpayAttemptId" INTEGER;
+CREATE UNIQUE INDEX "Payment_vnpayAttemptId_key" ON "Payment"("vnpayAttemptId");
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_vnpayAttemptId_fkey"
+    FOREIGN KEY ("vnpayAttemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+CREATE TABLE "PaymentStartRequest" (
+    "userId" INTEGER NOT NULL,
+    "key" VARCHAR(100) NOT NULL,
+    "attemptId" INTEGER NOT NULL,
+    CONSTRAINT "PaymentStartRequest_pkey" PRIMARY KEY ("userId", "key")
+);
+ALTER TABLE "PaymentStartRequest" ADD CONSTRAINT "PaymentStartRequest_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PaymentStartRequest" ADD CONSTRAINT "PaymentStartRequest_attemptId_fkey"
+    FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+CREATE TABLE "PaymentAudit" (
+    "id" SERIAL NOT NULL,
+    "attemptId" INTEGER NOT NULL,
+    "actorId" INTEGER,
+    "action" VARCHAR(40) NOT NULL,
+    "note" VARCHAR(1000) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PaymentAudit_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "PaymentAudit_attemptId_createdAt_idx" ON "PaymentAudit"("attemptId", "createdAt");
+ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_attemptId_fkey"
+    FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_actorId_fkey"
+    FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+
 -- =========================================
 -- 3. CREATE INDEXES
 -- =========================================

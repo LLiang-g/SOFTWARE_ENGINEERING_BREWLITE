@@ -275,11 +275,12 @@ export default function OrderConfirmation({ id }: { id: number }) {
 
             {error && <p role="alert" className="mt-3 rounded-2xl bg-chili-soft px-4 py-3 text-sm text-chili">{error}</p>}
 
-            {payable && (
+            {(
                 <PaymentPanel
                     orderId={order.id}
                     total={order.total}
                     onResult={reloadAfterPayment}
+                    readOnly={!payable}
                 />
             )}
 

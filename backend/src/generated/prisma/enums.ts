@@ -33,10 +33,22 @@ export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 export const PaymentMethod = {
   WALLET: 'WALLET',
-  CARD: 'CARD'
+  CARD: 'CARD',
+  VNPAY: 'VNPAY'
 } as const
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const VnpayAttemptStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED',
+  REVIEW: 'REVIEW'
+} as const
+
+export type VnpayAttemptStatus = (typeof VnpayAttemptStatus)[keyof typeof VnpayAttemptStatus]
 
 
 export const Role = {

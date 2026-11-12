@@ -1,0 +1,32 @@
+{
+  "info": { "name": "BrewLite - VNPay Sandbox patch 06", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001" },
+    { "key": "customerToken", "value": "" },
+    { "key": "baristaToken", "value": "" },
+    { "key": "orderId", "value": "1" },
+    { "key": "paymentKey", "value": "vnpay-postman-test-001" },
+    { "key": "attemptId", "value": "" },
+    { "key": "paymentUrl", "value": "" }
+  ],
+  "item": [
+    { "name": "01 Config", "request": { "method": "GET", "url": "{{baseUrl}}/payments/vnpay/config" } },
+    { "name": "02 Start / replay payment (keep same key to retry)",
+      "request": { "method": "POST", "url": "{{baseUrl}}/payments/vnpay/start", "header": [
+        { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+        { "key": "Idempotency-Key", "value": "{{paymentKey}}" },
+        { "key": "Content-Type", "value": "application/json" }
+      ], "body": { "mode": "raw", "raw": "{\n  \"orderId\": {{orderId}}\n}", "options": { "raw": { "language": "json" } } } },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+        "if (pm.response.code === 201) { const result = pm.response.json(); pm.collectionVariables.set('attemptId', String(result.id)); if (result.paymentUrl) pm.collectionVariables.set('paymentUrl', result.paymentUrl); }"
+      ] } }] },
+    { "name": "03 Customer payment history", "request": { "method": "GET", "url": "{{baseUrl}}/payments/vnpay/orders/{{orderId}}", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }] } },
+    { "name": "04 Customer check result", "request": { "method": "POST", "url": "{{baseUrl}}/payments/vnpay/attempts/{{attemptId}}/check", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }] } },
+    { "name": "05 Barista list", "request": { "method": "GET", "url": "{{baseUrl}}/staff/payments", "header": [{ "key": "Authorization", "value": "Bearer {{baristaToken}}" }] } },
+    { "name": "06 Barista query VNPay", "request": { "method": "POST", "url": "{{baseUrl}}/staff/payments/{{attemptId}}/check", "header": [{ "key": "Authorization", "value": "Bearer {{baristaToken}}" }] } },
+    { "name": "07 Barista note (does not change financial status)", "request": { "method": "POST", "url": "{{baseUrl}}/staff/payments/{{attemptId}}/notes", "header": [
+      { "key": "Authorization", "value": "Bearer {{baristaToken}}" }, { "key": "Content-Type", "value": "application/json" }
+    ], "body": { "mode": "raw", "raw": "{\n  \"note\": \"Đã tiếp nhận yêu cầu tra soát từ khách\"\n}", "options": { "raw": { "language": "json" } } } } }
+  ]
+}

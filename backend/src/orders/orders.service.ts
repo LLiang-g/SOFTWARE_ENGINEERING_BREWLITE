@@ -179,6 +179,11 @@ export class OrdersService {
         assertTransition(order.status, 'CANCELLED');
 
         await this.prisma.$transaction(async (tx) => {
+            // Đồng bộ với start/settle VNPay: không hoàn kho khi tiền còn có thể về.
+            await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${id} FOR UPDATE`;
+            if (await tx.vnpayAttempt.findFirst({ where: { orderId: id, status: { in: ['PENDING', 'REVIEW'] } } })) {
+                throw new ConflictException('Giao dịch thanh toán đang cần xác minh, chưa thể hủy đơn');
+            }
             const result = await tx.order.updateMany({
                 where: { id, status: order.status },
                 data: { status: 'CANCELLED' },

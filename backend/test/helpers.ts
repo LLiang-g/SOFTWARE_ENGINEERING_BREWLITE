@@ -147,8 +147,13 @@ export async function cleanupUsers(prisma: PrismaService, userIds: number[]) {
         select: { id: true },
     });
     const orderIds = orders.map((o) => o.id);
+    const attempts = await prisma.vnpayAttempt.findMany({ where: { orderId: { in: orderIds } }, select: { id: true } });
+    const attemptIds = attempts.map((row) => row.id);
+    await prisma.paymentAudit.deleteMany({ where: { attemptId: { in: attemptIds } } });
+    await prisma.paymentStartRequest.deleteMany({ where: { attemptId: { in: attemptIds } } });
     await prisma.loyaltyTransaction.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+    await prisma.vnpayAttempt.deleteMany({ where: { id: { in: attemptIds } } });
     await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.orderInventoryReservation.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.orderCreateRequest.deleteMany({ where: { userId: { in: userIds } } });

@@ -468,10 +468,6 @@ export type OrderInventoryReservationUncheckedUpdateManyWithoutOrderNestedInput 
   deleteMany?: Prisma.OrderInventoryReservationScalarWhereInput | Prisma.OrderInventoryReservationScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type OrderInventoryReservationCreateWithoutIngredientInput = {
   quantity: number
   releasedAt?: Date | string | null

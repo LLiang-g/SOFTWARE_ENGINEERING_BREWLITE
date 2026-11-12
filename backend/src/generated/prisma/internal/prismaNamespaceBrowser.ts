@@ -60,6 +60,9 @@ export const ModelName = {
   OrderCreateRequest: 'OrderCreateRequest',
   OrderItem: 'OrderItem',
   Payment: 'Payment',
+  VnpayAttempt: 'VnpayAttempt',
+  PaymentStartRequest: 'PaymentStartRequest',
+  PaymentAudit: 'PaymentAudit',
   OrderInventoryReservation: 'OrderInventoryReservation',
   LoyaltyTransaction: 'LoyaltyTransaction'
 } as const
@@ -175,10 +178,55 @@ export const PaymentScalarFieldEnum = {
   idempotencyKey: 'idempotencyKey',
   amount: 'amount',
   method: 'method',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  vnpayAttemptId: 'vnpayAttemptId'
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const VnpayAttemptScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  txnRef: 'txnRef',
+  amount: 'amount',
+  status: 'status',
+  paymentUrl: 'paymentUrl',
+  merchantCode: 'merchantCode',
+  createDate: 'createDate',
+  expiresAt: 'expiresAt',
+  providerTxnNo: 'providerTxnNo',
+  responseCode: 'responseCode',
+  transactionStatus: 'transactionStatus',
+  paidAt: 'paidAt',
+  reviewReason: 'reviewReason',
+  lastCheckedAt: 'lastCheckedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VnpayAttemptScalarFieldEnum = (typeof VnpayAttemptScalarFieldEnum)[keyof typeof VnpayAttemptScalarFieldEnum]
+
+
+export const PaymentStartRequestScalarFieldEnum = {
+  userId: 'userId',
+  key: 'key',
+  attemptId: 'attemptId'
+} as const
+
+export type PaymentStartRequestScalarFieldEnum = (typeof PaymentStartRequestScalarFieldEnum)[keyof typeof PaymentStartRequestScalarFieldEnum]
+
+
+export const PaymentAuditScalarFieldEnum = {
+  id: 'id',
+  attemptId: 'attemptId',
+  actorId: 'actorId',
+  action: 'action',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type PaymentAuditScalarFieldEnum = (typeof PaymentAuditScalarFieldEnum)[keyof typeof PaymentAuditScalarFieldEnum]
 
 
 export const OrderInventoryReservationScalarFieldEnum = {

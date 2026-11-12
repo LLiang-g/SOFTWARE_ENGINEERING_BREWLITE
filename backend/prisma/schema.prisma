@@ -27,6 +27,15 @@ enum OrderStatus {
 enum PaymentMethod {
   WALLET
   CARD
+  VNPAY
+}
+
+enum VnpayAttemptStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+  REVIEW
 }
 
 enum Role {
@@ -81,6 +90,8 @@ model User {
   orders              Order[]
   loyaltyTransactions LoyaltyTransaction[]
   orderCreateRequests OrderCreateRequest[]
+  paymentStartRequests PaymentStartRequest[]
+  paymentAudits PaymentAudit[]
 }
 
 model Voucher {
@@ -108,6 +119,7 @@ model Order {
   loyaltyTransactions LoyaltyTransaction[]
   inventoryReservations OrderInventoryReservation[]
   createRequest OrderCreateRequest?
+  vnpayAttempts VnpayAttempt[]
 }
 
 // Key thuộc một khách hàng, không thuộc một tiến trình backend.
@@ -144,8 +156,58 @@ model Payment {
   amount         Int
   method         PaymentMethod
   createdAt      DateTime      @default(now())
+  vnpayAttemptId Int?          @unique
 
   order Order @relation(fields: [orderId], references: [id])
+  vnpayAttempt VnpayAttempt? @relation(fields: [vnpayAttemptId], references: [id], onDelete: Restrict)
+}
+
+model VnpayAttempt {
+  id                 Int @id @default(autoincrement())
+  orderId            Int
+  txnRef             String @unique @db.VarChar(32)
+  amount             Int
+  status             VnpayAttemptStatus @default(PENDING)
+  paymentUrl         String
+  merchantCode       String
+  createDate         String @db.VarChar(14)
+  expiresAt          DateTime
+  providerTxnNo      String? @unique
+  responseCode       String?
+  transactionStatus  String?
+  paidAt             DateTime?
+  reviewReason       String?
+  lastCheckedAt      DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  payment Payment?
+  requests PaymentStartRequest[]
+  audits PaymentAudit[]
+
+  @@index([orderId, createdAt])
+}
+
+model PaymentStartRequest {
+  userId Int
+  key String @db.VarChar(100)
+  attemptId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  attempt VnpayAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  @@id([userId, key])
+}
+
+model PaymentAudit {
+  id Int @id @default(autoincrement())
+  attemptId Int
+  actorId Int?
+  action String @db.VarChar(40)
+  note String @db.VarChar(1000)
+  createdAt DateTime @default(now())
+  attempt VnpayAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  @@index([attemptId, createdAt])
 }
 
 model OrderInventoryReservation {
