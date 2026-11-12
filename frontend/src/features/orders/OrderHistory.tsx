@@ -21,6 +21,9 @@ const GROUPS = [
 
 function OrderCard({ order }: { order: OrderView }) {
     const ready = order.status === 'READY';
+    const exchanged = order.creditApplied > 0;
+    const payable = order.status === 'PENDING' || order.status === 'PAYMENT_FAILED';
+    const paid = ['PAID', 'PREPARING', 'READY', 'COMPLETED'].includes(order.status);
     return (
         <Link
             href={`/orders/${order.id}`}
@@ -38,7 +41,19 @@ function OrderCard({ order }: { order: OrderView }) {
             <p className="mt-3 line-clamp-2 text-[15px]">
                 {order.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}
             </p>
-            <p className="mt-3 text-right font-semibold tabular-nums">{formatPrice(order.total)}</p>
+            {exchanged ? (
+                <div className="mt-3 space-y-1 text-right">
+                    <p className="text-xs text-muted">
+                        Tổng món {formatPrice(order.total)} · Đã chuyển {formatPrice(order.creditApplied)}
+                    </p>
+                    <p className="text-sm text-muted">
+                        {payable ? 'Cần thanh toán thêm' : paid ? 'Chênh lệch đã thanh toán' : 'Chênh lệch của lần đổi'}
+                    </p>
+                    <p className="font-semibold tabular-nums">{formatPrice(order.amountDue)}</p>
+                </div>
+            ) : (
+                <p className="mt-3 text-right font-semibold tabular-nums">{formatPrice(order.total)}</p>
+            )}
         </Link>
     );
 }

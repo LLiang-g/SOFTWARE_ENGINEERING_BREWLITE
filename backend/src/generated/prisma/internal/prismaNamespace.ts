@@ -1827,6 +1827,8 @@ export type LoyaltyTransactionScalarFieldEnum = (typeof LoyaltyTransactionScalar
 
 
 export const OrderExchangeScalarFieldEnum = {
+  quotedTotal: 'quotedTotal',
+  quotedLines: 'quotedLines',
   id: 'id',
   sourceOrderId: 'sourceOrderId',
   replacementOrderId: 'replacementOrderId',
@@ -1867,6 +1869,14 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueInput = {

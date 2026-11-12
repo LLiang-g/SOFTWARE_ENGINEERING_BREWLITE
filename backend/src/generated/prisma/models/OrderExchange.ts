@@ -27,6 +27,7 @@ export type AggregateOrderExchange = {
 }
 
 export type OrderExchangeAvgAggregateOutputType = {
+  quotedTotal: number | null
   id: number | null
   sourceOrderId: number | null
   replacementOrderId: number | null
@@ -35,6 +36,7 @@ export type OrderExchangeAvgAggregateOutputType = {
 }
 
 export type OrderExchangeSumAggregateOutputType = {
+  quotedTotal: number | null
   id: number | null
   sourceOrderId: number | null
   replacementOrderId: number | null
@@ -43,6 +45,7 @@ export type OrderExchangeSumAggregateOutputType = {
 }
 
 export type OrderExchangeMinAggregateOutputType = {
+  quotedTotal: number | null
   id: number | null
   sourceOrderId: number | null
   replacementOrderId: number | null
@@ -58,6 +61,7 @@ export type OrderExchangeMinAggregateOutputType = {
 }
 
 export type OrderExchangeMaxAggregateOutputType = {
+  quotedTotal: number | null
   id: number | null
   sourceOrderId: number | null
   replacementOrderId: number | null
@@ -73,6 +77,8 @@ export type OrderExchangeMaxAggregateOutputType = {
 }
 
 export type OrderExchangeCountAggregateOutputType = {
+  quotedTotal: number
+  quotedLines: number
   id: number
   sourceOrderId: number
   replacementOrderId: number
@@ -91,6 +97,7 @@ export type OrderExchangeCountAggregateOutputType = {
 
 
 export type OrderExchangeAvgAggregateInputType = {
+  quotedTotal?: true
   id?: true
   sourceOrderId?: true
   replacementOrderId?: true
@@ -99,6 +106,7 @@ export type OrderExchangeAvgAggregateInputType = {
 }
 
 export type OrderExchangeSumAggregateInputType = {
+  quotedTotal?: true
   id?: true
   sourceOrderId?: true
   replacementOrderId?: true
@@ -107,6 +115,7 @@ export type OrderExchangeSumAggregateInputType = {
 }
 
 export type OrderExchangeMinAggregateInputType = {
+  quotedTotal?: true
   id?: true
   sourceOrderId?: true
   replacementOrderId?: true
@@ -122,6 +131,7 @@ export type OrderExchangeMinAggregateInputType = {
 }
 
 export type OrderExchangeMaxAggregateInputType = {
+  quotedTotal?: true
   id?: true
   sourceOrderId?: true
   replacementOrderId?: true
@@ -137,6 +147,8 @@ export type OrderExchangeMaxAggregateInputType = {
 }
 
 export type OrderExchangeCountAggregateInputType = {
+  quotedTotal?: true
+  quotedLines?: true
   id?: true
   sourceOrderId?: true
   replacementOrderId?: true
@@ -240,6 +252,8 @@ export type OrderExchangeGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 export type OrderExchangeGroupByOutputType = {
+  quotedTotal: number | null
+  quotedLines: runtime.JsonValue | null
   id: number
   sourceOrderId: number
   replacementOrderId: number | null
@@ -279,6 +293,8 @@ export type OrderExchangeWhereInput = {
   AND?: Prisma.OrderExchangeWhereInput | Prisma.OrderExchangeWhereInput[]
   OR?: Prisma.OrderExchangeWhereInput[]
   NOT?: Prisma.OrderExchangeWhereInput | Prisma.OrderExchangeWhereInput[]
+  quotedTotal?: Prisma.IntNullableFilter<"OrderExchange"> | number | null
+  quotedLines?: Prisma.JsonNullableFilter<"OrderExchange">
   id?: Prisma.IntFilter<"OrderExchange"> | number
   sourceOrderId?: Prisma.IntFilter<"OrderExchange"> | number
   replacementOrderId?: Prisma.IntNullableFilter<"OrderExchange"> | number | null
@@ -297,6 +313,8 @@ export type OrderExchangeWhereInput = {
 }
 
 export type OrderExchangeOrderByWithRelationInput = {
+  quotedTotal?: Prisma.SortOrderInput | Prisma.SortOrder
+  quotedLines?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -321,6 +339,8 @@ export type OrderExchangeWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrderExchangeWhereInput | Prisma.OrderExchangeWhereInput[]
   OR?: Prisma.OrderExchangeWhereInput[]
   NOT?: Prisma.OrderExchangeWhereInput | Prisma.OrderExchangeWhereInput[]
+  quotedTotal?: Prisma.IntNullableFilter<"OrderExchange"> | number | null
+  quotedLines?: Prisma.JsonNullableFilter<"OrderExchange">
   sourceOrderId?: Prisma.IntFilter<"OrderExchange"> | number
   key?: Prisma.StringFilter<"OrderExchange"> | string
   requestHash?: Prisma.StringFilter<"OrderExchange"> | string
@@ -337,6 +357,8 @@ export type OrderExchangeWhereUniqueInput = Prisma.AtLeast<{
 }, "id" | "replacementOrderId" | "sourceOrderId_key">
 
 export type OrderExchangeOrderByWithAggregationInput = {
+  quotedTotal?: Prisma.SortOrderInput | Prisma.SortOrder
+  quotedLines?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -361,6 +383,8 @@ export type OrderExchangeScalarWhereWithAggregatesInput = {
   AND?: Prisma.OrderExchangeScalarWhereWithAggregatesInput | Prisma.OrderExchangeScalarWhereWithAggregatesInput[]
   OR?: Prisma.OrderExchangeScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OrderExchangeScalarWhereWithAggregatesInput | Prisma.OrderExchangeScalarWhereWithAggregatesInput[]
+  quotedTotal?: Prisma.IntNullableWithAggregatesFilter<"OrderExchange"> | number | null
+  quotedLines?: Prisma.JsonNullableWithAggregatesFilter<"OrderExchange">
   id?: Prisma.IntWithAggregatesFilter<"OrderExchange"> | number
   sourceOrderId?: Prisma.IntWithAggregatesFilter<"OrderExchange"> | number
   replacementOrderId?: Prisma.IntNullableWithAggregatesFilter<"OrderExchange"> | number | null
@@ -377,6 +401,8 @@ export type OrderExchangeScalarWhereWithAggregatesInput = {
 }
 
 export type OrderExchangeCreateInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key: string
   requestHash: string
   items: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -392,6 +418,8 @@ export type OrderExchangeCreateInput = {
 }
 
 export type OrderExchangeUncheckedCreateInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: number
   sourceOrderId: number
   replacementOrderId?: number | null
@@ -408,6 +436,8 @@ export type OrderExchangeUncheckedCreateInput = {
 }
 
 export type OrderExchangeUpdateInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key?: Prisma.StringFieldUpdateOperationsInput | string
   requestHash?: Prisma.StringFieldUpdateOperationsInput | string
   items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -423,6 +453,8 @@ export type OrderExchangeUpdateInput = {
 }
 
 export type OrderExchangeUncheckedUpdateInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: Prisma.IntFieldUpdateOperationsInput | number
   sourceOrderId?: Prisma.IntFieldUpdateOperationsInput | number
   replacementOrderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -439,6 +471,8 @@ export type OrderExchangeUncheckedUpdateInput = {
 }
 
 export type OrderExchangeCreateManyInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: number
   sourceOrderId: number
   replacementOrderId?: number | null
@@ -455,6 +489,8 @@ export type OrderExchangeCreateManyInput = {
 }
 
 export type OrderExchangeUpdateManyMutationInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key?: Prisma.StringFieldUpdateOperationsInput | string
   requestHash?: Prisma.StringFieldUpdateOperationsInput | string
   items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -468,6 +504,8 @@ export type OrderExchangeUpdateManyMutationInput = {
 }
 
 export type OrderExchangeUncheckedUpdateManyInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: Prisma.IntFieldUpdateOperationsInput | number
   sourceOrderId?: Prisma.IntFieldUpdateOperationsInput | number
   replacementOrderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -504,6 +542,8 @@ export type OrderExchangeSourceOrderIdKeyCompoundUniqueInput = {
 }
 
 export type OrderExchangeCountOrderByAggregateInput = {
+  quotedTotal?: Prisma.SortOrder
+  quotedLines?: Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrder
@@ -520,6 +560,7 @@ export type OrderExchangeCountOrderByAggregateInput = {
 }
 
 export type OrderExchangeAvgOrderByAggregateInput = {
+  quotedTotal?: Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrder
@@ -528,6 +569,7 @@ export type OrderExchangeAvgOrderByAggregateInput = {
 }
 
 export type OrderExchangeMaxOrderByAggregateInput = {
+  quotedTotal?: Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrder
@@ -543,6 +585,7 @@ export type OrderExchangeMaxOrderByAggregateInput = {
 }
 
 export type OrderExchangeMinOrderByAggregateInput = {
+  quotedTotal?: Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrder
@@ -558,6 +601,7 @@ export type OrderExchangeMinOrderByAggregateInput = {
 }
 
 export type OrderExchangeSumOrderByAggregateInput = {
+  quotedTotal?: Prisma.SortOrder
   id?: Prisma.SortOrder
   sourceOrderId?: Prisma.SortOrder
   replacementOrderId?: Prisma.SortOrder
@@ -644,6 +688,8 @@ export type EnumExchangeStatusFieldUpdateOperationsInput = {
 }
 
 export type OrderExchangeCreateWithoutSourceOrderInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key: string
   requestHash: string
   items: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -658,6 +704,8 @@ export type OrderExchangeCreateWithoutSourceOrderInput = {
 }
 
 export type OrderExchangeUncheckedCreateWithoutSourceOrderInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: number
   replacementOrderId?: number | null
   key: string
@@ -683,6 +731,8 @@ export type OrderExchangeCreateManySourceOrderInputEnvelope = {
 }
 
 export type OrderExchangeCreateWithoutReplacementOrderInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key: string
   requestHash: string
   items: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -697,6 +747,8 @@ export type OrderExchangeCreateWithoutReplacementOrderInput = {
 }
 
 export type OrderExchangeUncheckedCreateWithoutReplacementOrderInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: number
   sourceOrderId: number
   key: string
@@ -736,6 +788,8 @@ export type OrderExchangeScalarWhereInput = {
   AND?: Prisma.OrderExchangeScalarWhereInput | Prisma.OrderExchangeScalarWhereInput[]
   OR?: Prisma.OrderExchangeScalarWhereInput[]
   NOT?: Prisma.OrderExchangeScalarWhereInput | Prisma.OrderExchangeScalarWhereInput[]
+  quotedTotal?: Prisma.IntNullableFilter<"OrderExchange"> | number | null
+  quotedLines?: Prisma.JsonNullableFilter<"OrderExchange">
   id?: Prisma.IntFilter<"OrderExchange"> | number
   sourceOrderId?: Prisma.IntFilter<"OrderExchange"> | number
   replacementOrderId?: Prisma.IntNullableFilter<"OrderExchange"> | number | null
@@ -763,6 +817,8 @@ export type OrderExchangeUpdateToOneWithWhereWithoutReplacementOrderInput = {
 }
 
 export type OrderExchangeUpdateWithoutReplacementOrderInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key?: Prisma.StringFieldUpdateOperationsInput | string
   requestHash?: Prisma.StringFieldUpdateOperationsInput | string
   items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -777,6 +833,8 @@ export type OrderExchangeUpdateWithoutReplacementOrderInput = {
 }
 
 export type OrderExchangeUncheckedUpdateWithoutReplacementOrderInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: Prisma.IntFieldUpdateOperationsInput | number
   sourceOrderId?: Prisma.IntFieldUpdateOperationsInput | number
   key?: Prisma.StringFieldUpdateOperationsInput | string
@@ -792,6 +850,8 @@ export type OrderExchangeUncheckedUpdateWithoutReplacementOrderInput = {
 }
 
 export type OrderExchangeCreateManySourceOrderInput = {
+  quotedTotal?: number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: number
   replacementOrderId?: number | null
   key: string
@@ -807,6 +867,8 @@ export type OrderExchangeCreateManySourceOrderInput = {
 }
 
 export type OrderExchangeUpdateWithoutSourceOrderInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   key?: Prisma.StringFieldUpdateOperationsInput | string
   requestHash?: Prisma.StringFieldUpdateOperationsInput | string
   items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -821,6 +883,8 @@ export type OrderExchangeUpdateWithoutSourceOrderInput = {
 }
 
 export type OrderExchangeUncheckedUpdateWithoutSourceOrderInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: Prisma.IntFieldUpdateOperationsInput | number
   replacementOrderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   key?: Prisma.StringFieldUpdateOperationsInput | string
@@ -836,6 +900,8 @@ export type OrderExchangeUncheckedUpdateWithoutSourceOrderInput = {
 }
 
 export type OrderExchangeUncheckedUpdateManyWithoutSourceOrderInput = {
+  quotedTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  quotedLines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   id?: Prisma.IntFieldUpdateOperationsInput | number
   replacementOrderId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   key?: Prisma.StringFieldUpdateOperationsInput | string
@@ -853,6 +919,8 @@ export type OrderExchangeUncheckedUpdateManyWithoutSourceOrderInput = {
 
 
 export type OrderExchangeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  quotedTotal?: boolean
+  quotedLines?: boolean
   id?: boolean
   sourceOrderId?: boolean
   replacementOrderId?: boolean
@@ -871,6 +939,8 @@ export type OrderExchangeSelect<ExtArgs extends runtime.Types.Extensions.Interna
 }, ExtArgs["result"]["orderExchange"]>
 
 export type OrderExchangeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  quotedTotal?: boolean
+  quotedLines?: boolean
   id?: boolean
   sourceOrderId?: boolean
   replacementOrderId?: boolean
@@ -889,6 +959,8 @@ export type OrderExchangeSelectCreateManyAndReturn<ExtArgs extends runtime.Types
 }, ExtArgs["result"]["orderExchange"]>
 
 export type OrderExchangeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  quotedTotal?: boolean
+  quotedLines?: boolean
   id?: boolean
   sourceOrderId?: boolean
   replacementOrderId?: boolean
@@ -907,6 +979,8 @@ export type OrderExchangeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
 }, ExtArgs["result"]["orderExchange"]>
 
 export type OrderExchangeSelectScalar = {
+  quotedTotal?: boolean
+  quotedLines?: boolean
   id?: boolean
   sourceOrderId?: boolean
   replacementOrderId?: boolean
@@ -922,7 +996,7 @@ export type OrderExchangeSelectScalar = {
   decidedAt?: boolean
 }
 
-export type OrderExchangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sourceOrderId" | "replacementOrderId" | "key" | "requestHash" | "items" | "reason" | "status" | "version" | "decisionNote" | "decidedBy" | "createdAt" | "decidedAt", ExtArgs["result"]["orderExchange"]>
+export type OrderExchangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"quotedTotal" | "quotedLines" | "id" | "sourceOrderId" | "replacementOrderId" | "key" | "requestHash" | "items" | "reason" | "status" | "version" | "decisionNote" | "decidedBy" | "createdAt" | "decidedAt", ExtArgs["result"]["orderExchange"]>
 export type OrderExchangeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sourceOrder?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   replacementOrder?: boolean | Prisma.OrderExchange$replacementOrderArgs<ExtArgs>
@@ -943,6 +1017,8 @@ export type $OrderExchangePayload<ExtArgs extends runtime.Types.Extensions.Inter
     replacementOrder: Prisma.$OrderPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    quotedTotal: number | null
+    quotedLines: runtime.JsonValue | null
     id: number
     sourceOrderId: number
     replacementOrderId: number | null
@@ -1039,8 +1115,8 @@ export interface OrderExchangeDelegate<ExtArgs extends runtime.Types.Extensions.
    * // Get first 10 OrderExchanges
    * const orderExchanges = await prisma.orderExchange.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const orderExchangeWithIdOnly = await prisma.orderExchange.findMany({ select: { id: true } })
+   * // Only select the `quotedTotal`
+   * const orderExchangeWithQuotedTotalOnly = await prisma.orderExchange.findMany({ select: { quotedTotal: true } })
    * 
    */
   findMany<T extends OrderExchangeFindManyArgs>(args?: Prisma.SelectSubset<T, OrderExchangeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderExchangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -1084,9 +1160,9 @@ export interface OrderExchangeDelegate<ExtArgs extends runtime.Types.Extensions.
    *   ]
    * })
    * 
-   * // Create many OrderExchanges and only return the `id`
-   * const orderExchangeWithIdOnly = await prisma.orderExchange.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many OrderExchanges and only return the `quotedTotal`
+   * const orderExchangeWithQuotedTotalOnly = await prisma.orderExchange.createManyAndReturn({
+   *   select: { quotedTotal: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -1175,9 +1251,9 @@ export interface OrderExchangeDelegate<ExtArgs extends runtime.Types.Extensions.
    *   ]
    * })
    * 
-   * // Update zero or more OrderExchanges and only return the `id`
-   * const orderExchangeWithIdOnly = await prisma.orderExchange.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more OrderExchanges and only return the `quotedTotal`
+   * const orderExchangeWithQuotedTotalOnly = await prisma.orderExchange.updateManyAndReturn({
+   *   select: { quotedTotal: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -1381,6 +1457,8 @@ export interface Prisma__OrderExchangeClient<T, Null = never, ExtArgs extends ru
  * Fields of the OrderExchange model
  */
 export interface OrderExchangeFieldRefs {
+  readonly quotedTotal: Prisma.FieldRef<"OrderExchange", 'Int'>
+  readonly quotedLines: Prisma.FieldRef<"OrderExchange", 'Json'>
   readonly id: Prisma.FieldRef<"OrderExchange", 'Int'>
   readonly sourceOrderId: Prisma.FieldRef<"OrderExchange", 'Int'>
   readonly replacementOrderId: Prisma.FieldRef<"OrderExchange", 'Int'>

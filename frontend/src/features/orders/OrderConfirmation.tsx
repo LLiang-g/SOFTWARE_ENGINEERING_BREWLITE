@@ -1,5 +1,6 @@
 'use client';
 
+import ExchangePanel from './ExchangePanel';
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { IconCheck } from '@/components/icons';
@@ -259,10 +260,27 @@ export default function OrderConfirmation({ id }: { id: number }) {
                                 </p>
                             </>
                         )}
-                        <p className="flex items-baseline justify-between pt-1">
-                            <span className="font-semibold">Tổng</span>
-                            <span className="font-display text-2xl font-bold tabular-nums">{formatPrice(order.total)}</span>
-                        </p>
+                        {order.creditApplied > 0 ? (
+                            <>
+                                <p className="flex justify-between text-muted">
+                                    <span>Tổng tiền món</span>
+                                    <span className="tabular-nums">{formatPrice(order.total)}</span>
+                                </p>
+                                <p className="flex justify-between gap-3 text-pandan">
+                                    <span>Tiền chuyển từ đơn cũ</span>
+                                    <span className="shrink-0 tabular-nums">−{formatPrice(order.creditApplied)}</span>
+                                </p>
+                                <p className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+                                    <span className="font-semibold">{payable ? 'Cần thanh toán thêm' : success ? 'Chênh lệch đã thanh toán' : 'Chênh lệch của lần đổi'}</span>
+                                    <span className="shrink-0 font-display text-2xl font-bold tabular-nums">{formatPrice(order.amountDue)}</span>
+                                </p>
+                            </>
+                        ) : (
+                            <p className="flex items-baseline justify-between pt-1">
+                                <span className="font-semibold">Tổng</span>
+                                <span className="font-display text-2xl font-bold tabular-nums">{formatPrice(order.total)}</span>
+                            </p>
+                        )}
                     </div>
 
                     {success && order.pointsEarned > 0 && (
@@ -278,13 +296,15 @@ export default function OrderConfirmation({ id }: { id: number }) {
             {(
                 <PaymentPanel
                     orderId={order.id}
-                    total={order.total}
+                    total={order.amountDue ?? order.total}
                     onResult={reloadAfterPayment}
                     readOnly={!payable}
                 />
             )}
 
-            {canCancel && (
+            <ExchangePanel orderId={order.id} canRequest={order.status === 'PAID'} />
+
+            {canCancel && !(order.creditApplied > 0) && (
                 <button
                     type="button"
                     onClick={handleCancel}

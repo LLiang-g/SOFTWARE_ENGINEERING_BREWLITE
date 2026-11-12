@@ -246,6 +246,7 @@ model LoyaltyTransaction {
 }
 
 enum ExchangeStatus {
+  WITHDRAWN
   REQUESTED
   APPROVED
   REJECTED
@@ -256,6 +257,8 @@ enum RefundCaseStatus {
   COMPLETED
 }
 model OrderExchange {
+  quotedTotal Int?
+  quotedLines Json?
   id Int @id @default(autoincrement())
   sourceOrderId Int
   replacementOrderId Int? @unique

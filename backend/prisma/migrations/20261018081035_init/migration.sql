@@ -257,6 +257,12 @@ WHERE a."paidAt" IS NOT NULL AND a.status = 'REVIEW'
 AND NOT EXISTS (SELECT 1 FROM "Payment" p WHERE p."vnpayAttemptId" = a.id);
 
 
+ALTER TYPE "ExchangeStatus" ADD VALUE 'WITHDRAWN';
+ALTER TABLE "OrderExchange" ADD COLUMN "quotedTotal" INTEGER;
+ALTER TABLE "OrderExchange" ADD COLUMN "quotedLines" JSONB;
+ALTER TABLE "OrderExchange" ADD CONSTRAINT "OrderExchange_quote_check" CHECK ("quotedTotal" IS NULL OR "quotedTotal" >= 0);
+
+
 
 -- =========================================
 -- 3. CREATE INDEXES

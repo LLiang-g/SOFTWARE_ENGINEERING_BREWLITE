@@ -68,6 +68,7 @@ export type LoyaltyTransactionType = (typeof LoyaltyTransactionType)[keyof typeo
 
 
 export const ExchangeStatus = {
+  WITHDRAWN: 'WITHDRAWN',
   REQUESTED: 'REQUESTED',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED'
