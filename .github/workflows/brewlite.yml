@@ -1,0 +1,320 @@
+name: BrewLite CI CD
+
+on:
+  pull_request:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the tested images to the configured Windows runner
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brewlite-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backend:
+    name: Backend lint unit API build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-test-only
+          POSTGRES_DB: brewlite_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d brewlite_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://ci:ci-test-only@localhost:5432/brewlite_ci?schema=public
+      JWT_SECRET: ci-only-not-a-production-secret-123456789
+      VNPAY_ENABLED: 'false'
+      PAYMENT_MOCK_ENABLED: 'true'
+      ORDER_EXPIRY_WORKER_ENABLED: 'false'
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npx prisma migrate deploy
+      - run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+      - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml
+      - run: npm run test:e2e -- --reporter=default --reporter=junit --outputFile.junit=reports/api.xml
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: backend/reports/*.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+  frontend:
+    name: Frontend lint build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm run build
+
+      - name: Deployment orchestration unit checks (mock Docker)
+        shell: pwsh
+        run: '& ../scripts/deploy/tests/contract.ps1'
+
+  docker:
+    name: Docker smoke backup restore
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: brewlite-ci
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Create disposable test configuration
+        shell: bash
+        run: |
+          cat > .env.docker <<'EOF'
+          POSTGRES_USER=ci
+          POSTGRES_PASSWORD=ci-test-only
+          POSTGRES_DB=brewlite_ci
+          EOF
+          cat > backend/.env <<'EOF'
+          JWT_SECRET=ci-only-not-a-production-secret-123456789
+          VNPAY_ENABLED=false
+          PAYMENT_MOCK_ENABLED=true
+          ORDER_EXPIRY_WORKER_ENABLED=false
+          EOF
+      - run: docker compose --env-file .env.docker --profile setup build
+      - run: docker compose --env-file .env.docker --profile setup run --rm migrate
+      - run: docker compose --env-file .env.docker --profile setup run --rm seed
+      - run: docker compose --env-file .env.docker up -d --no-build --wait --wait-timeout 180
+      - name: HTTP smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $catalog = Invoke-RestMethod http://localhost:3001/products -TimeoutSec 20
+          if (@($catalog).Count -lt 4) { throw 'Seed catalog missing' }
+          $web = Invoke-WebRequest http://localhost:3000 -TimeoutSec 20
+          if ($web.StatusCode -ne 200) { throw 'Web unavailable' }
+      - name: Exercise the actual backup and restore scripts
+        shell: pwsh
+        run: |
+          & ./scripts/database/backup.ps1 -ProjectRoot $PWD.Path
+          $dump = Get-ChildItem ./backups/*.dump | Sort-Object LastWriteTimeUtc | Select-Object -Last 1
+          if (-not $dump) { throw 'Backup missing' }
+          & ./scripts/database/restore-test.ps1 -ProjectRoot $PWD.Path -BackupFile $dump.FullName
+      - name: Capture test-container logs
+        if: always()
+        shell: bash
+        run: docker compose --env-file .env.docker logs --no-color > ci-compose.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-smoke-results
+          path: |
+            ci-compose.log
+            backups/*.verification.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Dispose isolated CI containers and volume
+        if: always()
+        run: docker compose --env-file .env.docker --profile setup down -v
+
+  passed:
+    name: CI passed
+    if: always()
+    needs: [backend, frontend, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every CI job to pass
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e 'const n=JSON.parse(process.env.RESULTS); if(Object.values(n).some(x=>x.result!=="success")) process.exit(1)'
+
+  publish:
+    name: Publish versioned images
+    needs: passed
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      backend: ${{ steps.refs.outputs.backend }}
+      frontend: ${{ steps.refs.outputs.frontend }}
+      tools: ${{ steps.refs.outputs.tools }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: image
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "base=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          tag="sha-$GITHUB_SHA"
+          if [[ "$REF_TYPE" == tag ]]; then
+            [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][a-zA-Z0-9.-]+)?$ ]] || exit 1
+            tag="$REF_NAME"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Backend runtime
+        id: backend
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          target: runtime
+          push: true
+          tags: ${{ steps.image.outputs.base }}-backend:${{ steps.image.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Migration tools
+        id: tools
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          target: tools
+          push: true
+          tags: ${{ steps.image.outputs.base }}-tools:${{ steps.image.outputs.tag }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=backend
+      - name: Frontend standalone
+        id: frontend
+        uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          push: true
+          tags: ${{ steps.image.outputs.base }}-frontend:${{ steps.image.outputs.tag }}
+          build-args: NEXT_PUBLIC_API_URL=${{ vars.PUBLIC_API_URL || 'http://localhost:3001' }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+      - name: Record exact image digests
+        id: refs
+        shell: bash
+        env:
+          BASE: ${{ steps.image.outputs.base }}
+          BACKEND: ${{ steps.backend.outputs.digest }}
+          FRONTEND: ${{ steps.frontend.outputs.digest }}
+          TOOLS: ${{ steps.tools.outputs.digest }}
+        run: |
+          echo "backend=$BASE-backend@$BACKEND" >> "$GITHUB_OUTPUT"
+          echo "frontend=$BASE-frontend@$FRONTEND" >> "$GITHUB_OUTPUT"
+          echo "tools=$BASE-tools@$TOOLS" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "BACKEND_IMAGE=$BASE-backend@$BACKEND" "FRONTEND_IMAGE=$BASE-frontend@$FRONTEND" "TOOLS_IMAGE=$BASE-tools@$TOOLS" > release-images.env
+          printf '### Published images\n\nCommit: `%s`\n\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          cat release-images.env >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-images-${{ github.sha }}
+          path: release-images.env
+          retention-days: 30
+
+  deploy:
+    name: Deploy tested images
+    needs: publish
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      ((github.event_name == 'workflow_dispatch' && inputs.deploy) ||
+       (github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'))
+    runs-on: [self-hosted, Windows, brewlite-deploy]
+    environment: production
+    timeout-minutes: 30
+    concurrency:
+      group: brewlite-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Login for this job only
+        shell: powershell
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_USER: ${{ github.actor }}
+        run: |
+          $env:DOCKER_CONFIG = Join-Path $env:RUNNER_TEMP ('brewlite-docker-' + $env:GITHUB_RUN_ID)
+          New-Item -ItemType Directory -Force $env:DOCKER_CONFIG | Out-Null
+          "DOCKER_CONFIG=$env:DOCKER_CONFIG" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $env:REGISTRY_TOKEN | docker login ghcr.io --username $env:REGISTRY_USER --password-stdin
+          if ($LASTEXITCODE -ne 0) { throw 'Registry login failed' }
+      - name: Backup migrate deploy smoke and application rollback
+        shell: powershell
+        env:
+          BREWLITE_DEPLOY_ROOT: ${{ vars.DEPLOY_ROOT }}
+          BACKEND_IMAGE: ${{ needs.publish.outputs.backend }}
+          FRONTEND_IMAGE: ${{ needs.publish.outputs.frontend }}
+          TOOLS_IMAGE: ${{ needs.publish.outputs.tools }}
+          RELEASE_COMMIT: ${{ github.sha }}
+          DEPLOY_API_URL: ${{ vars.DEPLOY_API_URL || 'http://localhost:3001' }}
+          DEPLOY_WEB_URL: ${{ vars.DEPLOY_WEB_URL || 'http://localhost:3000' }}
+        run: |
+          if (-not $env:BREWLITE_DEPLOY_ROOT) { throw 'Set production environment variable DEPLOY_ROOT' }
+          & ./scripts/deploy/deploy.ps1 -ProjectRoot $env:BREWLITE_DEPLOY_ROOT -ApiBase $env:DEPLOY_API_URL -WebBase $env:DEPLOY_WEB_URL
+      - name: Remove registry login
+        if: always()
+        shell: powershell
+        run: |
+          if ($env:DOCKER_CONFIG) {
+            docker logout ghcr.io
+            if (Test-Path -LiteralPath (Join-Path $env:DOCKER_CONFIG 'config.json')) {
+              Remove-Item -LiteralPath (Join-Path $env:DOCKER_CONFIG 'config.json')
+            }
+          }

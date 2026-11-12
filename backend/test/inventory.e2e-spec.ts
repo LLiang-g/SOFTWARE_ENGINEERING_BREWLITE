@@ -83,7 +83,7 @@ describe('Tồn kho (e2e)', () => {
         ]);
 
         expect(res.status).toBe(409);
-        expect(res.body.message).toContain('chỉ còn 2 phần');
+        expect(res.body.message).toContain('Không đủ nguyên liệu');
         expect(await stockOf(productId)).toBe(2);
         expect(await prisma.orderItem.count({ where: { productId } })).toBe(0);
     });
@@ -185,7 +185,10 @@ describe('Tồn kho (e2e)', () => {
             }).expect(201);
         expect(created.body.total).toBe(150000);
         expect(created.body.items.map((item: { lineTotal: number }) => item.lineTotal)).toEqual([100000, 50000]);
-        expect(await stockOf(productId)).toBe(2);
+        // 2 * ceil(10 * 1.25) + 1 * ceil(10 * 1.5) = 41; remaining 9.
+        expect(await stockOf(productId)).toBe(0);
+        const recipe = await prisma.recipe.findFirstOrThrow({ where: { productId }, include: { ingredient: true } });
+        expect(recipe.ingredient.stock).toBe(9);
         await cancelOrder(app, token, created.body.id).expect(200);
         expect(await stockOf(productId)).toBe(5);
     });

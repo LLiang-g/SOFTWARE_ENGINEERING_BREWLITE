@@ -59,7 +59,7 @@ describe('API nhân viên và WebSocket', () => {
         ({ token, userId } = await registerUser(app));
         ({ token: otherToken, userId: otherUserId } = await registerUser(app));
         ({ token: baristaToken, userId: baristaId } = await createBarista(app, prisma));
-        productId = (await createTestProduct(prisma)).id;
+        productId = (await createTestProduct(prisma, 100, { scalesWithSize: false })).id;
         await connectSocket();
         await connectSocket();
     });

@@ -97,9 +97,9 @@ describe('Snapshot nguyên liệu của đơn (e2e)', () => {
             { productId: first, size: 'L', qty: 1 },
             { productId: second, size: 'S', qty: 2 },
         ]).expect(201);
-        // Bản vá chỉ ghi nhận logic trừ hiện tại, chưa bổ sung công thức theo size.
-        expect(await stockOf(shared)).toBe(50);
-        expect(await snapshots(created.body.id)).toMatchObject([{ ingredientId: shared, quantity: 50 }]);
+        // S: 10; L: 15; hai ly S món thứ hai: 30. Tổng giữ 55.
+        expect(await stockOf(shared)).toBe(45);
+        expect(await snapshots(created.body.id)).toMatchObject([{ ingredientId: shared, quantity: 55 }]);
         expect(await snapshots(created.body.id)).toHaveLength(1);
         await cancelOrder(app, token, created.body.id).expect(200);
         expect(await stockOf(shared)).toBe(100);

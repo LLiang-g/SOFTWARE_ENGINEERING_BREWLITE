@@ -7,3 +7,5 @@ dist
 /tmp/
 /proposed-fixes/
 /backups/
+/deploy-state/
+/backend/reports/

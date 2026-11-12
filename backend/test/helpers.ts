@@ -15,7 +15,21 @@ export async function createTestApp() {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     // Dùng một cổng cố định trong suốt bài test, cả HTTP và WebSocket dùng chung.
     await app.listen(0, '127.0.0.1');
-    return { app, prisma: app.get(PrismaService) };
+    const prisma = app.get(PrismaService);
+    // Test-only topping fixtures. CI uses a disposable database, never production.
+    for (const code of ['KEM', 'TRAN_CHAU']) {
+        const ingredient = await prisma.ingredient.upsert({
+            where: { name: 'E2E topping ' + code },
+            create: { name: 'E2E topping ' + code, unit: 'g', stock: 1000000 },
+            update: { stock: 1000000 },
+        });
+        await prisma.toppingRecipe.upsert({
+            where: { toppingCode_ingredientId: { toppingCode: code, ingredientId: ingredient.id } },
+            create: { toppingCode: code, ingredientId: ingredient.id, quantity: 20 },
+            update: { quantity: 20 },
+        });
+    }
+    return { app, prisma };
 }
 
 let counter = 0;
@@ -96,7 +110,7 @@ const TEST_UNIT = 10;
 export async function createTestProduct(
     prisma: PrismaService,
     servings = 100,
-    overrides: { name?: string; price?: number } = {},
+    overrides: { name?: string; price?: number; scalesWithSize?: boolean } = {},
 ) {
     const ingredient = await prisma.ingredient.create({
         data: {
@@ -110,7 +124,7 @@ export async function createTestProduct(
             name: overrides.name ?? 'E2E test',
             price: overrides.price ?? 40000,
             imageUrl: '/test.jpg',
-            recipes: { create: { ingredientId: ingredient.id, quantity: TEST_UNIT } },
+            recipes: { create: { ingredientId: ingredient.id, quantity: TEST_UNIT, scalesWithSize: overrides.scalesWithSize ?? true } },
         },
     });
 }
