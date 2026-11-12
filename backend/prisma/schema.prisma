@@ -104,6 +104,9 @@ model Voucher {
 }
 
 model Order {
+  creditApplied Int @default(0)
+  exchangeRequests OrderExchange[] @relation("ExchangeSource")
+  replacementFor OrderExchange? @relation("ExchangeReplacement")
   id        Int         @id @default(autoincrement())
   userId    Int
   status    OrderStatus @default(PENDING)
@@ -163,6 +166,7 @@ model Payment {
 }
 
 model VnpayAttempt {
+  refundCase PaymentRefundCase?
   id                 Int @id @default(autoincrement())
   orderId            Int
   txnRef             String @unique @db.VarChar(32)
@@ -239,4 +243,46 @@ model LoyaltyTransaction {
 
   @@unique([orderId, type])
   @@index([userId, createdAt])
+}
+
+enum ExchangeStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+enum RefundCaseStatus {
+  OPEN
+  PROCESSING
+  COMPLETED
+}
+model OrderExchange {
+  id Int @id @default(autoincrement())
+  sourceOrderId Int
+  replacementOrderId Int? @unique
+  key String @db.VarChar(100)
+  requestHash String @db.Char(64)
+  items Json
+  reason String @db.VarChar(1000)
+  status ExchangeStatus @default(REQUESTED)
+  version Int @default(0)
+  decisionNote String? @db.VarChar(1000)
+  decidedBy Int?
+  createdAt DateTime @default(now())
+  decidedAt DateTime?
+  sourceOrder Order @relation("ExchangeSource", fields:[sourceOrderId], references:[id], onDelete:Restrict)
+  replacementOrder Order? @relation("ExchangeReplacement", fields:[replacementOrderId], references:[id], onDelete:Restrict)
+  @@unique([sourceOrderId,key])
+}
+model PaymentRefundCase {
+  id Int @id @default(autoincrement())
+  attemptId Int @unique
+  amount Int
+  status RefundCaseStatus @default(OPEN)
+  version Int @default(0)
+  handledBy Int?
+  reference String? @unique @db.VarChar(200)
+  note String? @db.VarChar(1000)
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  attempt VnpayAttempt @relation(fields:[attemptId], references:[id], onDelete:Restrict)
 }

@@ -101,14 +101,14 @@ describe('VNPay Sandbox API (gateway giả lập, DB thật riêng)', () => {
         expect(await stock(f.ingredientId)).toBe(90);
     });
 
-    it('hết hạn đồng hồ chưa đủ; QueryDr đã xác minh thất bại mới cấp mã mới', async () => {
+    it('hết hạn cho cấp mã mới dù QueryDr chưa xác minh, vẫn giữ lần cũ', async () => {
         const f = await attempt();
         await prisma.vnpayAttempt.update({ where: { id: f.id }, data: { expiresAt: new Date(Date.now() - 1000) } });
         const spy = vi.spyOn(app.get(VnpayGateway), 'query').mockResolvedValueOnce(fields(f.txnRef, {
             vnp_ResponseCode: '91', vnp_TransactionStatus: '01', vnp_TransactionType: '01',
         }));
-        try { await start(f.orderId).expect(409); } finally { spy.mockRestore(); }
-        expect(await prisma.vnpayAttempt.count({ where: { orderId: f.orderId } })).toBe(1);
+        try { await start(f.orderId).expect(201); } finally { spy.mockRestore(); }
+        expect(await prisma.vnpayAttempt.count({ where: { orderId: f.orderId } })).toBe(2);
         await prisma.vnpayAttempt.update({ where: { id: f.id }, data: { lastCheckedAt: null } });
         const verified = vi.spyOn(app.get(VnpayGateway), 'query').mockResolvedValueOnce(fields(f.txnRef, {
             vnp_ResponseCode: '00', vnp_TransactionStatus: '02', vnp_TransactionType: '01',

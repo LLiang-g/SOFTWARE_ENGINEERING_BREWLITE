@@ -87,3 +87,13 @@ export type OrderInventoryReservation = Prisma.OrderInventoryReservationModel
  * 
  */
 export type LoyaltyTransaction = Prisma.LoyaltyTransactionModel
+/**
+ * Model OrderExchange
+ * 
+ */
+export type OrderExchange = Prisma.OrderExchangeModel
+/**
+ * Model PaymentRefundCase
+ * 
+ */
+export type PaymentRefundCase = Prisma.PaymentRefundCaseModel

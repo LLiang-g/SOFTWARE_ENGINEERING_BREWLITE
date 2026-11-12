@@ -173,6 +173,7 @@ export class OrdersService {
 
         // Hủy tự phục vụ chỉ áp dụng cho đơn chưa thanh toán.
         // Đơn đã trả tiền cần quy trình hoàn tiền riêng trước khi hoàn kho.
+        if (order.creditApplied > 0) throw new ConflictException('Đơn đổi món đã sử dụng tiền cũ, không được tự hủy');
         if (order.status !== 'PENDING' && order.status !== 'PAYMENT_FAILED') {
             throw new ConflictException('Chỉ có thể hủy đơn chưa thanh toán');
         }
@@ -221,6 +222,7 @@ export class OrdersService {
 
     async updateStaffStatus(id: number, status: UpdateStaffOrderStatusDto['status']) {
         const updated = await this.prisma.$transaction(async (tx) => {
+            await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${id} FOR UPDATE`;
             const order = await tx.order.findUnique({ where: { id } });
             if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
             if (!['PAID', 'PREPARING', 'READY'].includes(order.status)) {
@@ -254,10 +256,12 @@ export class OrdersService {
             id: order.id,
             status: order.status,
             total: order.total,
+            creditApplied: order.creditApplied,
+            amountDue: Math.max(0, order.total - order.creditApplied),
             discount: order.discount,
             voucherCode: order.voucher?.code ?? null,
             pointsEarned: PAID_STATUSES.includes(order.status)
-                ? calcPoints(order.total)
+                ? calcPoints(order.total - order.creditApplied)
                 : 0,
             createdAt: order.createdAt,
             items: order.items.map((i) => ({

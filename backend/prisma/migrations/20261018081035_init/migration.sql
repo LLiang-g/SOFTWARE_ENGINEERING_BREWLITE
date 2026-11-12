@@ -227,6 +227,37 @@ ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_actorId_fkey"
 
 
 
+
+
+
+ALTER TABLE "Order" ADD COLUMN "creditApplied" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Order" ADD CONSTRAINT "Order_creditApplied_check" CHECK ("creditApplied" >= 0 AND "creditApplied" <= total);
+CREATE TYPE "ExchangeStatus" AS ENUM ('REQUESTED','APPROVED','REJECTED');
+CREATE TYPE "RefundCaseStatus" AS ENUM ('OPEN','PROCESSING','COMPLETED');
+CREATE TABLE "OrderExchange" (
+  id SERIAL PRIMARY KEY, "sourceOrderId" INTEGER NOT NULL REFERENCES "Order"(id) ON DELETE RESTRICT,
+  "replacementOrderId" INTEGER UNIQUE REFERENCES "Order"(id) ON DELETE RESTRICT,
+  key VARCHAR(100) NOT NULL, "requestHash" CHAR(64) NOT NULL, items JSONB NOT NULL,
+  reason VARCHAR(1000) NOT NULL, status "ExchangeStatus" NOT NULL DEFAULT 'REQUESTED',
+  version INTEGER NOT NULL DEFAULT 0, "decisionNote" VARCHAR(1000), "decidedBy" INTEGER,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "decidedAt" TIMESTAMP(3),
+  CONSTRAINT "OrderExchange_sourceOrderId_key_key" UNIQUE ("sourceOrderId",key)
+);
+CREATE UNIQUE INDEX "OrderExchange_one_requested" ON "OrderExchange"("sourceOrderId") WHERE status = 'REQUESTED';
+CREATE TABLE "PaymentRefundCase" (
+  id SERIAL PRIMARY KEY, "attemptId" INTEGER NOT NULL UNIQUE REFERENCES "VnpayAttempt"(id) ON DELETE RESTRICT,
+  amount INTEGER NOT NULL CHECK (amount > 0), status "RefundCaseStatus" NOT NULL DEFAULT 'OPEN',
+  version INTEGER NOT NULL DEFAULT 0, "handledBy" INTEGER, reference VARCHAR(200) UNIQUE,
+  note VARCHAR(1000), "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "completedAt" TIMESTAMP(3)
+);
+-- Backfill confirmed money already in REVIEW in patch 06, without inventing refunds.
+INSERT INTO "PaymentRefundCase" ("attemptId", amount)
+SELECT a.id, a.amount FROM "VnpayAttempt" a
+WHERE a."paidAt" IS NOT NULL AND a.status = 'REVIEW'
+AND NOT EXISTS (SELECT 1 FROM "Payment" p WHERE p."vnpayAttemptId" = a.id);
+
+
+
 -- =========================================
 -- 3. CREATE INDEXES
 -- =========================================

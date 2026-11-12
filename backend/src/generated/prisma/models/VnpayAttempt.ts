@@ -320,6 +320,7 @@ export type VnpayAttemptWhereInput = {
   lastCheckedAt?: Prisma.DateTimeNullableFilter<"VnpayAttempt"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"VnpayAttempt"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VnpayAttempt"> | Date | string
+  refundCase?: Prisma.XOR<Prisma.PaymentRefundCaseNullableScalarRelationFilter, Prisma.PaymentRefundCaseWhereInput> | null
   order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
   payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null
   requests?: Prisma.PaymentStartRequestListRelationFilter
@@ -344,6 +345,7 @@ export type VnpayAttemptOrderByWithRelationInput = {
   lastCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  refundCase?: Prisma.PaymentRefundCaseOrderByWithRelationInput
   order?: Prisma.OrderOrderByWithRelationInput
   payment?: Prisma.PaymentOrderByWithRelationInput
   requests?: Prisma.PaymentStartRequestOrderByRelationAggregateInput
@@ -371,6 +373,7 @@ export type VnpayAttemptWhereUniqueInput = Prisma.AtLeast<{
   lastCheckedAt?: Prisma.DateTimeNullableFilter<"VnpayAttempt"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"VnpayAttempt"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VnpayAttempt"> | Date | string
+  refundCase?: Prisma.XOR<Prisma.PaymentRefundCaseNullableScalarRelationFilter, Prisma.PaymentRefundCaseWhereInput> | null
   order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
   payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null
   requests?: Prisma.PaymentStartRequestListRelationFilter
@@ -441,6 +444,7 @@ export type VnpayAttemptCreateInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseCreateNestedOneWithoutAttemptInput
   order: Prisma.OrderCreateNestedOneWithoutVnpayAttemptsInput
   payment?: Prisma.PaymentCreateNestedOneWithoutVnpayAttemptInput
   requests?: Prisma.PaymentStartRequestCreateNestedManyWithoutAttemptInput
@@ -465,6 +469,7 @@ export type VnpayAttemptUncheckedCreateInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedCreateNestedOneWithoutAttemptInput
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutVnpayAttemptInput
   requests?: Prisma.PaymentStartRequestUncheckedCreateNestedManyWithoutAttemptInput
   audits?: Prisma.PaymentAuditUncheckedCreateNestedManyWithoutAttemptInput
@@ -486,6 +491,7 @@ export type VnpayAttemptUpdateInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUpdateOneWithoutAttemptNestedInput
   order?: Prisma.OrderUpdateOneRequiredWithoutVnpayAttemptsNestedInput
   payment?: Prisma.PaymentUpdateOneWithoutVnpayAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUpdateManyWithoutAttemptNestedInput
@@ -510,6 +516,7 @@ export type VnpayAttemptUncheckedUpdateInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedUpdateOneWithoutAttemptNestedInput
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutVnpayAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUncheckedUpdateManyWithoutAttemptNestedInput
   audits?: Prisma.PaymentAuditUncheckedUpdateManyWithoutAttemptNestedInput
@@ -763,6 +770,20 @@ export type VnpayAttemptUpdateOneRequiredWithoutAuditsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VnpayAttemptUpdateToOneWithWhereWithoutAuditsInput, Prisma.VnpayAttemptUpdateWithoutAuditsInput>, Prisma.VnpayAttemptUncheckedUpdateWithoutAuditsInput>
 }
 
+export type VnpayAttemptCreateNestedOneWithoutRefundCaseInput = {
+  create?: Prisma.XOR<Prisma.VnpayAttemptCreateWithoutRefundCaseInput, Prisma.VnpayAttemptUncheckedCreateWithoutRefundCaseInput>
+  connectOrCreate?: Prisma.VnpayAttemptCreateOrConnectWithoutRefundCaseInput
+  connect?: Prisma.VnpayAttemptWhereUniqueInput
+}
+
+export type VnpayAttemptUpdateOneRequiredWithoutRefundCaseNestedInput = {
+  create?: Prisma.XOR<Prisma.VnpayAttemptCreateWithoutRefundCaseInput, Prisma.VnpayAttemptUncheckedCreateWithoutRefundCaseInput>
+  connectOrCreate?: Prisma.VnpayAttemptCreateOrConnectWithoutRefundCaseInput
+  upsert?: Prisma.VnpayAttemptUpsertWithoutRefundCaseInput
+  connect?: Prisma.VnpayAttemptWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VnpayAttemptUpdateToOneWithWhereWithoutRefundCaseInput, Prisma.VnpayAttemptUpdateWithoutRefundCaseInput>, Prisma.VnpayAttemptUncheckedUpdateWithoutRefundCaseInput>
+}
+
 export type VnpayAttemptCreateWithoutOrderInput = {
   txnRef: string
   amount: number
@@ -779,6 +800,7 @@ export type VnpayAttemptCreateWithoutOrderInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseCreateNestedOneWithoutAttemptInput
   payment?: Prisma.PaymentCreateNestedOneWithoutVnpayAttemptInput
   requests?: Prisma.PaymentStartRequestCreateNestedManyWithoutAttemptInput
   audits?: Prisma.PaymentAuditCreateNestedManyWithoutAttemptInput
@@ -801,6 +823,7 @@ export type VnpayAttemptUncheckedCreateWithoutOrderInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedCreateNestedOneWithoutAttemptInput
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutVnpayAttemptInput
   requests?: Prisma.PaymentStartRequestUncheckedCreateNestedManyWithoutAttemptInput
   audits?: Prisma.PaymentAuditUncheckedCreateNestedManyWithoutAttemptInput
@@ -871,6 +894,7 @@ export type VnpayAttemptCreateWithoutPaymentInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseCreateNestedOneWithoutAttemptInput
   order: Prisma.OrderCreateNestedOneWithoutVnpayAttemptsInput
   requests?: Prisma.PaymentStartRequestCreateNestedManyWithoutAttemptInput
   audits?: Prisma.PaymentAuditCreateNestedManyWithoutAttemptInput
@@ -894,6 +918,7 @@ export type VnpayAttemptUncheckedCreateWithoutPaymentInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedCreateNestedOneWithoutAttemptInput
   requests?: Prisma.PaymentStartRequestUncheckedCreateNestedManyWithoutAttemptInput
   audits?: Prisma.PaymentAuditUncheckedCreateNestedManyWithoutAttemptInput
 }
@@ -930,6 +955,7 @@ export type VnpayAttemptUpdateWithoutPaymentInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUpdateOneWithoutAttemptNestedInput
   order?: Prisma.OrderUpdateOneRequiredWithoutVnpayAttemptsNestedInput
   requests?: Prisma.PaymentStartRequestUpdateManyWithoutAttemptNestedInput
   audits?: Prisma.PaymentAuditUpdateManyWithoutAttemptNestedInput
@@ -953,6 +979,7 @@ export type VnpayAttemptUncheckedUpdateWithoutPaymentInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedUpdateOneWithoutAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUncheckedUpdateManyWithoutAttemptNestedInput
   audits?: Prisma.PaymentAuditUncheckedUpdateManyWithoutAttemptNestedInput
 }
@@ -973,6 +1000,7 @@ export type VnpayAttemptCreateWithoutRequestsInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseCreateNestedOneWithoutAttemptInput
   order: Prisma.OrderCreateNestedOneWithoutVnpayAttemptsInput
   payment?: Prisma.PaymentCreateNestedOneWithoutVnpayAttemptInput
   audits?: Prisma.PaymentAuditCreateNestedManyWithoutAttemptInput
@@ -996,6 +1024,7 @@ export type VnpayAttemptUncheckedCreateWithoutRequestsInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedCreateNestedOneWithoutAttemptInput
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutVnpayAttemptInput
   audits?: Prisma.PaymentAuditUncheckedCreateNestedManyWithoutAttemptInput
 }
@@ -1032,6 +1061,7 @@ export type VnpayAttemptUpdateWithoutRequestsInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUpdateOneWithoutAttemptNestedInput
   order?: Prisma.OrderUpdateOneRequiredWithoutVnpayAttemptsNestedInput
   payment?: Prisma.PaymentUpdateOneWithoutVnpayAttemptNestedInput
   audits?: Prisma.PaymentAuditUpdateManyWithoutAttemptNestedInput
@@ -1055,6 +1085,7 @@ export type VnpayAttemptUncheckedUpdateWithoutRequestsInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedUpdateOneWithoutAttemptNestedInput
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutVnpayAttemptNestedInput
   audits?: Prisma.PaymentAuditUncheckedUpdateManyWithoutAttemptNestedInput
 }
@@ -1075,6 +1106,7 @@ export type VnpayAttemptCreateWithoutAuditsInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseCreateNestedOneWithoutAttemptInput
   order: Prisma.OrderCreateNestedOneWithoutVnpayAttemptsInput
   payment?: Prisma.PaymentCreateNestedOneWithoutVnpayAttemptInput
   requests?: Prisma.PaymentStartRequestCreateNestedManyWithoutAttemptInput
@@ -1098,6 +1130,7 @@ export type VnpayAttemptUncheckedCreateWithoutAuditsInput = {
   lastCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedCreateNestedOneWithoutAttemptInput
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutVnpayAttemptInput
   requests?: Prisma.PaymentStartRequestUncheckedCreateNestedManyWithoutAttemptInput
 }
@@ -1134,6 +1167,7 @@ export type VnpayAttemptUpdateWithoutAuditsInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUpdateOneWithoutAttemptNestedInput
   order?: Prisma.OrderUpdateOneRequiredWithoutVnpayAttemptsNestedInput
   payment?: Prisma.PaymentUpdateOneWithoutVnpayAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUpdateManyWithoutAttemptNestedInput
@@ -1157,8 +1191,115 @@ export type VnpayAttemptUncheckedUpdateWithoutAuditsInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedUpdateOneWithoutAttemptNestedInput
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutVnpayAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUncheckedUpdateManyWithoutAttemptNestedInput
+}
+
+export type VnpayAttemptCreateWithoutRefundCaseInput = {
+  txnRef: string
+  amount: number
+  status?: $Enums.VnpayAttemptStatus
+  paymentUrl: string
+  merchantCode: string
+  createDate: string
+  expiresAt: Date | string
+  providerTxnNo?: string | null
+  responseCode?: string | null
+  transactionStatus?: string | null
+  paidAt?: Date | string | null
+  reviewReason?: string | null
+  lastCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  order: Prisma.OrderCreateNestedOneWithoutVnpayAttemptsInput
+  payment?: Prisma.PaymentCreateNestedOneWithoutVnpayAttemptInput
+  requests?: Prisma.PaymentStartRequestCreateNestedManyWithoutAttemptInput
+  audits?: Prisma.PaymentAuditCreateNestedManyWithoutAttemptInput
+}
+
+export type VnpayAttemptUncheckedCreateWithoutRefundCaseInput = {
+  id?: number
+  orderId: number
+  txnRef: string
+  amount: number
+  status?: $Enums.VnpayAttemptStatus
+  paymentUrl: string
+  merchantCode: string
+  createDate: string
+  expiresAt: Date | string
+  providerTxnNo?: string | null
+  responseCode?: string | null
+  transactionStatus?: string | null
+  paidAt?: Date | string | null
+  reviewReason?: string | null
+  lastCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutVnpayAttemptInput
+  requests?: Prisma.PaymentStartRequestUncheckedCreateNestedManyWithoutAttemptInput
+  audits?: Prisma.PaymentAuditUncheckedCreateNestedManyWithoutAttemptInput
+}
+
+export type VnpayAttemptCreateOrConnectWithoutRefundCaseInput = {
+  where: Prisma.VnpayAttemptWhereUniqueInput
+  create: Prisma.XOR<Prisma.VnpayAttemptCreateWithoutRefundCaseInput, Prisma.VnpayAttemptUncheckedCreateWithoutRefundCaseInput>
+}
+
+export type VnpayAttemptUpsertWithoutRefundCaseInput = {
+  update: Prisma.XOR<Prisma.VnpayAttemptUpdateWithoutRefundCaseInput, Prisma.VnpayAttemptUncheckedUpdateWithoutRefundCaseInput>
+  create: Prisma.XOR<Prisma.VnpayAttemptCreateWithoutRefundCaseInput, Prisma.VnpayAttemptUncheckedCreateWithoutRefundCaseInput>
+  where?: Prisma.VnpayAttemptWhereInput
+}
+
+export type VnpayAttemptUpdateToOneWithWhereWithoutRefundCaseInput = {
+  where?: Prisma.VnpayAttemptWhereInput
+  data: Prisma.XOR<Prisma.VnpayAttemptUpdateWithoutRefundCaseInput, Prisma.VnpayAttemptUncheckedUpdateWithoutRefundCaseInput>
+}
+
+export type VnpayAttemptUpdateWithoutRefundCaseInput = {
+  txnRef?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumVnpayAttemptStatusFieldUpdateOperationsInput | $Enums.VnpayAttemptStatus
+  paymentUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  merchantCode?: Prisma.StringFieldUpdateOperationsInput | string
+  createDate?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  providerTxnNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transactionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  order?: Prisma.OrderUpdateOneRequiredWithoutVnpayAttemptsNestedInput
+  payment?: Prisma.PaymentUpdateOneWithoutVnpayAttemptNestedInput
+  requests?: Prisma.PaymentStartRequestUpdateManyWithoutAttemptNestedInput
+  audits?: Prisma.PaymentAuditUpdateManyWithoutAttemptNestedInput
+}
+
+export type VnpayAttemptUncheckedUpdateWithoutRefundCaseInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  orderId?: Prisma.IntFieldUpdateOperationsInput | number
+  txnRef?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumVnpayAttemptStatusFieldUpdateOperationsInput | $Enums.VnpayAttemptStatus
+  paymentUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  merchantCode?: Prisma.StringFieldUpdateOperationsInput | string
+  createDate?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  providerTxnNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transactionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payment?: Prisma.PaymentUncheckedUpdateOneWithoutVnpayAttemptNestedInput
+  requests?: Prisma.PaymentStartRequestUncheckedUpdateManyWithoutAttemptNestedInput
+  audits?: Prisma.PaymentAuditUncheckedUpdateManyWithoutAttemptNestedInput
 }
 
 export type VnpayAttemptCreateManyOrderInput = {
@@ -1196,6 +1337,7 @@ export type VnpayAttemptUpdateWithoutOrderInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUpdateOneWithoutAttemptNestedInput
   payment?: Prisma.PaymentUpdateOneWithoutVnpayAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUpdateManyWithoutAttemptNestedInput
   audits?: Prisma.PaymentAuditUpdateManyWithoutAttemptNestedInput
@@ -1218,6 +1360,7 @@ export type VnpayAttemptUncheckedUpdateWithoutOrderInput = {
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundCase?: Prisma.PaymentRefundCaseUncheckedUpdateOneWithoutAttemptNestedInput
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutVnpayAttemptNestedInput
   requests?: Prisma.PaymentStartRequestUncheckedUpdateManyWithoutAttemptNestedInput
   audits?: Prisma.PaymentAuditUncheckedUpdateManyWithoutAttemptNestedInput
@@ -1300,6 +1443,7 @@ export type VnpayAttemptSelect<ExtArgs extends runtime.Types.Extensions.Internal
   lastCheckedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  refundCase?: boolean | Prisma.VnpayAttempt$refundCaseArgs<ExtArgs>
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   payment?: boolean | Prisma.VnpayAttempt$paymentArgs<ExtArgs>
   requests?: boolean | Prisma.VnpayAttempt$requestsArgs<ExtArgs>
@@ -1371,6 +1515,7 @@ export type VnpayAttemptSelectScalar = {
 
 export type VnpayAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "txnRef" | "amount" | "status" | "paymentUrl" | "merchantCode" | "createDate" | "expiresAt" | "providerTxnNo" | "responseCode" | "transactionStatus" | "paidAt" | "reviewReason" | "lastCheckedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["vnpayAttempt"]>
 export type VnpayAttemptInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  refundCase?: boolean | Prisma.VnpayAttempt$refundCaseArgs<ExtArgs>
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   payment?: boolean | Prisma.VnpayAttempt$paymentArgs<ExtArgs>
   requests?: boolean | Prisma.VnpayAttempt$requestsArgs<ExtArgs>
@@ -1387,6 +1532,7 @@ export type VnpayAttemptIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types
 export type $VnpayAttemptPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "VnpayAttempt"
   objects: {
+    refundCase: Prisma.$PaymentRefundCasePayload<ExtArgs> | null
     order: Prisma.$OrderPayload<ExtArgs>
     payment: Prisma.$PaymentPayload<ExtArgs> | null
     requests: Prisma.$PaymentStartRequestPayload<ExtArgs>[]
@@ -1804,6 +1950,7 @@ readonly fields: VnpayAttemptFieldRefs;
  */
 export interface Prisma__VnpayAttemptClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  refundCase<T extends Prisma.VnpayAttempt$refundCaseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VnpayAttempt$refundCaseArgs<ExtArgs>>): Prisma.Prisma__PaymentRefundCaseClient<runtime.Types.Result.GetResult<Prisma.$PaymentRefundCasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   order<T extends Prisma.OrderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrderDefaultArgs<ExtArgs>>): Prisma.Prisma__OrderClient<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   payment<T extends Prisma.VnpayAttempt$paymentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VnpayAttempt$paymentArgs<ExtArgs>>): Prisma.Prisma__PaymentClient<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   requests<T extends Prisma.VnpayAttempt$requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VnpayAttempt$requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentStartRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2252,6 +2399,25 @@ export type VnpayAttemptDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many VnpayAttempts to delete.
    */
   limit?: number
+}
+
+/**
+ * VnpayAttempt.refundCase
+ */
+export type VnpayAttempt$refundCaseArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PaymentRefundCase
+   */
+  select?: Prisma.PaymentRefundCaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PaymentRefundCase
+   */
+  omit?: Prisma.PaymentRefundCaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentRefundCaseInclude<ExtArgs> | null
+  where?: Prisma.PaymentRefundCaseWhereInput
 }
 
 /**

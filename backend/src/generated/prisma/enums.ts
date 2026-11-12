@@ -65,3 +65,21 @@ export const LoyaltyTransactionType = {
 } as const
 
 export type LoyaltyTransactionType = (typeof LoyaltyTransactionType)[keyof typeof LoyaltyTransactionType]
+
+
+export const ExchangeStatus = {
+  REQUESTED: 'REQUESTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type ExchangeStatus = (typeof ExchangeStatus)[keyof typeof ExchangeStatus]
+
+
+export const RefundCaseStatus = {
+  OPEN: 'OPEN',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type RefundCaseStatus = (typeof RefundCaseStatus)[keyof typeof RefundCaseStatus]

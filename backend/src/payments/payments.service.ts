@@ -86,6 +86,7 @@ export class PaymentsService {
         if (!order || order.userId !== userId) {
             throw new NotFoundException('Không tìm thấy đơn hàng');
         }
+        if (order.creditApplied > 0) throw new ConflictException('Đơn đổi món chỉ thanh toán chênh lệch qua VNPay');
         if (await tx.vnpayAttempt.findFirst({ where: { orderId: dto.orderId, status: { in: ['PENDING', 'REVIEW'] } } })) {
             throw new ConflictException('Đơn đang có giao dịch VNPay cần xử lý');
         }

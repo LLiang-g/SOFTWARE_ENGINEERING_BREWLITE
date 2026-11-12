@@ -60,11 +60,19 @@ export class VnpayService {
                     throw new ConflictException('Đơn chưa giữ nguyên liệu hợp lệ; cần quầy kiểm tra trước khi thanh toán');
                 }
                 let attempt = await tx.vnpayAttempt.findFirst({ where: { orderId, status: { in: [...BLOCKING] } }, orderBy: { id: 'desc' } });
-                if (attempt && (attempt.status === 'REVIEW' || attempt.expiresAt <= new Date())) {
-                    throw new ConflictException('Giao dịch trước đang cần xác minh. Kiểm tra kết quả hoặc liên hệ quầy.');
+                if (attempt?.paidAt) throw new ConflictException('Đã thu tiền, cần quầy xử lý trước khi thanh toán tiếp');
+                if (attempt && attempt.expiresAt <= new Date()) {
+                    await tx.paymentAudit.create({ data: { attemptId: attempt.id, actorId: userId,
+                        action: 'RETRY_AFTER_EXPIRY', note: 'Cấp lần mới; lần cũ vẫn được giữ để đối soát, không coi là thất bại' } });
+                    attempt = null;
+                } else if (attempt?.status === 'REVIEW') {
+                    throw new ConflictException('Chờ mã cũ hết hạn trước khi tạo mã mới');
+                }
+                if (await tx.vnpayAttempt.findFirst({ where: { orderId, paidAt: { not: null } } })) {
+                    throw new ConflictException('Đã ghi nhận tiền cho đơn, cần quầy đối soát');
                 }
                 if (!attempt) {
-                    attempt = await tx.vnpayAttempt.create({ data: { orderId, ...this.gateway.build(orderId, order.total, ip) } });
+                    attempt = await tx.vnpayAttempt.create({ data: { orderId, ...this.gateway.build(orderId, order.total - order.creditApplied, ip) } });
                     await tx.paymentAudit.create({ data: { attemptId: attempt.id, actorId: userId, action: 'CREATED', note: 'Tạo lần thanh toán Sandbox' } });
                 }
                 await tx.paymentStartRequest.create({ data: { userId, key, attemptId: attempt.id } });
@@ -125,15 +133,19 @@ export class VnpayService {
                 const settled = await tx.payment.findFirst({ where: { orderId: order.id } });
                 const reservations = await tx.orderInventoryReservation.findMany({ where: { orderId: order.id } });
                 const canFulfill = ['PENDING', 'PAYMENT_FAILED'].includes(order.status)
-                    && !settled && attempt.amount === order.total
+                    && !settled && attempt.amount === order.total - order.creditApplied
                     && reservations.length > 0 && reservations.every((row) => row.releasedAt === null);
                 const reason = canFulfill ? null : settled ? 'DUPLICATE_PAYMENT'
-                    : attempt.amount !== order.total ? 'ORDER_AMOUNT_CHANGED' : 'PAID_WITHOUT_ACTIVE_ORDER';
+                    : attempt.amount !== order.total - order.creditApplied ? 'ORDER_AMOUNT_CHANGED' : 'PAID_WITHOUT_ACTIVE_ORDER';
                 await tx.vnpayAttempt.update({ where: { id: attempt.id }, data: {
                     status: canFulfill ? 'SUCCEEDED' : 'REVIEW', paidAt: new Date(),
                     providerTxnNo: fields.vnp_TransactionNo, responseCode: fields.vnp_ResponseCode,
                     transactionStatus: fields.vnp_TransactionStatus, reviewReason: reason,
                 } });
+                if (!canFulfill) {
+                    await tx.paymentRefundCase.upsert({ where: { attemptId: attempt.id }, update: {},
+                        create: { attemptId: attempt.id, amount: attempt.amount } });
+                }
                 if (canFulfill) {
                     await tx.payment.create({ data: { orderId: order.id, amount: attempt.amount, method: 'VNPAY',
                         idempotencyKey: `vnpay:${attempt.txnRef}`, vnpayAttemptId: attempt.id } });
