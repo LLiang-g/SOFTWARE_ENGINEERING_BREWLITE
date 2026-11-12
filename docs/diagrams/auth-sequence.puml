@@ -1,0 +1,33 @@
+@startuml
+title Authentication and authorization in BrewLite
+skinparam defaultFontSize 15
+actor User
+participant "Next.js UI" as UI
+participant "NestJS auth / guards" as API
+database PostgreSQL as DB
+User -> UI: Submit email and password
+UI -> API: POST /auth/login
+API -> DB: Find normalized email and passwordHash
+API -> API: bcrypt.compare
+alt Invalid credentials
+ API --> UI: 401, common error message
+else Valid credentials
+ API --> UI: Signed accessToken (7d) + public user fields
+ UI -> UI: Persist auth state
+end
+User -> UI: Open protected function
+UI -> API: Authorization: Bearer token
+API -> API: JWT signature and expiry check
+API -> DB: Read User by sub, current role
+alt Invalid identity
+ API --> UI: 401
+else Valid identity
+ API -> API: Attach request.user
+ opt Staff endpoint
+  API -> API: RolesGuard checks BARISTA metadata
+ end
+ API -> DB: Service checks ownership and business state
+ API --> UI: Authorized result or appropriate rejection
+end
+note over UI, API: UI visibility and stored role do not grant backend permissions.
+@enduml

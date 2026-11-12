@@ -1,0 +1,36 @@
+@startuml
+title VNPay Sandbox - result verification and settlement
+skinparam defaultFontSize 15
+actor Customer
+participant "Next.js" as UI
+participant "NestJS API" as API
+database PostgreSQL as DB
+participant "VNPay Sandbox" as VN
+Customer -> UI: Choose payment
+UI -> API: Start(orderId, JWT, key)
+API -> DB: Short transaction: lock Order,
+note right of DB: Validate owner, amount,
+note right of DB: hold deadline and snapshots
+API -> DB: Reuse/create attempt and key mapping; commit
+API --> UI: Signed URL + expiry
+Customer -> VN: Scan URL QR / open payment link
+VN -> API: Signed IPN (may repeat or arrive late)
+API -> API: Verify signature, merchant,
+note right of API: reference, amount and result
+API -> DB: Transaction: lock Order, recheck attempt
+alt Valid order and no applied payment
+ API -> DB: Payment + PAID + loyalty + audit
+else Duplicate / inactive order
+ API -> DB: REVIEW + handling case + audit
+end
+API -> DB: Commit
+API --> VN: JSON acknowledgement
+VN -> API: Browser Return (independent arrival order)
+API --> UI: 303 to order page, no settlement here
+UI -> API: Read authoritative status
+opt Result unclear
+ API -> VN: QueryDr outside DB transaction
+ VN --> API: Signed query response
+ API -> API: Validate; apply through same settlement logic
+end
+@enduml

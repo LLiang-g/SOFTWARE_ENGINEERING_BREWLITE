@@ -1,0 +1,44 @@
+@startuml
+left to right direction
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontSize 12
+skinparam nodesep 12
+skinparam ranksep 30
+skinparam usecaseBackgroundColor #FFF4DA
+skinparam usecaseBorderColor #6B4A32
+skinparam packageStyle rectangle
+title BrewLite - Use-case tổng quát (baseline 1.0)
+actor "Khách hàng" as Customer
+actor "Barista" as Staff
+actor "Dịch vụ thanh toán\nMock / VNPay Sandbox" as Gateway
+rectangle "BrewLite" {
+  usecase "UC-02 Xem menu / chi tiết" as Menu
+  usecase "UC-03 Quản lý giỏ hàng" as Cart
+  usecase "UC-04 Đăng ký / đăng nhập" as Auth
+  usecase "UC-01 Đặt và thanh toán" as Checkout
+  usecase "UC-05 Theo dõi đơn" as History
+  usecase "UC-06 Hủy đơn chưa trả" as Cancel
+  usecase "UC-07 Áp dụng voucher" as Voucher
+  usecase "UC-08 Cập nhật pha chế" as Prepare
+  usecase "UC-09 Yêu cầu / duyệt đổi" as Exchange
+  usecase "UC-10 Xử lý thu dư" as Refund
+  usecase "UC-11 Kiểm tra thanh toán" as Reconcile
+}
+Customer -- Menu
+Customer -- Cart
+Customer -- Auth
+Customer -- Checkout
+Customer -- History
+Customer -- Cancel
+Customer -- Voucher
+Customer -- Exchange
+Customer -- Reconcile
+Prepare -- Staff
+Exchange -- Staff
+Refund -- Staff
+Reconcile -- Staff
+Checkout -- Gateway
+Reconcile -- Gateway
+@enduml

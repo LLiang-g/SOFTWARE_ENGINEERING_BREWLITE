@@ -1,0 +1,30 @@
+# Quy tắc nghiệp vụ BrewLite
+
+Baseline 1.0 — 12/11/2026. Tham chiếu SRS và UC-01.
+
+| Mã | Quy tắc có thể kiểm chứng |
+| --- | --- |
+| BR-01 | Giá dòng = (giá sản phẩm + phụ thu size + topping hợp lệ) × số lượng. Backend tính lại; size S/M/L hiện phụ thu 0/5.000/10.000đ; topping Trân châu/Kem mỗi loại 5.000đ |
+| BR-02 | Đơn có 1–50 dòng, mỗi dòng 1–99 ly; topping không trùng và phải có trong danh sách backend. Dữ liệu sai không tạo đơn/không giữ kho |
+| BR-03 | Voucher hợp lệ về tồn tại, active và hạn dùng; giảm = min(subtotal, floor(subtotal × percent / 100)). Không tính phần trăm từ số tiền client cung cấp |
+| BR-04 | Giữ nguyên liệu tại bước tạo Order, không giữ khi chỉ thêm giỏ. Mỗi ly dùng Recipe theo logic hiện tại; size/topping hiện ảnh hưởng giá nhưng chưa có định mức nguyên liệu riêng |
+| BR-05 | Ingredient không âm; giữ hàng và tạo Order/snapshot cùng commit. Thiếu hàng rollback tất cả |
+| BR-06 | Hủy tự phục vụ chỉ cho PENDING/PAYMENT_FAILED, không có tiền chuyển từ đơn đổi, và không có attempt PENDING/REVIEW cản trở. Hoàn đúng snapshot đã giữ một lần; không đọc lại công thức để suy ra lượng hoàn |
+| BR-07 | Cùng khách + key tạo đơn + cùng nội dung trả lại đơn cũ; khác nội dung dùng cùng key bị từ chối. Key tạo đơn độc lập key tạo lần thanh toán |
+| BR-08 | Callback thành công phải được xác minh chữ ký, merchant, tham chiếu, số tiền và trạng thái. Return chỉ điều hướng; PAID được cập nhật bằng IPN hoặc kết quả QueryDr đã kiểm chứng |
+| BR-09 | Một khoản thu được áp dụng cho đơn trong transaction cùng Payment, PAID và điểm. Callback lặp không thêm Payment/điểm và không trừ kho lần nữa |
+| BR-10 | Mã thanh toán còn hạn được tái sử dụng. Mã hết hạn có thể cấp lần mới sau khi thử tra cứu, kể cả chưa rõ kết quả; không đổi lần cũ thành FAILED chỉ vì đồng hồ/timeout. Đã xác minh có khoản thu thì không tự cấp thêm mã |
+| BR-11 | Hai lần cùng thành công: một lần áp dụng cho đơn, khoản thu không áp dụng ghi REVIEW + paidAt và hồ sơ hoàn riêng; không bắt khách mua thêm để tiêu khoản dư |
+| BR-12 | Tiền về khi đơn không còn phục vụ/không còn reservation hợp lệ không tự gửi pha hoặc trừ kho lại; mở hồ sơ xử lý tiền |
+| BR-13 | Điểm = floor(tiền mới được áp dụng / 10.000). Đổi bằng giá không cộng thêm điểm. Thu chênh lệch cộng điểm trên chênh lệch; quy tắc làm tròn theo từng khoản, không cộng lại trên tổng món mới |
+| BR-14 | Chỉ gửi/duyệt đổi toàn bộ đơn đã PAID và chưa pha. Chưa gửi yêu cầu thì quầy vẫn có thể bắt đầu pha; REQUESTED đã gửi chặn bắt đầu pha cho tới duyệt/từ chối/rút |
+| BR-15 | Giỏ đổi riêng với giỏ mua mới. Backend báo giá; snapshot báo giá được chấp nhận phải giữ nguyên khi nhân viên duyệt, dù giá menu thay đổi sau đó. Fingerprint được backend tính lại, không phải quyền sửa giá |
+| BR-16 | Món thay thế phải có tổng giá ≥ tiền đã trả sau giảm giá. Không áp dụng voucher mới. Chênh lệch dương VNPay của bản tích hợp hiện tại ≥5.000đ. Thấp hơn điều kiện thì yêu cầu chọn lại |
+| BR-17 | Duyệt đổi: hoàn snapshot cũ, giữ nguyên liệu mới, đóng đơn cũ, tạo đơn thay thế và chuyển credit trong một transaction. Bất kỳ lỗi nào rollback tất cả. Đơn đã pha không hoàn nguyên liệu |
+| BR-18 | Order mới giữ total = giá trị món mới, creditApplied = tiền chuyển; amountDue = total − creditApplied. Không sửa total thành chênh lệch, không tạo Payment giả cho credit. Đơn đổi chờ chênh lệch chưa được pha |
+| BR-19 | Khách có thể rút REQUESTED bằng version. Không rút được APPROVED bằng API này. Hai thao tác cùng version chỉ một thao tác thắng |
+| BR-20 | Hoàn khoản thu dư là quy trình OPEN → PROCESSING → COMPLETED. Chỉ BARISTA được cập nhật; hoàn tất cần chứng từ duy nhất và nhật ký. Đánh dấu hoàn không thực hiện chuyển tiền |
+| BR-21 | Nhận tại quầy: PAID → PREPARING → READY → COMPLETED. CANCELLED có thể là hủy trước thanh toán hoặc đóng đơn cũ do đổi; phải đọc liên kết đổi để hiểu dòng tiền |
+| BR-22 | Thu mới, credit chuyển nội bộ và tiền thu dư là ba loại khác nhau. Không cộng total của mọi đơn trong chuỗi đổi để tính doanh thu; báo cáo tài chính chuyên biệt còn là backlog |
+
+Điểm chưa chốt/triển khai cho vận hành: thời hạn giữ kho, đối soát nền, xử lý đơn đổi đã duyệt nhưng khách không trả chênh lệch, quán không phục vụ được và khách không nhận món thay thế, định mức nguyên liệu theo size/topping và vòng đời giao hàng. Không tự suy diễn các quy tắc này thành chức năng đã có.

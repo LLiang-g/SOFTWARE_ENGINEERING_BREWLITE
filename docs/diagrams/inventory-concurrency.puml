@@ -1,0 +1,18 @@
+@startuml
+title Two customers compete for the last 20g
+participant "Request A" as A
+database "PostgreSQL\nIngredient stock=20g" as DB
+participant "Request B" as B
+A -> DB: BEGIN; SELECT ... FOR UPDATE
+DB --> A: Lock acquired, stock=20g
+B -> DB: BEGIN; SELECT ... FOR UPDATE
+note right of B: Wait for A's lock
+A -> DB: Validate demand=20g; subtract 20g
+A -> DB: Write Order A and reservation snapshot
+A -> DB: COMMIT, release row lock
+DB --> B: Lock acquired; current stock=0g
+B -> B: demand=20g > stock=0g
+B -> DB: ROLLBACK
+B --> B: Reject order, no snapshot or deduction
+note over A, B: Locks exist only during short DB transactions, not while browsing or paying.
+@enduml

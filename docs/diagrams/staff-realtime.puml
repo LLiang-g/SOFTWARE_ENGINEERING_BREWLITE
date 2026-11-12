@@ -1,0 +1,25 @@
+@startuml
+title Counter workflow and live refresh
+skinparam defaultFontSize 15
+actor Barista
+participant "Staff UI" as UI
+participant "Orders API" as API
+database PostgreSQL as DB
+participant "Socket.IO gateway" as WS
+participant "Customer UI" as Customer
+Barista -> UI: Approve / ready / handed over
+UI -> API: PATCH status with JWT
+API -> API: Check BARISTA and DTO
+API -> DB: Begin; lock Order, reread state
+API -> API: Check transition and pending exchange
+API -> DB: Conditional update; commit
+API -> WS: notifyOrdersChanged AFTER commit
+WS --> UI: orders.changed (no payload)
+WS --> Customer: orders.changed (no payload)
+UI -> API: GET staff orders with staff permission
+Customer -> API: GET own order with ownership check
+API -> DB: Read committed state
+API --> UI: Queue state
+API --> Customer: Own order state
+note over UI, Customer: Reconnect refresh and visible-tab HTTP polling are fallback paths.
+@enduml

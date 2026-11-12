@@ -1,0 +1,47 @@
+@startuml
+title Checkout - activity and failure paths
+|Customer|
+start
+:Choose products, size and toppings;
+|Web UI|
+if (Logged in?) then (no)
+  :Request login;
+  |Customer|
+  :Enter credentials;
+  |API|
+  if (Credentials valid?) then (no)
+    :Reject authentication;
+    stop
+  endif
+endif
+|Web UI|
+:Submit cart and idempotency key;
+|API|
+:Validate JWT, DTO and server prices;
+|Database|
+:Lock ingredients and check quantities;
+if (Stock sufficient?) then (no)
+  :Rollback;
+  |Web UI|
+  :Show unavailable item;
+  stop
+endif
+:Create PENDING order and reservation snapshot;
+:Commit;
+|Customer|
+:Choose payment;
+|Payment gateway|
+:Process payment;
+if (Verified result?) then (success)
+  |API|
+  :Apply payment once and mark PAID;
+  |Web UI|
+  :Show waiting for counter;
+else (failure or unknown)
+  |API|
+  :Record failure or pending verification;
+  |Web UI|
+  :Show status and permitted retry;
+endif
+stop
+@enduml
