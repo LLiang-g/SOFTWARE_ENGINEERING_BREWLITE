@@ -1,3 +1,4 @@
+import { InventoryService } from '../products/inventory.service';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { VnpayAttempt } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -6,6 +7,8 @@ import { OrdersGateway } from '../realtime/orders.gateway';
 import { VnpayGateway } from './vnpay.gateway';
 import { readCallback, type Fields } from './vnpay.crypto';
 
+import { holdHasExpired, RESERVATION_EXPIRED_MESSAGE } from '../orders/reservation-policy';
+
 const BLOCKING = ['PENDING', 'REVIEW'] as const;
 type Ack = { RspCode: string; Message: string };
 const ack = (RspCode: string, Message: string): Ack => ({ RspCode, Message });
@@ -13,7 +16,7 @@ const ack = (RspCode: string, Message: string): Ack => ({ RspCode, Message });
 @Injectable()
 export class VnpayService {
     constructor(private readonly prisma: PrismaService, private readonly gateway: VnpayGateway,
-        private readonly loyalty: LoyaltyService, private readonly events: OrdersGateway) {}
+        private readonly loyalty: LoyaltyService, private readonly events: OrdersGateway, private readonly inventory: InventoryService) {}
 
     private view(row: VnpayAttempt) {
         return { id: row.id, orderId: row.orderId, txnRef: row.txnRef, amount: row.amount,
@@ -25,8 +28,8 @@ export class VnpayService {
         const order = await this.prisma.order.findFirst({ where: { id: orderId, userId } });
         if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
         const attempts = await this.prisma.vnpayAttempt.findMany({ where: { orderId }, orderBy: { id: 'desc' }, take: 10 });
-        const payable = ['PENDING', 'PAYMENT_FAILED'].includes(order.status);
-        return { orderStatus: order.status, attempts: attempts.map((row) => ({ ...this.view(row),
+        const payable = ['PENDING', 'PAYMENT_FAILED'].includes(order.status) && !holdHasExpired(order);
+        return { orderStatus: order.status, reservationTimedOut: holdHasExpired(order), attempts: attempts.map((row) => ({ ...this.view(row),
             paymentUrl: payable ? this.view(row).paymentUrl : null })) };
     }
     private async replay(userId: number, key: string, orderId: number) {
@@ -40,6 +43,7 @@ export class VnpayService {
     async start(orderId: number, userId: number, key: string, ip: string) {
         this.gateway.config();
         const current = await this.customer(orderId, userId);
+        if (current.reservationTimedOut) throw new ConflictException(RESERVATION_EXPIRED_MESSAGE);
         const replay = await this.replay(userId, key, orderId);
         if (replay) return { ...replay, paymentUrl: ['PENDING', 'PAYMENT_FAILED'].includes(current.orderStatus) ? replay.paymentUrl : null };
         const expired = await this.prisma.vnpayAttempt.findFirst({ where: {
@@ -53,6 +57,7 @@ export class VnpayService {
                 const order = await tx.order.findFirst({ where: { id: orderId, userId } });
                 if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
                 if (!['PENDING', 'PAYMENT_FAILED'].includes(order.status)) throw new ConflictException('Đơn không còn chờ thanh toán');
+                if (holdHasExpired(order)) throw new ConflictException(RESERVATION_EXPIRED_MESSAGE);
                 const already = await tx.payment.findFirst({ where: { orderId } });
                 if (already) throw new ConflictException('Đơn đã có khoản thanh toán');
                 const reservations = await tx.orderInventoryReservation.findMany({ where: { orderId } });
@@ -72,7 +77,7 @@ export class VnpayService {
                     throw new ConflictException('Đã ghi nhận tiền cho đơn, cần quầy đối soát');
                 }
                 if (!attempt) {
-                    attempt = await tx.vnpayAttempt.create({ data: { orderId, ...this.gateway.build(orderId, order.total - order.creditApplied, ip) } });
+                    attempt = await tx.vnpayAttempt.create({ data: { orderId, ...this.gateway.build(orderId, order.total - order.creditApplied, ip, order.reservationExpiresAt) } });
                     await tx.paymentAudit.create({ data: { attemptId: attempt.id, actorId: userId, action: 'CREATED', note: 'Tạo lần thanh toán Sandbox' } });
                 }
                 await tx.paymentStartRequest.create({ data: { userId, key, attemptId: attempt.id } });
@@ -132,8 +137,15 @@ export class VnpayService {
                 if (duplicateNo && duplicateNo.id !== attempt.id) return { response: ack('04', 'Transaction mismatch'), changed: false };
                 const settled = await tx.payment.findFirst({ where: { orderId: order.id } });
                 const reservations = await tx.orderInventoryReservation.findMany({ where: { orderId: order.id } });
+                // IPN đến sau deadline nhưng trước worker: kết thúc giữ món ngay trong cùng transaction.
+                if (holdHasExpired(order) && !order.reservationExpiredAt && order.creditApplied === 0 &&
+                    ['PENDING', 'PAYMENT_FAILED'].includes(order.status) && !settled &&
+                    !await tx.vnpayAttempt.findFirst({ where: { orderId: order.id, paidAt: { not: null } } })) {
+                    await this.inventory.release(tx, order.id);
+                    await tx.order.update({ where: { id: order.id }, data: { status: 'CANCELLED', reservationExpiredAt: new Date() } });
+                }
                 const canFulfill = ['PENDING', 'PAYMENT_FAILED'].includes(order.status)
-                    && !settled && attempt.amount === order.total - order.creditApplied
+                    && !holdHasExpired(order) && !settled && attempt.amount === order.total - order.creditApplied
                     && reservations.length > 0 && reservations.every((row) => row.releasedAt === null);
                 const reason = canFulfill ? null : settled ? 'DUPLICATE_PAYMENT'
                     : attempt.amount !== order.total - order.creditApplied ? 'ORDER_AMOUNT_CHANGED' : 'PAID_WITHOUT_ACTIVE_ORDER';
@@ -165,7 +177,7 @@ export class VnpayService {
             await tx.vnpayAttempt.update({ where: { id: attempt.id }, data: { status,
                 responseCode: fields.vnp_ResponseCode, transactionStatus: fields.vnp_TransactionStatus,
                 reviewReason: failed ? null : 'UNCONFIRMED_RESULT' } });
-            if (failed && ['PENDING', 'PAYMENT_FAILED'].includes(order.status)) {
+            if (failed && !holdHasExpired(order) && ['PENDING', 'PAYMENT_FAILED'].includes(order.status)) {
                 await tx.order.update({ where: { id: order.id }, data: { status: 'PAYMENT_FAILED' } });
             }
             await tx.paymentAudit.create({ data: { attemptId: attempt.id, action: source,

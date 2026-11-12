@@ -1,0 +1,15 @@
+\subsubsection{Mã giảm giá và giá trị đơn đã chốt}
+Voucher lưu code duy nhất, discountPercent, expiresAt và active; Order liên kết voucherId đồng thời lưu discount và total. Liên kết chỉ ra mã đã áp dụng, còn hai số tiền trên Order giữ giá trị giao dịch đã tính, không tính lại theo cấu hình voucher khi khách thanh toán sau đó.
+
+Backend chuẩn hóa mã bằng trim/uppercase, kiểm tồn tại, active và expiresAt. Endpoint validate phục vụ xem trước; lúc tạo đơn vẫn kiểm lại trong transaction trước khi reserve nguyên liệu. Giá frontend hiển thị không thay thế phép tính backend.
+
+\[
+ discount=\min\left(subtotal,\left\lfloor subtotal\times\frac{p}{100}\right\rfloor\right),
+ \qquad total=subtotal-discount.
+\]
+Trong hàm tính, $p$ được giới hạn trong khoảng 0--100. Ví dụ 120.000đ áp BREW10 giảm 12.000đ, còn 108.000đ. Mã không hợp lệ làm yêu cầu tạo đơn bị từ chối trước khi thay đổi kho.
+
+\subsubsection{Số dư điểm và sổ giao dịch điểm}
+User.loyaltyPoints là số dư hiện tại để đọc nhanh. LoyaltyTransaction lưu userId, orderId, loại, points, balanceAfter và thời gian để giải thích mỗi lần biến động. Unique(orderId, type) ngăn ghi hai dòng EARN cho cùng Order; balanceAfter ghi số dư sau lần cộng đó.
+
+Chính sách hiện tại là $points=\max(0,\lfloor amount/10.000\rfloor)$ theo khoản thanh toán mới được áp dụng. Đơn sau giảm 108.000đ được 10 điểm; dưới 10.000đ không tạo dòng EARN. Khi đổi món, tiền chuyển từ đơn cũ không cộng lại điểm; phần thu thêm được tính tại đơn thay thế. Điểm được làm tròn theo mỗi lần áp dụng, không gom phần tiền lẻ giữa các đơn.

@@ -1,0 +1,31 @@
+\section{Đối chiếu yêu cầu bổ sung của Assignment 2}
+Mười task Assignment 1 và khung ba Sprint của phần chính được giữ nguyên. Assignment 2 bổ sung năm task quy trình, mỗi task tối đa hai điểm, triển khai qua hai Sprint theo đề; không thay Product Backlog chức năng hoặc tự cộng hai thang điểm thành điểm môn học.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{|c|X|X|}\hline
+\textbf{Task A2} & \textbf{Nhóm yêu cầu} & \textbf{Tạo phẩm dùng để đối chiếu}\\\hline
+1 & Bối cảnh, SRS, ưu tiên và use-case & Đặc tả yêu cầu, quy tắc nghiệp vụ, AC và UC-01.\\\hline
+2 & Mô hình hóa UML & Use-case, activity, sequence, class; nguồn và hình render.\\\hline
+3 & Kiến trúc và triển khai & Kiến trúc phân lớp, quyết định ADR, mô hình môi trường và ranh giới dịch vụ.\\\hline
+4 & Quản lý repo, tài liệu và CI & Nhánh/PR, Definition of Done, các bước install/lint/test/build.\\\hline
+5 & Delivery và nghiệm thu & Bộ test, đóng gói, triển khai, migration, smoke, rollback, release và demo.\\\hline
+\end{tabularx}\caption{Các nhóm tạo phẩm đối chiếu với Assignment 2}
+\end{table}
+
+\subsection{Kiến trúc và quyết định cần ghi nhận}
+Mô tả kiến trúc cần nối được Next.js/PWA, các module NestJS, PostgreSQL/migration và payment service. ADR ghi bối cảnh, lựa chọn, phương án khác, ưu/nhược và tác động. Những lựa chọn đã có trong code như monorepo, Prisma, gateway tách riêng, idempotency/snapshot cần được ghi nhận; ngày viết ADR không tự chứng minh quyết định đã được review từ trước.
+
+Deployment diagram phải thể hiện thiết bị, frontend/CDN, API, PostgreSQL persistent storage, registry, HTTPS/cổng, secret, health/log và ranh giới local/CI/production. Tên thành phần trong mô hình được ánh xạ sang thư mục frontend/backend của repo để truy vết tới mã nguồn.
+
+\subsection{CI, CD và điều kiện bàn giao}
+CI bắt buộc tự chạy khi mở PR: install, lint, unit test và build; nhánh chính yêu cầu checks và không merge khi thất bại. Cần lưu link PR cùng log/ảnh một lần pass và một lần bắt lỗi. Commit viết ``test passed'' không tự chứng minh đã có pipeline.
+
+CD cần quality gate, image gắn SHA/version, registry nếu nền tảng yêu cầu, deploy bằng secret CI, migration an toàn và health/smoke sau deploy. Thất bại phải dừng, có hướng dẫn rollback app và cách khôi phục dữ liệu; không dùng reset hoặc seed đè production. Bàn giao gồm HTTPS frontend, API/health, database không public trực tiếp, release/tag, release notes, README local/test/build/deploy/rollback, demo và Review/Retrospective.
+
+\subsection{Truy vết và giới hạn bằng chứng}
+Ma trận \texttt{docs/traceability-matrix.md} nối FR/NFR với use-case, thiết kế, code/API và test. Ma trận giữ liên kết hai chiều giữa yêu cầu, mô hình, code và test theo từng phiên bản tài liệu. Nguồn chuẩn của SRS và quy tắc nằm ở docs, bản report dùng cùng mã yêu cầu.
+
+\section{Đặc tả chi tiết và tiêu chí chấp nhận}
+\input{sections/task1-requirement-tables.tex}
+\section{Đặc tả chi tiết UC-01}
+\input{sections/task1-usecase-tables.tex}

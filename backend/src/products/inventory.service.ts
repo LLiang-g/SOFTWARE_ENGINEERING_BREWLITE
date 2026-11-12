@@ -1,14 +1,12 @@
 import {
-    BadRequestException,
     ConflictException,
     Injectable,
 } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
-import { calcServings } from './availability';
+import { ingredientDemand, type InventoryItem } from './ingredient-demand';
 
 export type ReservedIngredient = { ingredientId: number; quantity: number };
 
-type Recipe = { ingredientId: number; quantity: number };
 
 @Injectable()
 export class InventoryService {
@@ -18,37 +16,20 @@ export class InventoryService {
      */
     async reserve(
         tx: Prisma.TransactionClient,
-        needs: Map<number, number>,
+        items: InventoryItem[],
     ): Promise<ReservedIngredient[]> {
         const products = await tx.product.findMany({
-            where: { id: { in: [...needs.keys()] } },
+            where: { id: { in: [...new Set(items.map((item) => item.productId))] } },
             select: {
                 id: true,
                 name: true,
-                recipes: { select: { ingredientId: true, quantity: true } },
+                recipes: { select: { ingredientId: true, quantity: true, scalesWithSize: true } },
             },
         });
-        const byId = new Map(products.map((p) => [p.id, p]));
-
-        const demand = new Map<number, number>();
-        for (const productId of [...needs.keys()].sort((a, b) => a - b)) {
-            const product = byId.get(productId);
-            if (!product) {
-                throw new BadRequestException(`Sản phẩm #${productId} không tồn tại`);
-            }
-            if (product.recipes.length === 0) {
-                throw new ConflictException(
-                    `${product.name} chưa có công thức nên chưa bán được`,
-                );
-            }
-            const qty = needs.get(productId) as number;
-            for (const line of product.recipes) {
-                demand.set(
-                    line.ingredientId,
-                    (demand.get(line.ingredientId) ?? 0) + line.quantity * qty,
-                );
-            }
-        }
+        const toppingRecipes = await tx.toppingRecipe.findMany({
+            where: { toppingCode: { in: [...new Set(items.flatMap((item) => item.toppings ?? []))] } },
+        });
+        const demand = ingredientDemand(items, products, toppingRecipes);
 
         // Luôn khóa theo id tăng dần để các giao dịch không khóa chéo nhau.
         const ids = [...demand.keys()].sort((a, b) => a - b);
@@ -61,7 +42,7 @@ export class InventoryService {
 
         for (const id of ids) {
             if ((stockById.get(id) ?? 0) < (demand.get(id) as number)) {
-                throw this.shortage(id, products, stockById);
+                throw new ConflictException('Không đủ nguyên liệu cho size/topping đã chọn, vui lòng chọn lại món');
             }
         }
 
@@ -113,25 +94,4 @@ export class InventoryService {
         });
     }
 
-    /** Báo lỗi theo món bị thiếu: "<món> chỉ còn N phần", N tính từ kho hiện tại. */
-    private shortage(
-        ingredientId: number,
-        products: { id: number; name: string; recipes: Recipe[] }[],
-        stockById: Map<number, number>,
-    ) {
-        const affected = products
-            .filter((p) => p.recipes.some((r) => r.ingredientId === ingredientId))
-            .map((p) => ({
-                name: p.name,
-                left: calcServings(
-                    p.recipes.map((r) => ({
-                        quantity: r.quantity,
-                        stock: stockById.get(r.ingredientId) ?? 0,
-                    })),
-                ),
-            }))
-            .sort((a, b) => a.left - b.left);
-        const worst = affected[0];
-        return new ConflictException(`${worst.name} chỉ còn ${worst.left} phần`);
-    }
 }

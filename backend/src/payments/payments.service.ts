@@ -12,6 +12,8 @@ import { assertTransition } from '../orders/order-state-machine';
 import { LoyaltyService } from '../promotions/loyalty.service';
 import { OrdersGateway } from '../realtime/orders.gateway';
 
+import { holdHasExpired, RESERVATION_EXPIRED_MESSAGE } from '../orders/reservation-policy';
+
 export type PayResult = {
     orderId: number;
     status: 'PAID' | 'PAYMENT_FAILED';
@@ -86,6 +88,7 @@ export class PaymentsService {
         if (!order || order.userId !== userId) {
             throw new NotFoundException('Không tìm thấy đơn hàng');
         }
+        if (['PENDING', 'PAYMENT_FAILED'].includes(order.status) && holdHasExpired(order)) throw new ConflictException(RESERVATION_EXPIRED_MESSAGE);
         if (order.creditApplied > 0) throw new ConflictException('Đơn đổi món chỉ thanh toán chênh lệch qua VNPay');
         if (await tx.vnpayAttempt.findFirst({ where: { orderId: dto.orderId, status: { in: ['PENDING', 'REVIEW'] } } })) {
             throw new ConflictException('Đơn đang có giao dịch VNPay cần xử lý');

@@ -213,6 +213,7 @@ export type IngredientWhereInput = {
   unit?: Prisma.StringFilter<"Ingredient"> | string
   stock?: Prisma.IntFilter<"Ingredient"> | number
   recipes?: Prisma.RecipeListRelationFilter
+  toppingRecipes?: Prisma.ToppingRecipeListRelationFilter
   reservations?: Prisma.OrderInventoryReservationListRelationFilter
 }
 
@@ -222,6 +223,7 @@ export type IngredientOrderByWithRelationInput = {
   unit?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   recipes?: Prisma.RecipeOrderByRelationAggregateInput
+  toppingRecipes?: Prisma.ToppingRecipeOrderByRelationAggregateInput
   reservations?: Prisma.OrderInventoryReservationOrderByRelationAggregateInput
 }
 
@@ -234,6 +236,7 @@ export type IngredientWhereUniqueInput = Prisma.AtLeast<{
   unit?: Prisma.StringFilter<"Ingredient"> | string
   stock?: Prisma.IntFilter<"Ingredient"> | number
   recipes?: Prisma.RecipeListRelationFilter
+  toppingRecipes?: Prisma.ToppingRecipeListRelationFilter
   reservations?: Prisma.OrderInventoryReservationListRelationFilter
 }, "id" | "name">
 
@@ -264,6 +267,7 @@ export type IngredientCreateInput = {
   unit: string
   stock?: number
   recipes?: Prisma.RecipeCreateNestedManyWithoutIngredientInput
+  toppingRecipes?: Prisma.ToppingRecipeCreateNestedManyWithoutIngredientInput
   reservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutIngredientInput
 }
 
@@ -273,6 +277,7 @@ export type IngredientUncheckedCreateInput = {
   unit: string
   stock?: number
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutIngredientInput
+  toppingRecipes?: Prisma.ToppingRecipeUncheckedCreateNestedManyWithoutIngredientInput
   reservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutIngredientInput
 }
 
@@ -281,6 +286,7 @@ export type IngredientUpdateInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   recipes?: Prisma.RecipeUpdateManyWithoutIngredientNestedInput
+  toppingRecipes?: Prisma.ToppingRecipeUpdateManyWithoutIngredientNestedInput
   reservations?: Prisma.OrderInventoryReservationUpdateManyWithoutIngredientNestedInput
 }
 
@@ -290,6 +296,7 @@ export type IngredientUncheckedUpdateInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutIngredientNestedInput
+  toppingRecipes?: Prisma.ToppingRecipeUncheckedUpdateManyWithoutIngredientNestedInput
   reservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutIngredientNestedInput
 }
 
@@ -363,6 +370,20 @@ export type IngredientUpdateOneRequiredWithoutRecipesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.IngredientUpdateToOneWithWhereWithoutRecipesInput, Prisma.IngredientUpdateWithoutRecipesInput>, Prisma.IngredientUncheckedUpdateWithoutRecipesInput>
 }
 
+export type IngredientCreateNestedOneWithoutToppingRecipesInput = {
+  create?: Prisma.XOR<Prisma.IngredientCreateWithoutToppingRecipesInput, Prisma.IngredientUncheckedCreateWithoutToppingRecipesInput>
+  connectOrCreate?: Prisma.IngredientCreateOrConnectWithoutToppingRecipesInput
+  connect?: Prisma.IngredientWhereUniqueInput
+}
+
+export type IngredientUpdateOneRequiredWithoutToppingRecipesNestedInput = {
+  create?: Prisma.XOR<Prisma.IngredientCreateWithoutToppingRecipesInput, Prisma.IngredientUncheckedCreateWithoutToppingRecipesInput>
+  connectOrCreate?: Prisma.IngredientCreateOrConnectWithoutToppingRecipesInput
+  upsert?: Prisma.IngredientUpsertWithoutToppingRecipesInput
+  connect?: Prisma.IngredientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IngredientUpdateToOneWithWhereWithoutToppingRecipesInput, Prisma.IngredientUpdateWithoutToppingRecipesInput>, Prisma.IngredientUncheckedUpdateWithoutToppingRecipesInput>
+}
+
 export type IngredientCreateNestedOneWithoutReservationsInput = {
   create?: Prisma.XOR<Prisma.IngredientCreateWithoutReservationsInput, Prisma.IngredientUncheckedCreateWithoutReservationsInput>
   connectOrCreate?: Prisma.IngredientCreateOrConnectWithoutReservationsInput
@@ -381,6 +402,7 @@ export type IngredientCreateWithoutRecipesInput = {
   name: string
   unit: string
   stock?: number
+  toppingRecipes?: Prisma.ToppingRecipeCreateNestedManyWithoutIngredientInput
   reservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutIngredientInput
 }
 
@@ -389,6 +411,7 @@ export type IngredientUncheckedCreateWithoutRecipesInput = {
   name: string
   unit: string
   stock?: number
+  toppingRecipes?: Prisma.ToppingRecipeUncheckedCreateNestedManyWithoutIngredientInput
   reservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutIngredientInput
 }
 
@@ -412,6 +435,7 @@ export type IngredientUpdateWithoutRecipesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
+  toppingRecipes?: Prisma.ToppingRecipeUpdateManyWithoutIngredientNestedInput
   reservations?: Prisma.OrderInventoryReservationUpdateManyWithoutIngredientNestedInput
 }
 
@@ -420,6 +444,57 @@ export type IngredientUncheckedUpdateWithoutRecipesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
+  toppingRecipes?: Prisma.ToppingRecipeUncheckedUpdateManyWithoutIngredientNestedInput
+  reservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutIngredientNestedInput
+}
+
+export type IngredientCreateWithoutToppingRecipesInput = {
+  name: string
+  unit: string
+  stock?: number
+  recipes?: Prisma.RecipeCreateNestedManyWithoutIngredientInput
+  reservations?: Prisma.OrderInventoryReservationCreateNestedManyWithoutIngredientInput
+}
+
+export type IngredientUncheckedCreateWithoutToppingRecipesInput = {
+  id?: number
+  name: string
+  unit: string
+  stock?: number
+  recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutIngredientInput
+  reservations?: Prisma.OrderInventoryReservationUncheckedCreateNestedManyWithoutIngredientInput
+}
+
+export type IngredientCreateOrConnectWithoutToppingRecipesInput = {
+  where: Prisma.IngredientWhereUniqueInput
+  create: Prisma.XOR<Prisma.IngredientCreateWithoutToppingRecipesInput, Prisma.IngredientUncheckedCreateWithoutToppingRecipesInput>
+}
+
+export type IngredientUpsertWithoutToppingRecipesInput = {
+  update: Prisma.XOR<Prisma.IngredientUpdateWithoutToppingRecipesInput, Prisma.IngredientUncheckedUpdateWithoutToppingRecipesInput>
+  create: Prisma.XOR<Prisma.IngredientCreateWithoutToppingRecipesInput, Prisma.IngredientUncheckedCreateWithoutToppingRecipesInput>
+  where?: Prisma.IngredientWhereInput
+}
+
+export type IngredientUpdateToOneWithWhereWithoutToppingRecipesInput = {
+  where?: Prisma.IngredientWhereInput
+  data: Prisma.XOR<Prisma.IngredientUpdateWithoutToppingRecipesInput, Prisma.IngredientUncheckedUpdateWithoutToppingRecipesInput>
+}
+
+export type IngredientUpdateWithoutToppingRecipesInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  stock?: Prisma.IntFieldUpdateOperationsInput | number
+  recipes?: Prisma.RecipeUpdateManyWithoutIngredientNestedInput
+  reservations?: Prisma.OrderInventoryReservationUpdateManyWithoutIngredientNestedInput
+}
+
+export type IngredientUncheckedUpdateWithoutToppingRecipesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  stock?: Prisma.IntFieldUpdateOperationsInput | number
+  recipes?: Prisma.RecipeUncheckedUpdateManyWithoutIngredientNestedInput
   reservations?: Prisma.OrderInventoryReservationUncheckedUpdateManyWithoutIngredientNestedInput
 }
 
@@ -428,6 +503,7 @@ export type IngredientCreateWithoutReservationsInput = {
   unit: string
   stock?: number
   recipes?: Prisma.RecipeCreateNestedManyWithoutIngredientInput
+  toppingRecipes?: Prisma.ToppingRecipeCreateNestedManyWithoutIngredientInput
 }
 
 export type IngredientUncheckedCreateWithoutReservationsInput = {
@@ -436,6 +512,7 @@ export type IngredientUncheckedCreateWithoutReservationsInput = {
   unit: string
   stock?: number
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutIngredientInput
+  toppingRecipes?: Prisma.ToppingRecipeUncheckedCreateNestedManyWithoutIngredientInput
 }
 
 export type IngredientCreateOrConnectWithoutReservationsInput = {
@@ -459,6 +536,7 @@ export type IngredientUpdateWithoutReservationsInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   recipes?: Prisma.RecipeUpdateManyWithoutIngredientNestedInput
+  toppingRecipes?: Prisma.ToppingRecipeUpdateManyWithoutIngredientNestedInput
 }
 
 export type IngredientUncheckedUpdateWithoutReservationsInput = {
@@ -467,6 +545,7 @@ export type IngredientUncheckedUpdateWithoutReservationsInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutIngredientNestedInput
+  toppingRecipes?: Prisma.ToppingRecipeUncheckedUpdateManyWithoutIngredientNestedInput
 }
 
 
@@ -476,11 +555,13 @@ export type IngredientUncheckedUpdateWithoutReservationsInput = {
 
 export type IngredientCountOutputType = {
   recipes: number
+  toppingRecipes: number
   reservations: number
 }
 
 export type IngredientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   recipes?: boolean | IngredientCountOutputTypeCountRecipesArgs
+  toppingRecipes?: boolean | IngredientCountOutputTypeCountToppingRecipesArgs
   reservations?: boolean | IngredientCountOutputTypeCountReservationsArgs
 }
 
@@ -504,6 +585,13 @@ export type IngredientCountOutputTypeCountRecipesArgs<ExtArgs extends runtime.Ty
 /**
  * IngredientCountOutputType without action
  */
+export type IngredientCountOutputTypeCountToppingRecipesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ToppingRecipeWhereInput
+}
+
+/**
+ * IngredientCountOutputType without action
+ */
 export type IngredientCountOutputTypeCountReservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OrderInventoryReservationWhereInput
 }
@@ -515,6 +603,7 @@ export type IngredientSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   unit?: boolean
   stock?: boolean
   recipes?: boolean | Prisma.Ingredient$recipesArgs<ExtArgs>
+  toppingRecipes?: boolean | Prisma.Ingredient$toppingRecipesArgs<ExtArgs>
   reservations?: boolean | Prisma.Ingredient$reservationsArgs<ExtArgs>
   _count?: boolean | Prisma.IngredientCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ingredient"]>
@@ -543,6 +632,7 @@ export type IngredientSelectScalar = {
 export type IngredientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "unit" | "stock", ExtArgs["result"]["ingredient"]>
 export type IngredientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   recipes?: boolean | Prisma.Ingredient$recipesArgs<ExtArgs>
+  toppingRecipes?: boolean | Prisma.Ingredient$toppingRecipesArgs<ExtArgs>
   reservations?: boolean | Prisma.Ingredient$reservationsArgs<ExtArgs>
   _count?: boolean | Prisma.IngredientCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -553,6 +643,7 @@ export type $IngredientPayload<ExtArgs extends runtime.Types.Extensions.Internal
   name: "Ingredient"
   objects: {
     recipes: Prisma.$RecipePayload<ExtArgs>[]
+    toppingRecipes: Prisma.$ToppingRecipePayload<ExtArgs>[]
     reservations: Prisma.$OrderInventoryReservationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -955,6 +1046,7 @@ readonly fields: IngredientFieldRefs;
 export interface Prisma__IngredientClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   recipes<T extends Prisma.Ingredient$recipesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ingredient$recipesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  toppingRecipes<T extends Prisma.Ingredient$toppingRecipesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ingredient$toppingRecipesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ToppingRecipePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reservations<T extends Prisma.Ingredient$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ingredient$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderInventoryReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1403,6 +1495,30 @@ export type Ingredient$recipesArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.RecipeScalarFieldEnum | Prisma.RecipeScalarFieldEnum[]
+}
+
+/**
+ * Ingredient.toppingRecipes
+ */
+export type Ingredient$toppingRecipesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ToppingRecipe
+   */
+  select?: Prisma.ToppingRecipeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ToppingRecipe
+   */
+  omit?: Prisma.ToppingRecipeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ToppingRecipeInclude<ExtArgs> | null
+  where?: Prisma.ToppingRecipeWhereInput
+  orderBy?: Prisma.ToppingRecipeOrderByWithRelationInput | Prisma.ToppingRecipeOrderByWithRelationInput[]
+  cursor?: Prisma.ToppingRecipeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ToppingRecipeScalarFieldEnum | Prisma.ToppingRecipeScalarFieldEnum[]
 }
 
 /**

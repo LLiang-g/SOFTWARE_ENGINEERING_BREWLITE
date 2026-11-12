@@ -425,13 +425,15 @@ export class ExchangeService {
           const old = await tx.orderInventoryReservation.findMany({
             where: { orderId: source.id },
           });
-          const recipes = await tx.recipe.findMany({
-            where: { productId: { in: items.map((item) => item.productId) } },
+          const recipes = await tx.recipe.findMany({ where: { productId: { in: items.map((item) => item.productId) } } });
+          const toppingRecipes = await tx.toppingRecipe.findMany({
+            where: { toppingCode: { in: [...new Set(items.flatMap((item) => item.toppings ?? []))] } },
           });
           const ingredientIds = [
             ...new Set([
               ...old.map((r) => r.ingredientId),
               ...recipes.map((r) => r.ingredientId),
+              ...toppingRecipes.map((r) => r.ingredientId),
             ]),
           ].sort((a, b) => a - b);
           if (!ingredientIds.length)
@@ -439,13 +441,7 @@ export class ExchangeService {
           // Lock union before release/reserve so exchanges sharing ingredients cannot lock in reverse order.
           await tx.$queryRaw`SELECT id FROM "Ingredient" WHERE id IN (${Prisma.join(ingredientIds)}) ORDER BY id FOR UPDATE`;
           await this.inventory.release(tx, source.id);
-          const needs = new Map<number, number>();
-          for (const item of items)
-            needs.set(
-              item.productId,
-              (needs.get(item.productId) ?? 0) + item.qty,
-            );
-          const reservations = await this.inventory.reserve(tx, needs);
+          const reservations = await this.inventory.reserve(tx, items);
           const replacement = await tx.order.create({
             data: {
               userId: source.userId,

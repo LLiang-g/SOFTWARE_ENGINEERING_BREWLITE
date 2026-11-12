@@ -15,6 +15,8 @@ import { OrdersGateway } from "../realtime/orders.gateway";
 import type { UpdateStaffOrderStatusDto } from "./dto/update-staff-order-status.dto";
 import { createHash } from "node:crypto";
 
+import { reservationDeadline, holdHasExpired, RESERVATION_EXPIRED_MESSAGE } from "./reservation-policy";
+
 const ORDER_INCLUDE = {
   exchangeRequests: { where: { status: "REQUESTED" }, select: { id: true } },
   items: {
@@ -75,7 +77,6 @@ export class OrdersService {
           });
           const byId = new Map(products.map((p) => [p.id, p]));
 
-          const needs = new Map<number, number>();
           const lines = dto.items.map((item) => {
             const product = byId.get(item.productId);
             if (!product) {
@@ -85,10 +86,6 @@ export class OrdersService {
             }
             const toppings = item.toppings ?? [];
             const unitPrice = calcUnitPrice(product.price, item.size, toppings);
-            needs.set(
-              item.productId,
-              (needs.get(item.productId) ?? 0) + item.qty,
-            );
             return {
               productId: item.productId,
               size: item.size,
@@ -111,11 +108,12 @@ export class OrdersService {
           }
 
           // Trừ kho và tạo đơn nằm chung một giao dịch: lỗi ở đâu thì hoàn tác tất cả.
-          const reservations = await this.inventory.reserve(tx, needs);
+          const reservations = await this.inventory.reserve(tx, dto.items);
 
           const created = await tx.order.create({
             data: {
               userId,
+              reservationExpiresAt: reservationDeadline(),
               total: subtotal - discount,
               discount,
               voucherId,
@@ -220,7 +218,7 @@ export class OrdersService {
       }
       const result = await tx.order.updateMany({
         where: { id, status: order.status },
-        data: { status: "CANCELLED" },
+        data: { status: "CANCELLED", ...(holdHasExpired(order) ? { reservationExpiredAt: new Date() } : {}) },
       });
       if (result.count === 0) {
         throw new ConflictException(
@@ -310,6 +308,10 @@ export class OrdersService {
   private toResponse(order: OrderWithItems) {
     return {
       id: order.id,
+      reservationExpiresAt: order.reservationExpiresAt,
+      reservationExpiredAt: order.reservationExpiredAt,
+      reservationTimedOut: ["PENDING", "PAYMENT_FAILED"].includes(order.status) && holdHasExpired(order),
+      expiryMessage: order.reservationExpiredAt ? RESERVATION_EXPIRED_MESSAGE : null,
       pendingExchangeId: order.exchangeRequests[0]?.id ?? null,
       status: order.status,
       total: order.total,

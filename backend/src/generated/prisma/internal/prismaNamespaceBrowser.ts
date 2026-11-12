@@ -54,6 +54,7 @@ export const ModelName = {
   Product: 'Product',
   Ingredient: 'Ingredient',
   Recipe: 'Recipe',
+  ToppingRecipe: 'ToppingRecipe',
   User: 'User',
   Voucher: 'Voucher',
   Order: 'Order',
@@ -109,10 +110,21 @@ export const RecipeScalarFieldEnum = {
   id: 'id',
   productId: 'productId',
   ingredientId: 'ingredientId',
-  quantity: 'quantity'
+  quantity: 'quantity',
+  scalesWithSize: 'scalesWithSize'
 } as const
 
 export type RecipeScalarFieldEnum = (typeof RecipeScalarFieldEnum)[keyof typeof RecipeScalarFieldEnum]
+
+
+export const ToppingRecipeScalarFieldEnum = {
+  id: 'id',
+  toppingCode: 'toppingCode',
+  ingredientId: 'ingredientId',
+  quantity: 'quantity'
+} as const
+
+export type ToppingRecipeScalarFieldEnum = (typeof ToppingRecipeScalarFieldEnum)[keyof typeof ToppingRecipeScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -138,6 +150,8 @@ export type VoucherScalarFieldEnum = (typeof VoucherScalarFieldEnum)[keyof typeo
 
 
 export const OrderScalarFieldEnum = {
+  reservationExpiresAt: 'reservationExpiresAt',
+  reservationExpiredAt: 'reservationExpiredAt',
   creditApplied: 'creditApplied',
   id: 'id',
   userId: 'userId',

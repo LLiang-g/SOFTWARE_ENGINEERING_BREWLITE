@@ -54,6 +54,10 @@ export default function ProductDetail({
     product.options,
   );
 
+  const availableForSelection = (selected: string[]) => product.availability?.find((row) =>
+    row.size === size && [...row.toppings].sort().join('|') === [...selected].sort().join('|'))?.available ?? (product.availability ? 0 : 99);
+  const available = availableForSelection(toppings);
+
   function toggleTopping(code: string) {
     setToppings((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
@@ -61,6 +65,7 @@ export default function ProductDetail({
   }
 
   function handleAddToCart() {
+    if (qty > available) return;
     (onAdd ?? addItem)(
       {
         productId: product.id,
@@ -186,6 +191,7 @@ export default function ProductDetail({
                   <input
                     type="checkbox"
                     checked={toppings.includes(t.code)}
+                    disabled={!toppings.includes(t.code) && availableForSelection([...toppings, t.code]) === 0}
                     onChange={() => toggleTopping(t.code)}
                     className="peer sr-only"
                   />
@@ -202,6 +208,7 @@ export default function ProductDetail({
           </section>
         )}
 
+        <p id="selection-stock" role="status" className="mt-5 text-sm text-muted">{available === 0 ? 'Lựa chọn này đã hết nguyên liệu. Hãy đổi size hoặc bỏ topping.' : `Hiện còn tối đa ${available} ly theo lựa chọn. Kho được kiểm tra lại khi đặt đơn.`}</p>
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_24px_-14px_rgba(43,26,18,0.3)] md:static md:z-auto md:mt-8 md:border-0 md:bg-transparent md:p-0 md:shadow-none">
           {added && (
             <p
@@ -248,7 +255,7 @@ export default function ProductDetail({
               <button
                 type="button"
                 onClick={() => setQty((q) => Math.min(99, q + 1))}
-                disabled={qty >= 99}
+                disabled={qty >= Math.min(99, available)}
                 aria-label="Tăng số lượng"
                 className="flex h-full w-11 items-center justify-center rounded-full disabled:opacity-35"
               >
@@ -258,7 +265,9 @@ export default function ProductDetail({
             <button
               type="button"
               onClick={handleAddToCart}
-              className="flex h-12 flex-1 items-center justify-between rounded-full bg-espresso px-5 font-semibold text-white transition hover:bg-roast active:scale-[0.99]"
+              disabled={qty > available}
+              aria-describedby="selection-stock"
+              className="flex h-12 flex-1 items-center justify-between rounded-full bg-espresso px-5 font-semibold text-white transition hover:bg-roast active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span>Thêm vào giỏ</span>
               <span className="tabular-nums">

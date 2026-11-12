@@ -45,6 +45,8 @@ export type OrderSumAggregateOutputType = {
 }
 
 export type OrderMinAggregateOutputType = {
+  reservationExpiresAt: Date | null
+  reservationExpiredAt: Date | null
   creditApplied: number | null
   id: number | null
   userId: number | null
@@ -56,6 +58,8 @@ export type OrderMinAggregateOutputType = {
 }
 
 export type OrderMaxAggregateOutputType = {
+  reservationExpiresAt: Date | null
+  reservationExpiredAt: Date | null
   creditApplied: number | null
   id: number | null
   userId: number | null
@@ -67,6 +71,8 @@ export type OrderMaxAggregateOutputType = {
 }
 
 export type OrderCountAggregateOutputType = {
+  reservationExpiresAt: number
+  reservationExpiredAt: number
   creditApplied: number
   id: number
   userId: number
@@ -98,6 +104,8 @@ export type OrderSumAggregateInputType = {
 }
 
 export type OrderMinAggregateInputType = {
+  reservationExpiresAt?: true
+  reservationExpiredAt?: true
   creditApplied?: true
   id?: true
   userId?: true
@@ -109,6 +117,8 @@ export type OrderMinAggregateInputType = {
 }
 
 export type OrderMaxAggregateInputType = {
+  reservationExpiresAt?: true
+  reservationExpiredAt?: true
   creditApplied?: true
   id?: true
   userId?: true
@@ -120,6 +130,8 @@ export type OrderMaxAggregateInputType = {
 }
 
 export type OrderCountAggregateInputType = {
+  reservationExpiresAt?: true
+  reservationExpiredAt?: true
   creditApplied?: true
   id?: true
   userId?: true
@@ -218,6 +230,8 @@ export type OrderGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 }
 
 export type OrderGroupByOutputType = {
+  reservationExpiresAt: Date | null
+  reservationExpiredAt: Date | null
   creditApplied: number
   id: number
   userId: number
@@ -252,6 +266,8 @@ export type OrderWhereInput = {
   AND?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
+  reservationExpiresAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  reservationExpiredAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   creditApplied?: Prisma.IntFilter<"Order"> | number
   id?: Prisma.IntFilter<"Order"> | number
   userId?: Prisma.IntFilter<"Order"> | number
@@ -273,6 +289,8 @@ export type OrderWhereInput = {
 }
 
 export type OrderOrderByWithRelationInput = {
+  reservationExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reservationExpiredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   creditApplied?: Prisma.SortOrder
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -298,6 +316,8 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
+  reservationExpiresAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  reservationExpiredAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   creditApplied?: Prisma.IntFilter<"Order"> | number
   userId?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
@@ -318,6 +338,8 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
 }, "id">
 
 export type OrderOrderByWithAggregationInput = {
+  reservationExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reservationExpiredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   creditApplied?: Prisma.SortOrder
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -337,6 +359,8 @@ export type OrderScalarWhereWithAggregatesInput = {
   AND?: Prisma.OrderScalarWhereWithAggregatesInput | Prisma.OrderScalarWhereWithAggregatesInput[]
   OR?: Prisma.OrderScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OrderScalarWhereWithAggregatesInput | Prisma.OrderScalarWhereWithAggregatesInput[]
+  reservationExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+  reservationExpiredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
   creditApplied?: Prisma.IntWithAggregatesFilter<"Order"> | number
   id?: Prisma.IntWithAggregatesFilter<"Order"> | number
   userId?: Prisma.IntWithAggregatesFilter<"Order"> | number
@@ -348,6 +372,8 @@ export type OrderScalarWhereWithAggregatesInput = {
 }
 
 export type OrderCreateInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -366,6 +392,8 @@ export type OrderCreateInput = {
 }
 
 export type OrderUncheckedCreateInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -385,6 +413,8 @@ export type OrderUncheckedCreateInput = {
 }
 
 export type OrderUpdateInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -403,6 +433,8 @@ export type OrderUpdateInput = {
 }
 
 export type OrderUncheckedUpdateInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -422,6 +454,8 @@ export type OrderUncheckedUpdateInput = {
 }
 
 export type OrderCreateManyInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -433,6 +467,8 @@ export type OrderCreateManyInput = {
 }
 
 export type OrderUpdateManyMutationInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -441,6 +477,8 @@ export type OrderUpdateManyMutationInput = {
 }
 
 export type OrderUncheckedUpdateManyInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -462,6 +500,8 @@ export type OrderOrderByRelationAggregateInput = {
 }
 
 export type OrderCountOrderByAggregateInput = {
+  reservationExpiresAt?: Prisma.SortOrder
+  reservationExpiredAt?: Prisma.SortOrder
   creditApplied?: Prisma.SortOrder
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -482,6 +522,8 @@ export type OrderAvgOrderByAggregateInput = {
 }
 
 export type OrderMaxOrderByAggregateInput = {
+  reservationExpiresAt?: Prisma.SortOrder
+  reservationExpiredAt?: Prisma.SortOrder
   creditApplied?: Prisma.SortOrder
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -493,6 +535,8 @@ export type OrderMaxOrderByAggregateInput = {
 }
 
 export type OrderMinOrderByAggregateInput = {
+  reservationExpiresAt?: Prisma.SortOrder
+  reservationExpiredAt?: Prisma.SortOrder
   creditApplied?: Prisma.SortOrder
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -604,6 +648,10 @@ export type OrderUncheckedUpdateManyWithoutVoucherNestedInput = {
   update?: Prisma.OrderUpdateWithWhereUniqueWithoutVoucherInput | Prisma.OrderUpdateWithWhereUniqueWithoutVoucherInput[]
   updateMany?: Prisma.OrderUpdateManyWithWhereWithoutVoucherInput | Prisma.OrderUpdateManyWithWhereWithoutVoucherInput[]
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type EnumOrderStatusFieldUpdateOperationsInput = {
@@ -737,6 +785,8 @@ export type OrderUpdateOneWithoutReplacementForNestedInput = {
 }
 
 export type OrderCreateWithoutUserInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -754,6 +804,8 @@ export type OrderCreateWithoutUserInput = {
 }
 
 export type OrderUncheckedCreateWithoutUserInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   status?: $Enums.OrderStatus
@@ -801,6 +853,8 @@ export type OrderScalarWhereInput = {
   AND?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
   OR?: Prisma.OrderScalarWhereInput[]
   NOT?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+  reservationExpiresAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  reservationExpiredAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   creditApplied?: Prisma.IntFilter<"Order"> | number
   id?: Prisma.IntFilter<"Order"> | number
   userId?: Prisma.IntFilter<"Order"> | number
@@ -812,6 +866,8 @@ export type OrderScalarWhereInput = {
 }
 
 export type OrderCreateWithoutVoucherInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -829,6 +885,8 @@ export type OrderCreateWithoutVoucherInput = {
 }
 
 export type OrderUncheckedCreateWithoutVoucherInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -873,6 +931,8 @@ export type OrderUpdateManyWithWhereWithoutVoucherInput = {
 }
 
 export type OrderCreateWithoutCreateRequestInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -890,6 +950,8 @@ export type OrderCreateWithoutCreateRequestInput = {
 }
 
 export type OrderUncheckedCreateWithoutCreateRequestInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -924,6 +986,8 @@ export type OrderUpdateToOneWithWhereWithoutCreateRequestInput = {
 }
 
 export type OrderUpdateWithoutCreateRequestInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -941,6 +1005,8 @@ export type OrderUpdateWithoutCreateRequestInput = {
 }
 
 export type OrderUncheckedUpdateWithoutCreateRequestInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -959,6 +1025,8 @@ export type OrderUncheckedUpdateWithoutCreateRequestInput = {
 }
 
 export type OrderCreateWithoutItemsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -976,6 +1044,8 @@ export type OrderCreateWithoutItemsInput = {
 }
 
 export type OrderUncheckedCreateWithoutItemsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1010,6 +1080,8 @@ export type OrderUpdateToOneWithWhereWithoutItemsInput = {
 }
 
 export type OrderUpdateWithoutItemsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1027,6 +1099,8 @@ export type OrderUpdateWithoutItemsInput = {
 }
 
 export type OrderUncheckedUpdateWithoutItemsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1045,6 +1119,8 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
 }
 
 export type OrderCreateWithoutPaymentsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -1062,6 +1138,8 @@ export type OrderCreateWithoutPaymentsInput = {
 }
 
 export type OrderUncheckedCreateWithoutPaymentsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1096,6 +1174,8 @@ export type OrderUpdateToOneWithWhereWithoutPaymentsInput = {
 }
 
 export type OrderUpdateWithoutPaymentsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1113,6 +1193,8 @@ export type OrderUpdateWithoutPaymentsInput = {
 }
 
 export type OrderUncheckedUpdateWithoutPaymentsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1131,6 +1213,8 @@ export type OrderUncheckedUpdateWithoutPaymentsInput = {
 }
 
 export type OrderCreateWithoutVnpayAttemptsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -1148,6 +1232,8 @@ export type OrderCreateWithoutVnpayAttemptsInput = {
 }
 
 export type OrderUncheckedCreateWithoutVnpayAttemptsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1182,6 +1268,8 @@ export type OrderUpdateToOneWithWhereWithoutVnpayAttemptsInput = {
 }
 
 export type OrderUpdateWithoutVnpayAttemptsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1199,6 +1287,8 @@ export type OrderUpdateWithoutVnpayAttemptsInput = {
 }
 
 export type OrderUncheckedUpdateWithoutVnpayAttemptsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1217,6 +1307,8 @@ export type OrderUncheckedUpdateWithoutVnpayAttemptsInput = {
 }
 
 export type OrderCreateWithoutInventoryReservationsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -1234,6 +1326,8 @@ export type OrderCreateWithoutInventoryReservationsInput = {
 }
 
 export type OrderUncheckedCreateWithoutInventoryReservationsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1268,6 +1362,8 @@ export type OrderUpdateToOneWithWhereWithoutInventoryReservationsInput = {
 }
 
 export type OrderUpdateWithoutInventoryReservationsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1285,6 +1381,8 @@ export type OrderUpdateWithoutInventoryReservationsInput = {
 }
 
 export type OrderUncheckedUpdateWithoutInventoryReservationsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1303,6 +1401,8 @@ export type OrderUncheckedUpdateWithoutInventoryReservationsInput = {
 }
 
 export type OrderCreateWithoutLoyaltyTransactionsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -1320,6 +1420,8 @@ export type OrderCreateWithoutLoyaltyTransactionsInput = {
 }
 
 export type OrderUncheckedCreateWithoutLoyaltyTransactionsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1354,6 +1456,8 @@ export type OrderUpdateToOneWithWhereWithoutLoyaltyTransactionsInput = {
 }
 
 export type OrderUpdateWithoutLoyaltyTransactionsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1371,6 +1475,8 @@ export type OrderUpdateWithoutLoyaltyTransactionsInput = {
 }
 
 export type OrderUncheckedUpdateWithoutLoyaltyTransactionsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1389,6 +1495,8 @@ export type OrderUncheckedUpdateWithoutLoyaltyTransactionsInput = {
 }
 
 export type OrderCreateWithoutExchangeRequestsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -1406,6 +1514,8 @@ export type OrderCreateWithoutExchangeRequestsInput = {
 }
 
 export type OrderUncheckedCreateWithoutExchangeRequestsInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1429,6 +1539,8 @@ export type OrderCreateOrConnectWithoutExchangeRequestsInput = {
 }
 
 export type OrderCreateWithoutReplacementForInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   status?: $Enums.OrderStatus
   total: number
@@ -1446,6 +1558,8 @@ export type OrderCreateWithoutReplacementForInput = {
 }
 
 export type OrderUncheckedCreateWithoutReplacementForInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1480,6 +1594,8 @@ export type OrderUpdateToOneWithWhereWithoutExchangeRequestsInput = {
 }
 
 export type OrderUpdateWithoutExchangeRequestsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1497,6 +1613,8 @@ export type OrderUpdateWithoutExchangeRequestsInput = {
 }
 
 export type OrderUncheckedUpdateWithoutExchangeRequestsInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1526,6 +1644,8 @@ export type OrderUpdateToOneWithWhereWithoutReplacementForInput = {
 }
 
 export type OrderUpdateWithoutReplacementForInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1543,6 +1663,8 @@ export type OrderUpdateWithoutReplacementForInput = {
 }
 
 export type OrderUncheckedUpdateWithoutReplacementForInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1561,6 +1683,8 @@ export type OrderUncheckedUpdateWithoutReplacementForInput = {
 }
 
 export type OrderCreateManyUserInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   status?: $Enums.OrderStatus
@@ -1571,6 +1695,8 @@ export type OrderCreateManyUserInput = {
 }
 
 export type OrderUpdateWithoutUserInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1588,6 +1714,8 @@ export type OrderUpdateWithoutUserInput = {
 }
 
 export type OrderUncheckedUpdateWithoutUserInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -1606,6 +1734,8 @@ export type OrderUncheckedUpdateWithoutUserInput = {
 }
 
 export type OrderUncheckedUpdateManyWithoutUserInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -1616,6 +1746,8 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
 }
 
 export type OrderCreateManyVoucherInput = {
+  reservationExpiresAt?: Date | string | null
+  reservationExpiredAt?: Date | string | null
   creditApplied?: number
   id?: number
   userId: number
@@ -1626,6 +1758,8 @@ export type OrderCreateManyVoucherInput = {
 }
 
 export type OrderUpdateWithoutVoucherInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   total?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1643,6 +1777,8 @@ export type OrderUpdateWithoutVoucherInput = {
 }
 
 export type OrderUncheckedUpdateWithoutVoucherInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1661,6 +1797,8 @@ export type OrderUncheckedUpdateWithoutVoucherInput = {
 }
 
 export type OrderUncheckedUpdateManyWithoutVoucherInput = {
+  reservationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservationExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creditApplied?: Prisma.IntFieldUpdateOperationsInput | number
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1747,6 +1885,8 @@ export type OrderCountOutputTypeCountVnpayAttemptsArgs<ExtArgs extends runtime.T
 
 
 export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  reservationExpiresAt?: boolean
+  reservationExpiredAt?: boolean
   creditApplied?: boolean
   id?: boolean
   userId?: boolean
@@ -1769,6 +1909,8 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  reservationExpiresAt?: boolean
+  reservationExpiredAt?: boolean
   creditApplied?: boolean
   id?: boolean
   userId?: boolean
@@ -1782,6 +1924,8 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  reservationExpiresAt?: boolean
+  reservationExpiredAt?: boolean
   creditApplied?: boolean
   id?: boolean
   userId?: boolean
@@ -1795,6 +1939,8 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectScalar = {
+  reservationExpiresAt?: boolean
+  reservationExpiredAt?: boolean
   creditApplied?: boolean
   id?: boolean
   userId?: boolean
@@ -1805,7 +1951,7 @@ export type OrderSelectScalar = {
   createdAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"creditApplied" | "id" | "userId" | "status" | "total" | "discount" | "voucherId" | "createdAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"reservationExpiresAt" | "reservationExpiredAt" | "creditApplied" | "id" | "userId" | "status" | "total" | "discount" | "voucherId" | "createdAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   exchangeRequests?: boolean | Prisma.Order$exchangeRequestsArgs<ExtArgs>
   replacementFor?: boolean | Prisma.Order$replacementForArgs<ExtArgs>
@@ -1843,6 +1989,8 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     vnpayAttempts: Prisma.$VnpayAttemptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    reservationExpiresAt: Date | null
+    reservationExpiredAt: Date | null
     creditApplied: number
     id: number
     userId: number
@@ -1934,8 +2082,8 @@ export interface OrderDelegate<ExtArgs extends runtime.Types.Extensions.Internal
    * // Get first 10 Orders
    * const orders = await prisma.order.findMany({ take: 10 })
    * 
-   * // Only select the `creditApplied`
-   * const orderWithCreditAppliedOnly = await prisma.order.findMany({ select: { creditApplied: true } })
+   * // Only select the `reservationExpiresAt`
+   * const orderWithReservationExpiresAtOnly = await prisma.order.findMany({ select: { reservationExpiresAt: true } })
    * 
    */
   findMany<T extends OrderFindManyArgs>(args?: Prisma.SelectSubset<T, OrderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -1979,9 +2127,9 @@ export interface OrderDelegate<ExtArgs extends runtime.Types.Extensions.Internal
    *   ]
    * })
    * 
-   * // Create many Orders and only return the `creditApplied`
-   * const orderWithCreditAppliedOnly = await prisma.order.createManyAndReturn({
-   *   select: { creditApplied: true },
+   * // Create many Orders and only return the `reservationExpiresAt`
+   * const orderWithReservationExpiresAtOnly = await prisma.order.createManyAndReturn({
+   *   select: { reservationExpiresAt: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -2070,9 +2218,9 @@ export interface OrderDelegate<ExtArgs extends runtime.Types.Extensions.Internal
    *   ]
    * })
    * 
-   * // Update zero or more Orders and only return the `creditApplied`
-   * const orderWithCreditAppliedOnly = await prisma.order.updateManyAndReturn({
-   *   select: { creditApplied: true },
+   * // Update zero or more Orders and only return the `reservationExpiresAt`
+   * const orderWithReservationExpiresAtOnly = await prisma.order.updateManyAndReturn({
+   *   select: { reservationExpiresAt: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -2284,6 +2432,8 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
  * Fields of the Order model
  */
 export interface OrderFieldRefs {
+  readonly reservationExpiresAt: Prisma.FieldRef<"Order", 'DateTime'>
+  readonly reservationExpiredAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly creditApplied: Prisma.FieldRef<"Order", 'Int'>
   readonly id: Prisma.FieldRef<"Order", 'Int'>
   readonly userId: Prisma.FieldRef<"Order", 'Int'>

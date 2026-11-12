@@ -1,172 +1,149 @@
+-- BrewLite: complete initialization for an EMPTY database only.
+BEGIN;
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
 
--- =========================================
--- 1. CREATE ENUMS
--- =========================================
-
+-- CreateEnum
 CREATE TYPE "Size" AS ENUM ('S', 'M', 'L');
 
-CREATE TYPE "OrderStatus" AS ENUM (
-    'PENDING',
-    'PAID',
-    'PAYMENT_FAILED',
-    'PREPARING',
-    'READY',
-    'COMPLETED',
-    'CANCELLED'
-);
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'PAYMENT_FAILED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED');
 
-CREATE TYPE "PaymentMethod" AS ENUM ('WALLET', 'CARD');
+-- CreateEnum
+CREATE TYPE "PaymentMethod" AS ENUM ('WALLET', 'CARD', 'VNPAY');
 
+-- CreateEnum
+CREATE TYPE "VnpayAttemptStatus" AS ENUM ('PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED', 'REVIEW');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('CUSTOMER', 'BARISTA');
 
+-- CreateEnum
 CREATE TYPE "LoyaltyTransactionType" AS ENUM ('EARN', 'REDEEM');
 
+-- CreateEnum
+CREATE TYPE "ExchangeStatus" AS ENUM ('WITHDRAWN', 'REQUESTED', 'APPROVED', 'REJECTED');
 
--- =========================================
--- 2. CREATE TABLES
--- =========================================
+-- CreateEnum
+CREATE TYPE "RefundCaseStatus" AS ENUM ('OPEN', 'PROCESSING', 'COMPLETED');
 
+-- CreateTable
 CREATE TABLE "Product" (
-                           "id" SERIAL NOT NULL,
-                           "name" TEXT NOT NULL,
-                           "price" INTEGER NOT NULL,
-                           "imageUrl" TEXT NOT NULL,
-
-                           CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "User" (
-                        "id" SERIAL NOT NULL,
-                        "email" TEXT NOT NULL,
-                        "passwordHash" TEXT NOT NULL,
-                        "loyaltyPoints" INTEGER NOT NULL DEFAULT 0,
-                        "role" "Role" NOT NULL DEFAULT 'CUSTOMER',
-
-                        CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "Voucher" (
-                           "id" SERIAL NOT NULL,
-                           "code" TEXT NOT NULL,
-                           "discountPercent" INTEGER NOT NULL,
-                           "expiresAt" TIMESTAMP(3) NOT NULL,
-                           "active" BOOLEAN NOT NULL DEFAULT true,
-
-                           CONSTRAINT "Voucher_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "Order" (
-                         "id" SERIAL NOT NULL,
-                         "userId" INTEGER NOT NULL,
-                         "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
-                         "total" INTEGER NOT NULL,
-                         "discount" INTEGER NOT NULL DEFAULT 0,
-                         "voucherId" INTEGER,
-                         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                         CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "OrderItem" (
-                             "id" SERIAL NOT NULL,
-                             "orderId" INTEGER NOT NULL,
-                             "productId" INTEGER NOT NULL,
-                             "size" "Size" NOT NULL,
-                             "toppings" TEXT[] DEFAULT ARRAY[]::TEXT[],
-                             "qty" INTEGER NOT NULL,
-                             "lineTotal" INTEGER NOT NULL,
-
-                             CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "Payment" (
-                           "id" SERIAL NOT NULL,
-                           "orderId" INTEGER NOT NULL,
-                           "idempotencyKey" TEXT NOT NULL,
-                           "amount" INTEGER NOT NULL,
-                           "method" "PaymentMethod" NOT NULL,
-                           "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                           CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "LoyaltyTransaction" (
-                                      "id" SERIAL NOT NULL,
-                                      "userId" INTEGER NOT NULL,
-                                      "orderId" INTEGER,
-                                      "type" "LoyaltyTransactionType" NOT NULL,
-                                      "points" INTEGER NOT NULL,
-                                      "balanceAfter" INTEGER NOT NULL,
-                                      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-                                      CONSTRAINT "LoyaltyTransaction_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "Ingredient" (
-                              "id" SERIAL NOT NULL,
-                              "name" TEXT NOT NULL,
-                              "unit" TEXT NOT NULL,
-                              "stock" INTEGER NOT NULL DEFAULT 0,
-
-                              CONSTRAINT "Ingredient_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "Recipe" (
-                          "id" SERIAL NOT NULL,
-                          "productId" INTEGER NOT NULL,
-                          "ingredientId" INTEGER NOT NULL,
-                          "quantity" INTEGER NOT NULL,
-
-                          CONSTRAINT "Recipe_pkey" PRIMARY KEY ("id")
-);
-
-CREATE TABLE "OrderInventoryReservation" (
     "id" SERIAL NOT NULL,
-    "orderId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Ingredient" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "unit" TEXT NOT NULL,
+    "stock" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "Ingredient_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Recipe" (
+    "id" SERIAL NOT NULL,
+    "productId" INTEGER NOT NULL,
     "ingredientId" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL,
-    "releasedAt" TIMESTAMP(3),
-    CONSTRAINT "OrderInventoryReservation_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "OrderInventoryReservation_quantity_positive" CHECK ("quantity" > 0)
+    "scalesWithSize" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "Recipe_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "OrderInventoryReservation_orderId_ingredientId_key"
-    ON "OrderInventoryReservation"("orderId", "ingredientId");
-CREATE INDEX "OrderInventoryReservation_ingredientId_idx"
-    ON "OrderInventoryReservation"("ingredientId");
+-- CreateTable
+CREATE TABLE "ToppingRecipe" (
+    "id" SERIAL NOT NULL,
+    "toppingCode" TEXT NOT NULL,
+    "ingredientId" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
 
-ALTER TABLE "OrderInventoryReservation"
-    ADD CONSTRAINT "OrderInventoryReservation_orderId_fkey"
-    FOREIGN KEY ("orderId") REFERENCES "Order"("id")
-    ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "OrderInventoryReservation"
-    ADD CONSTRAINT "OrderInventoryReservation_ingredientId_fkey"
-    FOREIGN KEY ("ingredientId") REFERENCES "Ingredient"("id")
-    ON DELETE RESTRICT ON UPDATE CASCADE;
+    CONSTRAINT "ToppingRecipe_pkey" PRIMARY KEY ("id")
+);
 
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "passwordHash" TEXT NOT NULL,
+    "role" "Role" NOT NULL DEFAULT 'CUSTOMER',
+    "loyaltyPoints" INTEGER NOT NULL DEFAULT 0,
 
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
--- New requests only; existing orders need no idempotency backfill.
+-- CreateTable
+CREATE TABLE "Voucher" (
+    "id" SERIAL NOT NULL,
+    "code" TEXT NOT NULL,
+    "discountPercent" INTEGER NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "Voucher_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Order" (
+    "reservationExpiresAt" TIMESTAMP(3),
+    "reservationExpiredAt" TIMESTAMP(3),
+    "creditApplied" INTEGER NOT NULL DEFAULT 0,
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "total" INTEGER NOT NULL,
+    "discount" INTEGER NOT NULL DEFAULT 0,
+    "voucherId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "OrderCreateRequest" (
     "userId" INTEGER NOT NULL,
     "idempotencyKey" VARCHAR(100) NOT NULL,
     "requestHash" CHAR(64) NOT NULL,
     "orderId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "OrderCreateRequest_pkey" PRIMARY KEY ("userId", "idempotencyKey")
+
+    CONSTRAINT "OrderCreateRequest_pkey" PRIMARY KEY ("userId","idempotencyKey")
 );
-CREATE UNIQUE INDEX "OrderCreateRequest_orderId_key" ON "OrderCreateRequest"("orderId");
-ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_userId_fkey"
-    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_orderId_fkey"
-    FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+-- CreateTable
+CREATE TABLE "OrderItem" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "productId" INTEGER NOT NULL,
+    "size" "Size" NOT NULL,
+    "toppings" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "qty" INTEGER NOT NULL,
+    "lineTotal" INTEGER NOT NULL,
 
+    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+);
 
--- Additive migration after patches 04 and 05. No reset, seed or data deletion.
-ALTER TYPE "PaymentMethod" ADD VALUE 'VNPAY';
-CREATE TYPE "VnpayAttemptStatus" AS ENUM ('PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED', 'REVIEW');
+-- CreateTable
+CREATE TABLE "Payment" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "idempotencyKey" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "method" "PaymentMethod" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "vnpayAttemptId" INTEGER,
 
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "VnpayAttempt" (
     "id" SERIAL NOT NULL,
     "orderId" INTEGER NOT NULL,
@@ -185,31 +162,20 @@ CREATE TABLE "VnpayAttempt" (
     "lastCheckedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    CONSTRAINT "VnpayAttempt_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "VnpayAttempt_amount_positive" CHECK ("amount" > 0)
+
+    CONSTRAINT "VnpayAttempt_pkey" PRIMARY KEY ("id")
 );
-CREATE UNIQUE INDEX "VnpayAttempt_txnRef_key" ON "VnpayAttempt"("txnRef");
-CREATE UNIQUE INDEX "VnpayAttempt_providerTxnNo_key" ON "VnpayAttempt"("providerTxnNo");
-CREATE INDEX "VnpayAttempt_orderId_createdAt_idx" ON "VnpayAttempt"("orderId", "createdAt");
-ALTER TABLE "VnpayAttempt" ADD CONSTRAINT "VnpayAttempt_orderId_fkey"
-    FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE "Payment" ADD COLUMN "vnpayAttemptId" INTEGER;
-CREATE UNIQUE INDEX "Payment_vnpayAttemptId_key" ON "Payment"("vnpayAttemptId");
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_vnpayAttemptId_fkey"
-    FOREIGN KEY ("vnpayAttemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
+-- CreateTable
 CREATE TABLE "PaymentStartRequest" (
     "userId" INTEGER NOT NULL,
     "key" VARCHAR(100) NOT NULL,
     "attemptId" INTEGER NOT NULL,
-    CONSTRAINT "PaymentStartRequest_pkey" PRIMARY KEY ("userId", "key")
-);
-ALTER TABLE "PaymentStartRequest" ADD CONSTRAINT "PaymentStartRequest_userId_fkey"
-    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "PaymentStartRequest" ADD CONSTRAINT "PaymentStartRequest_attemptId_fkey"
-    FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+    CONSTRAINT "PaymentStartRequest_pkey" PRIMARY KEY ("userId","key")
+);
+
+-- CreateTable
 CREATE TABLE "PaymentAudit" (
     "id" SERIAL NOT NULL,
     "attemptId" INTEGER NOT NULL,
@@ -217,193 +183,212 @@ CREATE TABLE "PaymentAudit" (
     "action" VARCHAR(40) NOT NULL,
     "note" VARCHAR(1000) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT "PaymentAudit_pkey" PRIMARY KEY ("id")
 );
-CREATE INDEX "PaymentAudit_attemptId_createdAt_idx" ON "PaymentAudit"("attemptId", "createdAt");
-ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_attemptId_fkey"
-    FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_actorId_fkey"
-    FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+-- CreateTable
+CREATE TABLE "OrderInventoryReservation" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "ingredientId" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "releasedAt" TIMESTAMP(3),
 
+    CONSTRAINT "OrderInventoryReservation_pkey" PRIMARY KEY ("id")
+);
 
+-- CreateTable
+CREATE TABLE "LoyaltyTransaction" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "orderId" INTEGER,
+    "type" "LoyaltyTransactionType" NOT NULL,
+    "points" INTEGER NOT NULL,
+    "balanceAfter" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    CONSTRAINT "LoyaltyTransaction_pkey" PRIMARY KEY ("id")
+);
 
-
-ALTER TABLE "Order" ADD COLUMN "creditApplied" INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE "Order" ADD CONSTRAINT "Order_creditApplied_check" CHECK ("creditApplied" >= 0 AND "creditApplied" <= total);
-CREATE TYPE "ExchangeStatus" AS ENUM ('REQUESTED','APPROVED','REJECTED');
-CREATE TYPE "RefundCaseStatus" AS ENUM ('OPEN','PROCESSING','COMPLETED');
+-- CreateTable
 CREATE TABLE "OrderExchange" (
-  id SERIAL PRIMARY KEY, "sourceOrderId" INTEGER NOT NULL REFERENCES "Order"(id) ON DELETE RESTRICT,
-  "replacementOrderId" INTEGER UNIQUE REFERENCES "Order"(id) ON DELETE RESTRICT,
-  key VARCHAR(100) NOT NULL, "requestHash" CHAR(64) NOT NULL, items JSONB NOT NULL,
-  reason VARCHAR(1000) NOT NULL, status "ExchangeStatus" NOT NULL DEFAULT 'REQUESTED',
-  version INTEGER NOT NULL DEFAULT 0, "decisionNote" VARCHAR(1000), "decidedBy" INTEGER,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "decidedAt" TIMESTAMP(3),
-  CONSTRAINT "OrderExchange_sourceOrderId_key_key" UNIQUE ("sourceOrderId",key)
+    "quotedTotal" INTEGER,
+    "quotedLines" JSONB,
+    "id" SERIAL NOT NULL,
+    "sourceOrderId" INTEGER NOT NULL,
+    "replacementOrderId" INTEGER,
+    "key" VARCHAR(100) NOT NULL,
+    "requestHash" CHAR(64) NOT NULL,
+    "items" JSONB NOT NULL,
+    "reason" VARCHAR(1000) NOT NULL,
+    "status" "ExchangeStatus" NOT NULL DEFAULT 'REQUESTED',
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "decisionNote" VARCHAR(1000),
+    "decidedBy" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "decidedAt" TIMESTAMP(3),
+
+    CONSTRAINT "OrderExchange_pkey" PRIMARY KEY ("id")
 );
-CREATE UNIQUE INDEX "OrderExchange_one_requested" ON "OrderExchange"("sourceOrderId") WHERE status = 'REQUESTED';
+
+-- CreateTable
 CREATE TABLE "PaymentRefundCase" (
-  id SERIAL PRIMARY KEY, "attemptId" INTEGER NOT NULL UNIQUE REFERENCES "VnpayAttempt"(id) ON DELETE RESTRICT,
-  amount INTEGER NOT NULL CHECK (amount > 0), status "RefundCaseStatus" NOT NULL DEFAULT 'OPEN',
-  version INTEGER NOT NULL DEFAULT 0, "handledBy" INTEGER, reference VARCHAR(200) UNIQUE,
-  note VARCHAR(1000), "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "completedAt" TIMESTAMP(3)
+    "id" SERIAL NOT NULL,
+    "attemptId" INTEGER NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "status" "RefundCaseStatus" NOT NULL DEFAULT 'OPEN',
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "handledBy" INTEGER,
+    "reference" VARCHAR(200),
+    "note" VARCHAR(1000),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completedAt" TIMESTAMP(3),
+
+    CONSTRAINT "PaymentRefundCase_pkey" PRIMARY KEY ("id")
 );
--- Backfill confirmed money already in REVIEW in patch 06, without inventing refunds.
-INSERT INTO "PaymentRefundCase" ("attemptId", amount)
-SELECT a.id, a.amount FROM "VnpayAttempt" a
-WHERE a."paidAt" IS NOT NULL AND a.status = 'REVIEW'
-AND NOT EXISTS (SELECT 1 FROM "Payment" p WHERE p."vnpayAttemptId" = a.id);
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Ingredient_name_key" ON "Ingredient"("name");
 
-ALTER TYPE "ExchangeStatus" ADD VALUE 'WITHDRAWN';
-ALTER TABLE "OrderExchange" ADD COLUMN "quotedTotal" INTEGER;
-ALTER TABLE "OrderExchange" ADD COLUMN "quotedLines" JSONB;
+-- CreateIndex
+CREATE UNIQUE INDEX "Recipe_productId_ingredientId_key" ON "Recipe"("productId", "ingredientId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ToppingRecipe_toppingCode_ingredientId_key" ON "ToppingRecipe"("toppingCode", "ingredientId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Voucher_code_key" ON "Voucher"("code");
+
+-- CreateIndex
+CREATE INDEX "Order_reservation_expiry_idx" ON "Order"("status", "reservationExpiresAt", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OrderCreateRequest_orderId_key" ON "OrderCreateRequest"("orderId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Payment_idempotencyKey_key" ON "Payment"("idempotencyKey");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Payment_vnpayAttemptId_key" ON "Payment"("vnpayAttemptId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VnpayAttempt_txnRef_key" ON "VnpayAttempt"("txnRef");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VnpayAttempt_providerTxnNo_key" ON "VnpayAttempt"("providerTxnNo");
+
+-- CreateIndex
+CREATE INDEX "VnpayAttempt_orderId_createdAt_idx" ON "VnpayAttempt"("orderId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "PaymentAudit_attemptId_createdAt_idx" ON "PaymentAudit"("attemptId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "OrderInventoryReservation_ingredientId_idx" ON "OrderInventoryReservation"("ingredientId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OrderInventoryReservation_orderId_ingredientId_key" ON "OrderInventoryReservation"("orderId", "ingredientId");
+
+-- CreateIndex
+CREATE INDEX "LoyaltyTransaction_userId_createdAt_idx" ON "LoyaltyTransaction"("userId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "LoyaltyTransaction_orderId_type_key" ON "LoyaltyTransaction"("orderId", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OrderExchange_replacementOrderId_key" ON "OrderExchange"("replacementOrderId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OrderExchange_sourceOrderId_key_key" ON "OrderExchange"("sourceOrderId", "key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PaymentRefundCase_attemptId_key" ON "PaymentRefundCase"("attemptId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PaymentRefundCase_reference_key" ON "PaymentRefundCase"("reference");
+
+-- AddForeignKey
+ALTER TABLE "Recipe" ADD CONSTRAINT "Recipe_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Recipe" ADD CONSTRAINT "Recipe_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "Ingredient"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ToppingRecipe" ADD CONSTRAINT "ToppingRecipe_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "Ingredient"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_voucherId_fkey" FOREIGN KEY ("voucherId") REFERENCES "Voucher"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderCreateRequest" ADD CONSTRAINT "OrderCreateRequest_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_vnpayAttemptId_fkey" FOREIGN KEY ("vnpayAttemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VnpayAttempt" ADD CONSTRAINT "VnpayAttempt_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PaymentStartRequest" ADD CONSTRAINT "PaymentStartRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PaymentStartRequest" ADD CONSTRAINT "PaymentStartRequest_attemptId_fkey" FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_attemptId_fkey" FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PaymentAudit" ADD CONSTRAINT "PaymentAudit_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderInventoryReservation" ADD CONSTRAINT "OrderInventoryReservation_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderInventoryReservation" ADD CONSTRAINT "OrderInventoryReservation_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "Ingredient"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LoyaltyTransaction" ADD CONSTRAINT "LoyaltyTransaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LoyaltyTransaction" ADD CONSTRAINT "LoyaltyTransaction_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderExchange" ADD CONSTRAINT "OrderExchange_sourceOrderId_fkey" FOREIGN KEY ("sourceOrderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderExchange" ADD CONSTRAINT "OrderExchange_replacementOrderId_fkey" FOREIGN KEY ("replacementOrderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PaymentRefundCase" ADD CONSTRAINT "PaymentRefundCase_attemptId_fkey" FOREIGN KEY ("attemptId") REFERENCES "VnpayAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE "Ingredient" ADD CONSTRAINT "Ingredient_stock_nonnegative" CHECK (stock >= 0);
+ALTER TABLE "Recipe" ADD CONSTRAINT "Recipe_quantity_positive" CHECK (quantity > 0);
+ALTER TABLE "ToppingRecipe" ADD CONSTRAINT "ToppingRecipe_quantity_check" CHECK (quantity > 0);
+ALTER TABLE "OrderInventoryReservation" ADD CONSTRAINT "OrderInventoryReservation_quantity_positive" CHECK (quantity > 0);
+ALTER TABLE "VnpayAttempt" ADD CONSTRAINT "VnpayAttempt_amount_positive" CHECK (amount > 0);
+ALTER TABLE "Order" ADD CONSTRAINT "Order_creditApplied_check" CHECK ("creditApplied" >= 0 AND "creditApplied" <= total);
 ALTER TABLE "OrderExchange" ADD CONSTRAINT "OrderExchange_quote_check" CHECK ("quotedTotal" IS NULL OR "quotedTotal" >= 0);
+ALTER TABLE "PaymentRefundCase" ADD CONSTRAINT "PaymentRefundCase_amount_check" CHECK (amount > 0);
+CREATE UNIQUE INDEX "OrderExchange_one_requested" ON "OrderExchange"("sourceOrderId") WHERE status = 'REQUESTED';
 
 
-
--- =========================================
--- 3. CREATE INDEXES
--- =========================================
-
-CREATE UNIQUE INDEX "User_email_key"
-    ON "User"("email");
-
-CREATE UNIQUE INDEX "Voucher_code_key"
-    ON "Voucher"("code");
-
-CREATE UNIQUE INDEX "Payment_idempotencyKey_key"
-    ON "Payment"("idempotencyKey");
-
-CREATE INDEX "LoyaltyTransaction_userId_createdAt_idx"
-    ON "LoyaltyTransaction"("userId", "createdAt");
-
-CREATE UNIQUE INDEX "LoyaltyTransaction_orderId_type_key"
-    ON "LoyaltyTransaction"("orderId", "type");
-
-CREATE UNIQUE INDEX "Ingredient_name_key"
-    ON "Ingredient"("name");
-
-CREATE UNIQUE INDEX "Recipe_productId_ingredientId_key"
-    ON "Recipe"("productId", "ingredientId");
-
-
--- =========================================
--- 4. ADD FOREIGN KEYS
--- =========================================
-
-ALTER TABLE "Order"
-    ADD CONSTRAINT "Order_userId_fkey"
-        FOREIGN KEY ("userId")
-            REFERENCES "User"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-ALTER TABLE "Order"
-    ADD CONSTRAINT "Order_voucherId_fkey"
-        FOREIGN KEY ("voucherId")
-            REFERENCES "Voucher"("id")
-            ON DELETE SET NULL
-            ON UPDATE CASCADE;
-
-ALTER TABLE "OrderItem"
-    ADD CONSTRAINT "OrderItem_orderId_fkey"
-        FOREIGN KEY ("orderId")
-            REFERENCES "Order"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-ALTER TABLE "OrderItem"
-    ADD CONSTRAINT "OrderItem_productId_fkey"
-        FOREIGN KEY ("productId")
-            REFERENCES "Product"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-ALTER TABLE "Payment"
-    ADD CONSTRAINT "Payment_orderId_fkey"
-        FOREIGN KEY ("orderId")
-            REFERENCES "Order"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-ALTER TABLE "LoyaltyTransaction"
-    ADD CONSTRAINT "LoyaltyTransaction_userId_fkey"
-        FOREIGN KEY ("userId")
-            REFERENCES "User"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-ALTER TABLE "LoyaltyTransaction"
-    ADD CONSTRAINT "LoyaltyTransaction_orderId_fkey"
-        FOREIGN KEY ("orderId")
-            REFERENCES "Order"("id")
-            ON DELETE SET NULL
-            ON UPDATE CASCADE;
-
-ALTER TABLE "Recipe"
-    ADD CONSTRAINT "Recipe_productId_fkey"
-        FOREIGN KEY ("productId")
-            REFERENCES "Product"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-ALTER TABLE "Recipe"
-    ADD CONSTRAINT "Recipe_ingredientId_fkey"
-        FOREIGN KEY ("ingredientId")
-            REFERENCES "Ingredient"("id")
-            ON DELETE RESTRICT
-            ON UPDATE CASCADE;
-
-
--- =========================================
--- 5. CHECK CONSTRAINTS
--- =========================================
-
-ALTER TABLE "Ingredient"
-    ADD CONSTRAINT "Ingredient_stock_nonnegative"
-        CHECK ("stock" >= 0);
-
-ALTER TABLE "Recipe"
-    ADD CONSTRAINT "Recipe_quantity_positive"
-        CHECK ("quantity" > 0);
-
-
--- =========================================
--- 6. BACKFILL LOYALTY TRANSACTIONS
--- 1 point for every 10,000 VND
--- from paid orders.
--- =========================================
-
-INSERT INTO "LoyaltyTransaction" (
-    "userId",
-    "orderId",
-    "type",
-    "points",
-    "balanceAfter",
-    "createdAt"
-)
-SELECT
-    earned."userId",
-    earned."orderId",
-    'EARN',
-    earned."points",
-    SUM(earned."points") OVER (
-        PARTITION BY earned."userId"
-        ORDER BY earned."createdAt", earned."orderId"
-    ),
-    earned."createdAt"
-FROM (
-         SELECT
-             o."userId",
-             o."id" AS "orderId",
-             FLOOR(o."total" / 10000)::INTEGER AS "points",
-             p."createdAt"
-         FROM "Order" o
-                  INNER JOIN "Payment" p
-                             ON p."orderId" = o."id"
-         WHERE o."status" = 'PAID'
-     ) earned
-WHERE earned."points" > 0;
+COMMIT;

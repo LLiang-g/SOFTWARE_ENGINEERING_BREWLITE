@@ -1,3 +1,4 @@
+import { ProductsModule } from '../products/products.module';
 import { Module } from '@nestjs/common';
 import { PromotionsModule } from '../promotions/promotions.module';
 import { PaymentsController } from './payments.controller';
@@ -9,7 +10,7 @@ import { VnpayGateway } from './vnpay.gateway';
 import { VnpayService } from './vnpay.service';
 
 @Module({
-  imports: [PromotionsModule, RealtimeModule],
+  imports: [PromotionsModule, RealtimeModule, ProductsModule],
   controllers: [PaymentsController, VnpayController, StaffPaymentsController],
   providers: [PaymentsService, MockGatewayService, VnpayGateway, VnpayService],
 })

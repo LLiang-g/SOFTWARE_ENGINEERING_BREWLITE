@@ -1,0 +1,46 @@
+\subsection{Kiểm chứng luồng đặt hàng, giữ kho và hoàn kho}
+\label{sec:inventory-tests}
+Kiểm thử tách thành ba lớp: hàm tính định lượng thuần; API tích hợp với PostgreSQL để kiểm tra transaction/khóa/ràng buộc; giao diện để kiểm tra lựa chọn, thông báo và điều hướng. Dữ liệu thử được tạo riêng để kết quả có thể kiểm tra trực tiếp từ tồn kho, snapshot và trạng thái đơn.
+
+\begingroup\small
+\begin{longtable}{|p{.10\linewidth}|p{.43\linewidth}|p{.36\linewidth}|}
+\hline\textbf{Ca} & \textbf{Thiết lập và thao tác} & \textbf{Điều kiện kiểm tra}\\\hline\endhead
+KHO-01 & Hai ly M, cơ bản 18g, topping dùng chung 5g, một ly nhựa mỗi ly. & Giữ 56g và hai ly; không nhân ly nhựa theo hệ số size.\\\hline
+KHO-02 & Topping làm vượt nguyên liệu dù món cơ bản còn đủ. & Backend trả xung đột; Order và kho không đổi. Availability đúng theo tổ hợp.\\\hline
+KHO-03 & Mười đơn đồng thời, kho đủ ba phần. & Đúng ba đơn thành công, bảy đơn bị từ chối; kho về 0.\\\hline
+KHO-04 & Hai món khác nhau cùng tranh nguyên liệu cuối đủ một ly L. & Chỉ một đơn thành công, không coi mỗi Product có một kho riêng.\\\hline
+KHO-05 & Một đơn nhiều dòng có một nguyên liệu thiếu. & Không lưu đơn một phần, không giữ kho của các dòng còn lại.\\\hline
+KHO-06 & Gửi đồng thời cùng key khi còn một phần. & Trả cùng một Order, một lần trừ và một bộ snapshot.\\\hline
+KHO-07 & Đặt giữ 40g rồi sửa công thức hoặc thay nguyên liệu. & Hủy vẫn hoàn đúng 40g vào nguyên liệu cũ.\\\hline
+KHO-08 & Hai yêu cầu hủy đồng thời, sau đó gọi release lại. & Chỉ một lần hoàn; lần sau bị chặn, releasedAt không tạo thêm stock.\\\hline
+KHO-09 & Cố ý ném lỗi sau reserve hoặc sau release. & Rollback cả kho, snapshot và trạng thái Order.\\\hline
+KHO-10 & Khách khác hủy đơn; đơn PAID dùng API hủy thường. & Bị từ chối, kho và trạng thái không đổi.\\\hline
+KHO-11 & Đơn quá hạn, hai worker cùng xử lý. & Một lần đóng/hoàn, có reservationExpiredAt và thông báo đặt lại.\\\hline
+KHO-12 & Đã qua deadline nhưng worker chưa chạy; gửi yêu cầu thanh toán. & Không tạo khoản thanh toán mới cho đơn quá hạn.\\\hline
+KHO-13 & IPN thành công đến sau deadline, trước hoặc sau worker. & Không PAID/pha chế; REVIEW và một hồ sơ khoản thu dư; kho được bảo toàn.\\\hline
+KHO-14 & QR cũ hết hạn nhưng đơn còn thời gian giữ. & Cấp QR mới; expiry QR không vượt deadline Order, không giữ kho lần hai.\\\hline
+KHO-15 & Đơn đã trả tiền hoặc đã dùng credit; worker quét. & Không tự đóng như đơn bỏ thanh toán thông thường.\\\hline
+\caption{Các ca kiểm chứng và kết quả mong đợi của quản lý nguyên liệu}
+\end{longtable}\endgroup
+
+Các test được tổ chức theo trách nhiệm:
+\begin{itemize}
+\item \path{inventory.e2e-spec.ts}: cạnh tranh tồn kho, đầu vào và hủy đơn.
+\item \path{ingredients.e2e-spec.ts}: công thức và nguyên liệu dùng chung.
+\item \path{inventory-snapshot.e2e-spec.ts}: công thức thay đổi, hoàn một lần và rollback.
+\item \path{order-idempotency.e2e-spec.ts}: gửi lặp và tranh key tạo đơn.
+\item \path{size-topping-expiry.e2e-spec.ts}: định lượng lựa chọn, deadline, worker và IPN muộn.
+\end{itemize}
+Hàm tính định lượng và chính sách deadline/QR có unit test riêng. Các ca ném lỗi chủ động kiểm tra rollback, vì vậy thông báo lỗi trong log phải được đọc cùng assertion và kết quả PASS của test, không chỉ dựa vào màu log.
+
+\subsubsection{Kết quả kiểm chứng theo phạm vi}
+Ngày 12/11/2026, bản vá 13 độc lập được dựng trong staging và chạy trên database thử mới, tách khỏi dữ liệu vận hành. Kết quả ghi nhận gồm 42/42 unit test (7 tệp) và 135/135 API integration test (12 tệp). Các con số là tổng bộ hồi quy của bản vá, bao gồm cả thanh toán, quyền và đổi món; không phải 135 ca chỉ riêng tồn kho. TypeScript backend/frontend, build backend và build production frontend đều đạt trong môi trường kiểm chứng đó.
+
+Ở lần kiểm tra source đã ghép, bộ unit test hiện có ghi nhận 31/31 ca đạt. Hai kết quả có phạm vi bộ test khác nhau và được ghi riêng; kết quả của staging không được quy đổi thành kết quả nghiệm thu toàn bộ nhánh tích hợp. Hồ sơ kiểm chứng của bản vá nằm tại \path{proposed-fixes/13-size-topping-reservation/VALIDATION.md}.
+
+Kiểm tra giao diện dùng Edge headless, kích thước desktop 1280$\times$900 và mobile 390$\times$844, với API fixture để cô lập trạng thái màn hình. Kiểm tra gồm thông báo hết hạn trong chi tiết/lịch sử, CTA đặt lại, không có thao tác hủy trên đơn đã đóng, topping không đủ hàng bị khóa và nút thêm giỏ bị vô hiệu khi chọn tổ hợp hết nguyên liệu. Ảnh dưới là minh chứng UI với dữ liệu thử; kiểm thử API PostgreSQL ở trên mới kiểm tra tính đúng của database và transaction.
+
+\begin{figure}[p]\centering
+\includegraphics[width=.43\linewidth,height=.76\textheight,keepaspectratio]{../proposed-fixes/13-size-topping-reservation/screenshots/expired-mobile.png}
+\caption{Giao diện thông báo hết thời gian giữ món và yêu cầu đặt lại (API fixture)}
+\end{figure}

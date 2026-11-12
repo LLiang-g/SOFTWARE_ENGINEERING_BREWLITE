@@ -30,13 +30,16 @@ export class VnpayGateway {
         } catch { throw new ServiceUnavailableException('URL callback/frontend chưa hợp lệ'); }
         return { secret, merchant, publicBase, frontend: new URL(frontend).origin, minutes };
     }
-    build(orderId: number, amount: number, ip: string) {
+    build(orderId: number, amount: number, ip: string, reservationExpiresAt?: Date | null) {
         const config = this.config();
         if (!Number.isSafeInteger(amount) || amount < 5000 || amount * 100 > 999999999999) {
             throw new ServiceUnavailableException('Số tiền không nằm trong giới hạn VNPay của bản tích hợp');
         }
         const now = new Date();
-        const expiresAt = new Date(now.getTime() + config.minutes * 60000);
+        const expiresAt = new Date(Math.min(now.getTime() + config.minutes * 60000,
+            reservationExpiresAt?.getTime() ?? Infinity));
+        if (expiresAt.getTime() - now.getTime() < 5000)
+            throw new ServiceUnavailableException('Thời gian giữ món còn dưới 5 giây; vui lòng chờ hết hạn và đặt lại');
         const createDate = vietnamTime(now);
         const txnRef = randomUUID().replace(/-/g, '');
         const clientIp = ip.replace(/^::ffff:/, '');

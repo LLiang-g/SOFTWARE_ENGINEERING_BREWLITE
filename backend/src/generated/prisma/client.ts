@@ -55,6 +55,11 @@ export type Ingredient = Prisma.IngredientModel
  */
 export type Recipe = Prisma.RecipeModel
 /**
+ * Model ToppingRecipe
+ * 
+ */
+export type ToppingRecipe = Prisma.ToppingRecipeModel
+/**
  * Model User
  * 
  */

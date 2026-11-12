@@ -11,6 +11,7 @@
 export type * from './models/Product.js'
 export type * from './models/Ingredient.js'
 export type * from './models/Recipe.js'
+export type * from './models/ToppingRecipe.js'
 export type * from './models/User.js'
 export type * from './models/Voucher.js'
 export type * from './models/Order.js'

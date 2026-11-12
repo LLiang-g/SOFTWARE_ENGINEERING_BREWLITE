@@ -41,6 +41,8 @@ function OrderCard({ order }: { order: OrderView }) {
             <p className="mt-3 line-clamp-2 text-[15px]">
                 {order.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}
             </p>
+            {order.reservationExpiredAt && <p role="status" className="mt-3 text-sm text-chili">Đã hết thời gian đặt món, vui lòng đặt lại.</p>}
+            {order.reservationTimedOut && !order.reservationExpiredAt && <p className="mt-3 text-sm text-chili">Đã hết thời gian thanh toán. Hệ thống đang kết thúc giữ món.</p>}
             {exchanged ? (
                 <div className="mt-3 space-y-1 text-right">
                     <p className="text-xs text-muted">

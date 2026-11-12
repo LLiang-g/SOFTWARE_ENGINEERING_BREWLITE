@@ -738,10 +738,6 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type VnpayAttemptCreateNestedOneWithoutRequestsInput = {
   create?: Prisma.XOR<Prisma.VnpayAttemptCreateWithoutRequestsInput, Prisma.VnpayAttemptUncheckedCreateWithoutRequestsInput>
   connectOrCreate?: Prisma.VnpayAttemptCreateOrConnectWithoutRequestsInput

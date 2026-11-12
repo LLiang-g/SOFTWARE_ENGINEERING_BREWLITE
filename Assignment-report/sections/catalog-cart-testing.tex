@@ -1,0 +1,14 @@
+\subsection{Tiêu chí kiểm chứng menu, tùy chọn và giỏ hàng}
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\linewidth}{|p{.13\linewidth}|X|}\hline
+\textbf{Ca} & \textbf{Điều kiện kiểm chứng}\\\hline
+GIO-01 & Menu tải dữ liệu, có trạng thái chờ/rỗng/lỗi; ảnh trống hoặc lỗi có minh họa dự phòng.\\\hline
+GIO-02 & Chọn size/topping cập nhật giá; lựa chọn thiếu nguyên liệu không được thêm theo UI, backend kiểm lại khi đặt.\\\hline
+GIO-03 & Cùng món/size/topping gộp qty dù thứ tự topping khác; khác tùy chọn tách dòng.\\\hline
+GIO-04 & Đổi qty/xóa cập nhật tổng và badge; tải lại vẫn có giỏ, không gây lệch HTML trước hydration.\\\hline
+GIO-05 & Chưa đăng nhập đi qua login; gửi order không tin giá client và chỉ xóa giỏ khi đã nhận kết quả tạo đơn.\\\hline
+GIO-06 & Mất phản hồi dùng lại checkout key; kiểm tra idempotency chứng minh không tạo thêm Order hoặc giữ thêm kho.\\\hline
+\end{tabularx}\caption{Tiêu chí chấp nhận luồng khách chọn món và đặt hàng}
+\end{table}
+
+Các ca frontend kiểm ở trình duyệt; phần backend tính lại giá, kiểm input và idempotency có test API trong inventory/order-idempotency. Bảng là tiêu chí kiểm chứng, không thay thế log của một lần chạy browser E2E. Ảnh giao diện trong mục~\ref{sec:catalog-ui} minh họa các màn hình; việc chụp không gửi tạo Order hoặc thanh toán.

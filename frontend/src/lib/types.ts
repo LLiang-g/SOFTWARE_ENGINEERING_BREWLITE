@@ -13,7 +13,9 @@ export type ProductOptions = {
   toppings: ToppingOption[];
 };
 
-export type ProductDetail = Product & { options: ProductOptions };
+export type ProductDetail = Product & { options: ProductOptions;
+  availability?: { size: SizeCode; toppings: string[]; available: number }[];
+};
 
 export type AuthUser = {
   id: number;
@@ -51,6 +53,10 @@ export type OrderItemView = {
 };
 
 export type OrderView = {
+  reservationExpiresAt: string | null;
+  reservationExpiredAt: string | null;
+  reservationTimedOut: boolean;
+  expiryMessage: string | null;
   pendingExchangeId?: number | null;
   creditApplied: number;
   amountDue: number;

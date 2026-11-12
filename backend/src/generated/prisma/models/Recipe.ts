@@ -45,6 +45,7 @@ export type RecipeMinAggregateOutputType = {
   productId: number | null
   ingredientId: number | null
   quantity: number | null
+  scalesWithSize: boolean | null
 }
 
 export type RecipeMaxAggregateOutputType = {
@@ -52,6 +53,7 @@ export type RecipeMaxAggregateOutputType = {
   productId: number | null
   ingredientId: number | null
   quantity: number | null
+  scalesWithSize: boolean | null
 }
 
 export type RecipeCountAggregateOutputType = {
@@ -59,6 +61,7 @@ export type RecipeCountAggregateOutputType = {
   productId: number
   ingredientId: number
   quantity: number
+  scalesWithSize: number
   _all: number
 }
 
@@ -82,6 +85,7 @@ export type RecipeMinAggregateInputType = {
   productId?: true
   ingredientId?: true
   quantity?: true
+  scalesWithSize?: true
 }
 
 export type RecipeMaxAggregateInputType = {
@@ -89,6 +93,7 @@ export type RecipeMaxAggregateInputType = {
   productId?: true
   ingredientId?: true
   quantity?: true
+  scalesWithSize?: true
 }
 
 export type RecipeCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type RecipeCountAggregateInputType = {
   productId?: true
   ingredientId?: true
   quantity?: true
+  scalesWithSize?: true
   _all?: true
 }
 
@@ -190,6 +196,7 @@ export type RecipeGroupByOutputType = {
   productId: number
   ingredientId: number
   quantity: number
+  scalesWithSize: boolean
   _count: RecipeCountAggregateOutputType | null
   _avg: RecipeAvgAggregateOutputType | null
   _sum: RecipeSumAggregateOutputType | null
@@ -220,6 +227,7 @@ export type RecipeWhereInput = {
   productId?: Prisma.IntFilter<"Recipe"> | number
   ingredientId?: Prisma.IntFilter<"Recipe"> | number
   quantity?: Prisma.IntFilter<"Recipe"> | number
+  scalesWithSize?: Prisma.BoolFilter<"Recipe"> | boolean
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   ingredient?: Prisma.XOR<Prisma.IngredientScalarRelationFilter, Prisma.IngredientWhereInput>
 }
@@ -229,6 +237,7 @@ export type RecipeOrderByWithRelationInput = {
   productId?: Prisma.SortOrder
   ingredientId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  scalesWithSize?: Prisma.SortOrder
   product?: Prisma.ProductOrderByWithRelationInput
   ingredient?: Prisma.IngredientOrderByWithRelationInput
 }
@@ -242,6 +251,7 @@ export type RecipeWhereUniqueInput = Prisma.AtLeast<{
   productId?: Prisma.IntFilter<"Recipe"> | number
   ingredientId?: Prisma.IntFilter<"Recipe"> | number
   quantity?: Prisma.IntFilter<"Recipe"> | number
+  scalesWithSize?: Prisma.BoolFilter<"Recipe"> | boolean
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   ingredient?: Prisma.XOR<Prisma.IngredientScalarRelationFilter, Prisma.IngredientWhereInput>
 }, "id" | "productId_ingredientId">
@@ -251,6 +261,7 @@ export type RecipeOrderByWithAggregationInput = {
   productId?: Prisma.SortOrder
   ingredientId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  scalesWithSize?: Prisma.SortOrder
   _count?: Prisma.RecipeCountOrderByAggregateInput
   _avg?: Prisma.RecipeAvgOrderByAggregateInput
   _max?: Prisma.RecipeMaxOrderByAggregateInput
@@ -266,10 +277,12 @@ export type RecipeScalarWhereWithAggregatesInput = {
   productId?: Prisma.IntWithAggregatesFilter<"Recipe"> | number
   ingredientId?: Prisma.IntWithAggregatesFilter<"Recipe"> | number
   quantity?: Prisma.IntWithAggregatesFilter<"Recipe"> | number
+  scalesWithSize?: Prisma.BoolWithAggregatesFilter<"Recipe"> | boolean
 }
 
 export type RecipeCreateInput = {
   quantity: number
+  scalesWithSize?: boolean
   product: Prisma.ProductCreateNestedOneWithoutRecipesInput
   ingredient: Prisma.IngredientCreateNestedOneWithoutRecipesInput
 }
@@ -279,10 +292,12 @@ export type RecipeUncheckedCreateInput = {
   productId: number
   ingredientId: number
   quantity: number
+  scalesWithSize?: boolean
 }
 
 export type RecipeUpdateInput = {
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateOneRequiredWithoutRecipesNestedInput
   ingredient?: Prisma.IngredientUpdateOneRequiredWithoutRecipesNestedInput
 }
@@ -292,6 +307,7 @@ export type RecipeUncheckedUpdateInput = {
   productId?: Prisma.IntFieldUpdateOperationsInput | number
   ingredientId?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RecipeCreateManyInput = {
@@ -299,10 +315,12 @@ export type RecipeCreateManyInput = {
   productId: number
   ingredientId: number
   quantity: number
+  scalesWithSize?: boolean
 }
 
 export type RecipeUpdateManyMutationInput = {
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RecipeUncheckedUpdateManyInput = {
@@ -310,6 +328,7 @@ export type RecipeUncheckedUpdateManyInput = {
   productId?: Prisma.IntFieldUpdateOperationsInput | number
   ingredientId?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RecipeListRelationFilter = {
@@ -332,6 +351,7 @@ export type RecipeCountOrderByAggregateInput = {
   productId?: Prisma.SortOrder
   ingredientId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  scalesWithSize?: Prisma.SortOrder
 }
 
 export type RecipeAvgOrderByAggregateInput = {
@@ -346,6 +366,7 @@ export type RecipeMaxOrderByAggregateInput = {
   productId?: Prisma.SortOrder
   ingredientId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  scalesWithSize?: Prisma.SortOrder
 }
 
 export type RecipeMinOrderByAggregateInput = {
@@ -353,6 +374,7 @@ export type RecipeMinOrderByAggregateInput = {
   productId?: Prisma.SortOrder
   ingredientId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  scalesWithSize?: Prisma.SortOrder
 }
 
 export type RecipeSumOrderByAggregateInput = {
@@ -446,8 +468,13 @@ export type RecipeUncheckedUpdateManyWithoutIngredientNestedInput = {
   deleteMany?: Prisma.RecipeScalarWhereInput | Prisma.RecipeScalarWhereInput[]
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type RecipeCreateWithoutProductInput = {
   quantity: number
+  scalesWithSize?: boolean
   ingredient: Prisma.IngredientCreateNestedOneWithoutRecipesInput
 }
 
@@ -455,6 +482,7 @@ export type RecipeUncheckedCreateWithoutProductInput = {
   id?: number
   ingredientId: number
   quantity: number
+  scalesWithSize?: boolean
 }
 
 export type RecipeCreateOrConnectWithoutProductInput = {
@@ -491,10 +519,12 @@ export type RecipeScalarWhereInput = {
   productId?: Prisma.IntFilter<"Recipe"> | number
   ingredientId?: Prisma.IntFilter<"Recipe"> | number
   quantity?: Prisma.IntFilter<"Recipe"> | number
+  scalesWithSize?: Prisma.BoolFilter<"Recipe"> | boolean
 }
 
 export type RecipeCreateWithoutIngredientInput = {
   quantity: number
+  scalesWithSize?: boolean
   product: Prisma.ProductCreateNestedOneWithoutRecipesInput
 }
 
@@ -502,6 +532,7 @@ export type RecipeUncheckedCreateWithoutIngredientInput = {
   id?: number
   productId: number
   quantity: number
+  scalesWithSize?: boolean
 }
 
 export type RecipeCreateOrConnectWithoutIngredientInput = {
@@ -534,10 +565,12 @@ export type RecipeCreateManyProductInput = {
   id?: number
   ingredientId: number
   quantity: number
+  scalesWithSize?: boolean
 }
 
 export type RecipeUpdateWithoutProductInput = {
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ingredient?: Prisma.IngredientUpdateOneRequiredWithoutRecipesNestedInput
 }
 
@@ -545,22 +578,26 @@ export type RecipeUncheckedUpdateWithoutProductInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   ingredientId?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RecipeUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   ingredientId?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RecipeCreateManyIngredientInput = {
   id?: number
   productId: number
   quantity: number
+  scalesWithSize?: boolean
 }
 
 export type RecipeUpdateWithoutIngredientInput = {
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateOneRequiredWithoutRecipesNestedInput
 }
 
@@ -568,12 +605,14 @@ export type RecipeUncheckedUpdateWithoutIngredientInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   productId?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RecipeUncheckedUpdateManyWithoutIngredientInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   productId?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  scalesWithSize?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -583,6 +622,7 @@ export type RecipeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   productId?: boolean
   ingredientId?: boolean
   quantity?: boolean
+  scalesWithSize?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   ingredient?: boolean | Prisma.IngredientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["recipe"]>
@@ -592,6 +632,7 @@ export type RecipeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   productId?: boolean
   ingredientId?: boolean
   quantity?: boolean
+  scalesWithSize?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   ingredient?: boolean | Prisma.IngredientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["recipe"]>
@@ -601,6 +642,7 @@ export type RecipeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   productId?: boolean
   ingredientId?: boolean
   quantity?: boolean
+  scalesWithSize?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   ingredient?: boolean | Prisma.IngredientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["recipe"]>
@@ -610,9 +652,10 @@ export type RecipeSelectScalar = {
   productId?: boolean
   ingredientId?: boolean
   quantity?: boolean
+  scalesWithSize?: boolean
 }
 
-export type RecipeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "ingredientId" | "quantity", ExtArgs["result"]["recipe"]>
+export type RecipeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "ingredientId" | "quantity" | "scalesWithSize", ExtArgs["result"]["recipe"]>
 export type RecipeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   ingredient?: boolean | Prisma.IngredientDefaultArgs<ExtArgs>
@@ -637,6 +680,7 @@ export type $RecipePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     productId: number
     ingredientId: number
     quantity: number
+    scalesWithSize: boolean
   }, ExtArgs["result"]["recipe"]>
   composites: {}
 }
@@ -1066,6 +1110,7 @@ export interface RecipeFieldRefs {
   readonly productId: Prisma.FieldRef<"Recipe", 'Int'>
   readonly ingredientId: Prisma.FieldRef<"Recipe", 'Int'>
   readonly quantity: Prisma.FieldRef<"Recipe", 'Int'>
+  readonly scalesWithSize: Prisma.FieldRef<"Recipe", 'Boolean'>
 }
     
 

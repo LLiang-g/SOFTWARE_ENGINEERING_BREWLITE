@@ -1,0 +1,810 @@
+\documentclass[a4paper]{article}
+% !TeX program = pdflatex
+% !TeX encoding = UTF-8
+\usepackage[utf8]{vntex}
+%\usepackage[english,vietnam]{babel}
+%\usepackage[utf8]{inputenc}
+
+\usepackage{a4wide,amssymb,epsfig,latexsym,multicol,array,hhline,fancyhdr}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{lastpage}
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\usepackage{enumerate}
+\usepackage{color}
+\usepackage{graphicx}							% Standard graphics package
+\usepackage{array}
+\usepackage{tabularx, caption}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage[framemethod=tikz]{mdframed}% For highlighting paragraph backgrounds
+\usepackage{multicol}
+\usepackage{rotating}
+\usepackage{graphics}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{epsfig}
+\usepackage{tikz}
+\usepackage{listings}
+\usetikzlibrary{arrows,backgrounds}
+\usepackage{hyperref}
+\hypersetup{urlcolor=blue,linkcolor=black,citecolor=black,colorlinks=true}
+
+\newtheorem{theorem}{{\bf Định lý}}
+\newtheorem{property}{{\bf Tính chất}}
+\newtheorem{proposition}{{\bf Mệnh đề}}
+\newtheorem{corollary}[proposition]{{\bf Hệ quả}}
+\newtheorem{lemma}[proposition]{{\bf Bổ đề}}
+
+\everymath{\color{black}}
+\setlength{\emergencystretch}{3em}
+\urlstyle{same}
+\setlength{\headheight}{40pt}
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[L]{
+ \begin{tabular}{rl}
+    \begin{picture}(25,15)(0,0)
+    \put(0,-8){\IfFileExists{logoITSGUsmall.png}{\includegraphics[width=8mm, height=8mm]{logoITSGUsmall.png}}{}}
+   \end{picture}&
+	\begin{tabular}{l}
+		\textbf{\bf \ttfamily Trường Đại học Sài Gòn}\\
+		\textbf{\bf \ttfamily Khoa Công Nghệ Thông Tin}
+	\end{tabular}
+ \end{tabular}
+}
+\fancyhead[R]{
+	\begin{tabular}{l}
+		\tiny \bf \\
+		\tiny \bf
+	\end{tabular}  }
+\fancyfoot{} % clear all footer fields
+\fancyfoot[L]{\scriptsize \ttfamily Báo cáo bàn giao BrewLite - Học kỳ I, năm học 2026-2027}
+\fancyfoot[R]{\scriptsize \ttfamily Trang {\thepage}/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+
+%%%
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{3}
+\makeatletter
+\newcounter {subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection .\@alph\c@subsubsubsection}
+\newcommand\subsubsubsection{\@startsection{subsubsubsection}{4}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\newcommand*\l@subsubsubsection{\@dottedtocline{3}{10.0em}{4.1em}}
+\newcommand*{\subsubsubsectionmark}[1]{}
+\makeatother
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+	language=Matlab,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue},
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=3,
+	numbers=left,
+	stepnumber=1,
+	numbersep=1pt,
+	firstnumber=1,
+	numberfirstline=true
+}
+
+%%% ---- Các lệnh bổ sung cho báo cáo BrewLite ----
+% Kiểu hiển thị mã nguồn (chỉ dùng ký tự ASCII trong lstlisting)
+\lstdefinestyle{brew}{language=Java, numbers=none, frame=single,
+	basicstyle=\footnotesize\ttfamily, aboveskip=2mm, belowskip=2mm,
+	showstringspaces=false, columns=fullflexible, breaklines=true,
+	keywordstyle=\color{blue}, commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve}, tabsize=2}
+% Đánh dấu chỗ cần nhóm bổ sung (chữ đỏ)
+\newcommand{\chen}[1]{\textcolor{red}{[\textbf{CẦN BỔ SUNG:} #1]}}
+% Khung giữ chỗ cho hình chụp màn hình
+\newcommand{\hinh}[1]{\begin{center}\fbox{\parbox{0.85\linewidth}{\centering\vspace{1.1cm}%
+	\textcolor{red}{[Chèn hình: #1]}\vspace{1.1cm}}}\end{center}}
+\renewcommand{\arraystretch}{1.2}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+TRƯỜNG ĐẠI HỌC SÀI GÒN \\
+KHOA CÔNG NGHỆ THÔNG TIN
+\end{center}
+\vspace{1cm}
+
+
+\begin{center}
+\IfFileExists{logoITSGU.png}{\includegraphics[width=3cm]{logoITSGU.png}}{\fbox{\parbox[c][3cm][c]{3cm}{\centering\small [logoITSGU.png]}}}
+\end{center}
+
+
+\vspace{1cm}
+
+
+\begin{center}
+\begin{tabular}{c}
+	\multicolumn{1}{l}{\textbf{{\Large CÔNG NGHỆ PHẦN MỀM}}}\\
+	~~\\
+	\hline
+	\\
+	\multicolumn{1}{l}{\textbf{{\Large Báo cáo bàn giao sản phẩm}}}\\
+	\\
+
+	\textbf{{\Huge BrewLite}}\\
+	\\
+	\textbf{{\Large Ứng dụng đặt cà phê không dùng tiền mặt}}\\
+	\\
+	\hline
+\end{tabular}
+\end{center}
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tabular}{rrl}
+\hspace{5 cm} & GVHD: & ThS. Từ Lãng Phiêu\\
+& SV: & {Cao Cát Lượng - 3123410209}\\
+& & {Dương Văn Khánh - 3123410161}\\
+& & {Dương Trung Lâm - 3123410190}\\
+& & {Đinh Văn Thanh Sơn - 3123410307}\\
+& & {Nguyễn Hồng An - 3123410003}\\
+& & {Phạm Nguyễn Minh Nhật - 3123410247}\\
+\end{tabular}
+\vspace{0.5cm}
+\end{center}
+
+\begin{center}
+
+{\footnotesize TP. HỒ CHÍ MINH, THÁNG 11/2026}
+\end{center}
+\end{titlepage}
+
+
+\thispagestyle{empty}
+
+\newpage
+\tableofcontents
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Phần giới thiệu}
+\subsection{Bối cảnh và mục tiêu}
+BrewLite là ứng dụng web cho phép khách hàng đặt đồ uống và thanh toán không dùng tiền mặt chỉ trong vài thao tác, nhằm giảm thời gian xếp hàng và nhận đơn nhanh tại quầy. Tầm nhìn sản phẩm (Product Vision) là: ``BrewLite giúp khách hàng đặt và thanh toán đồ uống không dùng tiền mặt chỉ trong vài chạm, giảm thời gian xếp hàng và nhận đơn nhanh tại quầy.''
+
+Nhóm phát triển BrewLite theo quy trình Agile Scrum, từ thu thập yêu cầu, xây dựng kịch bản đến phát triển, kiểm thử và bàn giao sản phẩm. Công nghệ được lựa chọn là \textbf{NestJS} cho phần Backend và \textbf{Next.js} cho phần Frontend.
+
+\subsection{Phạm vi của sản phẩm}
+Sản phẩm tối thiểu (MVP) trải dài từ lúc khách chọn sản phẩm đến lúc thanh toán và xác nhận đơn hàng.
+\begin{itemize}
+	\item \textbf{Trong phạm vi:} xem menu, chọn size và topping, giỏ hàng, đăng ký và đăng nhập, đặt hàng, thanh toán giả lập và VNPay Sandbox, xác nhận và lịch sử đơn hàng, hủy đơn, mã giảm giá, điểm thưởng, đóng gói bằng Docker.
+	\item \textbf{Ngoài phạm vi:} vận hành giao nhận bằng giao diện riêng và chuyển tiền ngân hàng thật tự động. Barista tiếp nhận đơn và xử lý nghiệp vụ thanh toán trong phạm vi quán nhỏ; giao hàng được đề cập ở mức nghiệp vụ.
+\end{itemize}
+
+\subsection{Các bên liên quan}
+\begin{table}[h!]
+\centering
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Bên liên quan} & \textbf{Vai trò} \\ \hline
+Khách hàng & Đặt đồ uống, chọn size và topping, thanh toán không tiền mặt, theo dõi trạng thái đơn. \\ \hline
+Nhân viên quầy (Barista) & Tiếp nhận đơn và cập nhật trạng thái pha chế. Có giao diện nhận đơn, pha chế, duyệt đổi món và theo dõi khoản thu dư. \\ \hline
+Quản lý cửa hàng / Product Owner & Xác định yêu cầu, ưu tiên Product Backlog và nghiệm thu sản phẩm sau mỗi Sprint. \\ \hline
+Giảng viên nghiệm thu & Đánh giá quy trình, sản phẩm và mức độ đáp ứng tiêu chí chấp nhận. \\ \hline
+Nhóm phát triển & Phân tích, thiết kế, lập trình, kiểm thử và bàn giao hệ thống. \\ \hline
+Đơn vị thanh toán & Cổng thanh toán Ví hoặc Thẻ, được mô phỏng hoặc tích hợp VNPay Sandbox trong phạm vi kiểm thử. \\ \hline
+\end{tabularx}
+\caption{Các bên liên quan}
+\end{table}
+
+\subsection{Công nghệ sử dụng}
+\begin{table}[h!]
+\centering
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Thành phần} & \textbf{Công nghệ} \\ \hline
+Frontend & Next.js (React, TypeScript), TailwindCSS, Zustand (quản lý giỏ hàng và đăng nhập) \\ \hline
+Backend & NestJS (TypeScript), REST, class-validator, JWT (Passport), bcrypt \\ \hline
+Cơ sở dữ liệu & PostgreSQL 16, Prisma ORM phiên bản 7 \\ \hline
+Thanh toán & Mock payment và tích hợp VNPay Sandbox; không chứng minh giao dịch tiền thật \\ \hline
+Kiểm thử & Vitest, Supertest (test chạy trên cơ sở dữ liệu thật) \\ \hline
+Đóng gói và quản lý mã nguồn & Docker, Docker Compose, Git và GitHub \\ \hline
+\end{tabularx}
+\caption{Công nghệ sử dụng}
+\end{table}
+
+\subsection{Cấu trúc báo cáo}
+Phần 2 trình bày quy trình Scrum mà nhóm áp dụng. Phần 3 phân tích yêu cầu. Phần 4 mô tả thiết kế hệ thống. Phần 5 mô tả quá trình hiện thực. Phần 6 trình bày kiểm thử và kết quả. Phần 7 hướng dẫn triển khai. Phần 8 đánh giá, hạn chế và hướng phát triển. Phần 9 là kết luận.
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Quy trình Agile Scrum}
+\subsection{Vai trò, sự kiện và tạo phẩm}
+\begin{table}[h!]
+\centering
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Nhóm yếu tố} & \textbf{Thành phần} \\ \hline
+Vai trò (Roles) & Product Owner (PO), Scrum Master (SM), Development Team \\ \hline
+Sự kiện (Events) & Sprint Planning, Daily Scrum (15 phút mỗi ngày), Sprint Review, Sprint Retrospective \\ \hline
+Tạo phẩm (Artifacts) & Product Backlog, Sprint Backlog, Increment (sản phẩm tăng dần) \\ \hline
+\end{tabularx}
+\caption{Các thành phần của Scrum}
+\end{table}
+
+
+
+\subsection{Product Backlog}
+Product Backlog gồm 10 hạng mục phát triển, mỗi hạng mục có tiêu chí chấp nhận để kiểm tra kết quả bàn giao.
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{\#} & \textbf{Hạng mục} & \textbf{Tiêu chí chấp nhận chính} \\ \hline
+1 & Khởi tạo dự án và cấu trúc & Hai thư mục frontend và backend chạy được, có README, Git, file \texttt{.env.example} \\ \hline
+2 & API danh sách sản phẩm & \texttt{GET /products} trả JSON menu (id, tên, giá, ảnh) \\ \hline
+3 & Trang Menu (Frontend) & Gọi API, hiển thị lưới sản phẩm, có trạng thái loading và empty \\ \hline
+4 & Chi tiết và tùy chọn sản phẩm & Chọn size (S, M, L) và topping, tính giá theo tùy chọn \\ \hline
+5 & Giỏ hàng & Thêm, sửa số lượng, xóa; lưu state; tự tính tổng tiền; badge số lượng \\ \hline
+6 & API tạo đơn hàng & \texttt{POST /orders} nhận giỏ hàng, kiểm tra dữ liệu, lưu đơn trạng thái PENDING, trả mã đơn \\ \hline
+7 & Đăng ký và đăng nhập (JWT) & Băm mật khẩu bằng bcrypt, phát JWT, guard bảo vệ route đặt đơn \\ \hline
+8 & Thanh toán không tiền mặt & Mock payment: chọn Ví hoặc Thẻ; đơn chuyển PAID khi thành công, PAYMENT\_FAILED khi lỗi \\ \hline
+9 & Xác nhận, lịch sử đơn và bàn giao & Màn hình xác nhận, \texttt{GET /orders/me}, docker-compose chạy cả 3 thành phần, README, demo từ đầu đến cuối \\ \hline
+10 & Nghiệp vụ backend & State machine đơn hàng, thanh toán idempotent, kiểm soát tồn kho khi đặt đồng thời, khuyến mãi và điểm thưởng \\ \hline
+\end{tabularx}
+\caption{Product Backlog của BrewLite}
+\end{table}
+
+\subsection{Kế hoạch Sprint}
+Nhóm chia công việc thành 11 \textbf{chặng} nhỏ (mỗi chặng là một bước tăng dần của sản phẩm, được đặt tên để lập kế hoạch, chưa có minh chứng tag Git tương ứng), ước lượng \textbf{điểm khối lượng} cho từng chặng theo ba tiêu chí là lượng code, độ khó khái niệm và công sức kiểm thử, rồi chia lại 3 Sprint sao cho khối lượng gần nhau.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|l|X|c|c|}
+\hline
+\textbf{Chặng} & \textbf{Nội dung} & \textbf{Sprint} & \textbf{Điểm} \\ \hline
+\texttt{chang-0} & Schema Prisma, dữ liệu mẫu, Docker cho cơ sở dữ liệu & 1 & 6 \\ \hline
+\texttt{chang-1} & API \texttt{GET /products} và trang Menu & 1 & 5 \\ \hline
+\texttt{chang-2} & Chi tiết sản phẩm, chọn size và topping & 1 & 7 \\ \hline
+\texttt{chang-3} & Giỏ hàng & 1 & 7 \\ \hline
+\texttt{chang-4} & Đăng ký, đăng nhập JWT & 2 & 14 \\ \hline
+\texttt{chang-5} & Tạo đơn và thanh toán & 2 & 11 \\ \hline
+\texttt{chang-6a} & State machine, thanh toán idempotent, bộ test Vitest & 2 & 16 \\ \hline
+\texttt{chang-6b} & Tồn kho bằng khóa lạc quan & 3 & 10 \\ \hline
+\texttt{chang-6c} & Tách bước đặt hàng và thanh toán, hủy đơn & 3 & 6 \\ \hline
+\texttt{chang-6d} & Mã giảm giá và điểm thưởng & 3 & 12 \\ \hline
+\texttt{chang-7} & Docker Compose và README & 3 & 6 \\ \hline
+\multicolumn{3}{|r|}{\textbf{Tổng}} & \textbf{100} \\ \hline
+\end{tabularx}
+\caption{Các chặng và điểm khối lượng}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|X|l|c|}
+\hline
+\textbf{Sprint} & \textbf{Ngày} & \textbf{Mục tiêu (Sprint Goal)} & \textbf{Chặng} & \textbf{Điểm} \\ \hline
+1 & 1 đến 5 & Nền tảng, hiển thị menu và giỏ hàng & 0, 1, 2, 3 & 25 \\ \hline
+2 & 6 đến 8 & Đăng nhập, đặt đơn và thanh toán an toàn & 4, 5, 6a & 41 \\ \hline
+3 & 9 đến 12 & Tồn kho, tách luồng đặt hàng, khuyến mãi và bàn giao & 6b, 6c, 6d, 7 & 34 \\ \hline
+\end{tabularx}
+\caption{Kế hoạch 3 Sprint trong 14 ngày}
+\end{table}
+
+Hai ngày cuối (ngày 13 và 14) dùng để kiểm tra toàn bộ hệ thống trên bản sao sạch của kho mã nguồn, hoàn thiện tài liệu, tập demo và làm ngày dự phòng nếu có chặng bị trễ.
+
+\subsection{Phân công thành viên}
+Bảng dưới giữ phân công dự kiến của nhóm; điểm ước lượng không phải số đo đóng góp thực tế. Cần bổ sung biên bản và liên kết commit/PR để xác nhận kết quả thực hiện.
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|p{0.34\linewidth}|p{0.10\linewidth}|c|c|X|}
+\hline
+\textbf{Nhóm} & \textbf{Chặng} & \textbf{Điểm} & \textbf{Tỷ lệ} & \textbf{Thành viên} \\ \hline
+A. Nền tảng Project, tài liệu mẫu, giao diện sản phẩm đầu & 0, 1, 7 & 17 & 17\% & Cao Cát Lượng \\ \hline
+B. Chi tiết sản phẩm và tính toán tồn kho & 2, 6b & 17 & 17\% & Nguyễn Hồng An \\ \hline
+C. Đăng nhập, đăng ký, JWT & 4 & 14 & 14\% & Dương Trung Lâm \\ \hline
+D. Giỏ hàng và tạo đơn & 3, 5 & 18 & 18\% & Đinh Văn Thanh Sơn \\ \hline
+E. Thanh toán và state machine & 6a & 16 & 16\% & Phạm Nguyễn Minh Nhật \\ \hline
+F. Hủy đơn, mã giảm giá, điểm thưởng, giả lập vnpay & 6c, 6d & 18 & 18\% & Dương Văn Khánh \\ \hline
+\end{tabularx}
+\caption{Phân công thành viên theo nhóm công việc}
+\end{table}
+
+\subsection{Biểu đồ Burndown}
+Biểu đồ Burndown theo dõi khối lượng công việc còn lại (tính bằng điểm) giảm dần theo từng ngày. Đường lý tưởng (Ideal) được tính từ kế hoạch ở trên; đường thực tế (Actual) phản ánh tiến độ thật của nhóm.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[x=0.8cm,y=0.055cm]
+	\draw[->] (0,0) -- (15,0) node[right] {\small Ngày};
+	\draw[->] (0,0) -- (0,115) node[above] {\small Điểm còn lại};
+	\foreach \x in {1,...,14} \draw (\x,0) -- (\x,-3) node[below] {\scriptsize \x};
+	\foreach \y in {0,20,...,100} \draw (0,\y) -- (-0.15,\y) node[left] {\scriptsize \y};
+	\draw[thick,blue] (1,100) -- (2,91) -- (3,82) -- (4,73) -- (5,64) -- (6,55) -- (7,45) -- (8,36) -- (9,27) -- (10,18) -- (11,9) -- (12,0) -- (14,0);
+	\foreach \p in {(1,100),(2,91),(3,82),(4,73),(5,64),(6,55),(7,45),(8,36),(9,27),(10,18),(11,9),(12,0)} \fill[blue] \p circle (1.2pt);
+	\draw[blue,thick] (9,108) -- (10,108) node[right] {\scriptsize Lý tưởng (Ideal)};
+\end{tikzpicture}
+\caption{Đường Burndown lý tưởng cho toàn dự án (100 điểm ước lượng, 12 ngày làm việc)}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Ngày} & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\ \hline
+\textbf{Lý tưởng} & 100 & 91 & 82 & 73 & 64 & 55 & 45 & 36 & 27 & 18 & 9 & 0 \\ \hline
+\textbf{Thực tế} & \multicolumn{12}{c|}{\textcolor{red}{Điền số điểm còn lại cuối mỗi ngày}} \\ \hline
+\end{tabular}
+\caption{Số điểm còn lại cuối mỗi ngày}
+\end{table}
+
+
+
+\subsection{Definition of Done}
+Một hạng mục được xem là hoàn thành khi thỏa các điều kiện sau:
+\begin{itemize}
+	\item Code chạy được, không lỗi build, đúng tiêu chí chấp nhận của task.
+	\item Có commit trên Git với mô tả rõ ràng, được xem lại (review) trong nhóm.
+	\item API có kiểm tra dữ liệu đầu vào; giao diện xử lý trạng thái loading và lỗi cơ bản.
+	\item Có hướng dẫn chạy trong README.
+\end{itemize}
+
+\subsection{Sprint Review và Sprint Retrospective}
+
+
+Các bài học kỹ thuật đã gặp trong quá trình thực hiện, có thể dùng làm gợi ý cho phần Retrospective:
+\begin{itemize}
+	\item Phiên bản mới của NestJS phát hành các gói theo chuẩn ES Module nên bộ test Jest không nạp được; nhóm chuyển sang Vitest (kèm \texttt{unplugin-swc} để giữ metadata của decorator).
+	\item Lệnh cài đặt mặc định kéo về Prisma phiên bản 8 (bản thử nghiệm) có cách cấu hình khác hẳn; nhóm cố định phiên bản 7.
+	\item Quy tắc giá size, topping và quy tắc hủy đơn đã thanh toán cần được thống nhất sớm, nhóm phải tự thống nhất, đáng lẽ nên chốt với Product Owner từ Sprint 1.
+	\item Ban đầu nút ``thanh toán'' tạo đơn và trả tiền trong một thao tác nên trạng thái PENDING gần như không tồn tại; nhóm tách thành hai bước để tách tạo đơn khỏi xác nhận thanh toán và hỗ trợ hủy đơn chưa trả.
+	\item Seed dữ liệu chèn id gõ tay làm lệch bộ đếm id của PostgreSQL, gây lỗi khi test tạo sản phẩm mới; khắc phục bằng cách đặt lại bộ đếm sau khi seed.
+\end{itemize}
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Phân tích yêu cầu}
+\subsection{Yêu cầu chức năng và tiêu chí chấp nhận}
+Các yêu cầu được ưu tiên theo MoSCoW: Must là bắt buộc, Should là ưu tiên cao, Could là tùy chọn; Won't nằm ngoài phạm vi bàn giao. Tiêu chí dưới đây là căn cứ nghiệm thu, kết quả kiểm chứng được trình bày riêng ở phần kiểm thử.
+\input{sections/task1-requirement-tables.tex}
+\subsection{Use-case đặt và thanh toán đơn}
+\input{sections/task1-usecase-tables.tex}
+
+\input{sections/report12-requirements-extra.tex}
+\input{sections/inventory-requirements.tex}
+
+\section{Thiết kế hệ thống}
+\subsection{Kiến trúc tổng thể}
+Frontend Next.js gọi REST API của backend NestJS bằng JSON. Backend dùng Prisma để làm việc với PostgreSQL và tích hợp cổng thanh toán giả lập (mock payment gateway) dưới dạng một service riêng trong backend.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[box/.style={draw,rounded corners,minimum width=3cm,minimum height=1.2cm,align=center,font=\small},>=stealth]
+	\node[box] (fe) at (0,0) {Next.js\\(giao diện)};
+	\node[box] (be) at (5,0) {NestJS\\(REST API)};
+	\node[box] (db) at (10,0) {PostgreSQL};
+	\node[box] (pay) at (5,-2.4) {Cổng thanh toán\\giả lập (mock)};
+	\draw[->] (fe) -- node[above,font=\scriptsize] {REST/JSON} (be);
+	\draw[->] (be) -- node[above,font=\scriptsize] {Prisma ORM} (db);
+	\draw[->] (be) -- node[right,font=\scriptsize] {thanh toán} (pay);
+\end{tikzpicture}
+\caption{Kiến trúc tổng thể của hệ thống}
+\end{figure}
+
+\subsection{Mô hình dữ liệu}
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Thực thể} & \textbf{Thuộc tính} \\ \hline
+Product & id, name, price, imageUrl; tồn kho được suy ra từ nguyên liệu và công thức \\ \hline
+User & id, email (duy nhất), passwordHash, loyaltyPoints \\ \hline
+Voucher & id, code (duy nhất), discountPercent, expiresAt, active \\ \hline
+Order & id, userId, status, total, discount, voucherId, createdAt \\ \hline
+OrderItem & id, orderId, productId, size, toppings, qty, lineTotal \\ \hline
+Payment & id, orderId, idempotencyKey (duy nhất), amount, method, createdAt \\ \hline
+\end{tabularx}
+\caption{Các thực thể của hệ thống}
+\end{table}
+
+Quan hệ: một User có nhiều Order; một Order có nhiều OrderItem và Payment; OrderItem tham chiếu Product. Ingredient và Recipe biểu diễn nguyên liệu và định lượng theo món. OrderInventoryReservation lưu từng dòng nguyên liệu đã giữ của từng đơn, tách biệt công thức hiện tại. OrderCreateRequest lưu khóa chống tạo đơn trùng; VnpayAttempt lưu từng lần thanh toán VNPay; OrderExchange lưu yêu cầu đổi món; PaymentRefundCase lưu hồ sơ xử lý khoản thu dư. LoyaltyTransaction là sổ giao dịch điểm thưởng. Phần giải thích bên dưới trình bày mục đích và ví dụ của các bảng bổ sung.
+
+\input{sections/inventory-data-model.tex}
+
+\begin{lstlisting}[style=brew]
+model Payment {
+  id             Int           @id @default(autoincrement())
+  orderId        Int
+  idempotencyKey String        @unique
+  amount         Int
+  method         PaymentMethod
+  createdAt      DateTime      @default(now())
+}
+\end{lstlisting}
+
+\subsection{Thiết kế API}
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|l|l|X|c|}
+\hline
+\textbf{Phương thức} & \textbf{Đường dẫn} & \textbf{Chức năng} & \textbf{Đăng nhập} \\ \hline
+GET & \texttt{/products} & Danh sách sản phẩm & Không \\ \hline
+GET & \texttt{/products/:id} & Chi tiết sản phẩm, kèm bảng size và topping & Không \\ \hline
+POST & \texttt{/auth/register} & Đăng ký, trả JWT & Không \\ \hline
+POST & \texttt{/auth/login} & Đăng nhập, trả JWT & Không \\ \hline
+GET & \texttt{/auth/me} & Thông tin người dùng hiện tại & Có \\ \hline
+POST & \texttt{/promotions/validate} & Kiểm tra mã giảm giá & Không \\ \hline
+POST & \texttt{/orders} & Tạo đơn PENDING (kèm \texttt{voucherCode} tùy chọn) & Có \\ \hline
+GET & \texttt{/orders/me} & Lịch sử đơn của người dùng & Có \\ \hline
+GET & \texttt{/orders/:id} & Chi tiết một đơn & Có \\ \hline
+POST & \texttt{/orders/:id/cancel} & Hủy đơn & Có \\ \hline
+POST & \texttt{/payments} & Thanh toán, bắt buộc header \texttt{Idempotency-Key} & Có \\ \hline
+\end{tabularx}
+\caption{Các API của backend}
+\end{table}
+
+\input{sections/auth-design.tex}
+
+\subsection{Máy trạng thái đơn hàng (Order State Machine)}
+Mỗi đơn hàng tại một thời điểm chỉ ở đúng một trạng thái và chỉ được đổi theo các chuyển tiếp hợp lệ. Mọi chuyển tiếp không có trong sơ đồ bị hàm \texttt{assertTransition} chặn lại bằng lỗi. COMPLETED và CANCELLED là trạng thái kết thúc.
+
+\begin{figure}[h!]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[st/.style={draw,rounded corners,minimum width=2.5cm,minimum height=0.9cm,font=\small\ttfamily,align=center},>=stealth]
+	\node[st] (pending) at (0,0) {PENDING};
+	\node[st] (paid) at (3.9,0) {PAID};
+	\node[st] (prep) at (7.8,0) {PREPARING};
+	\node[st] (ready) at (11.7,0) {READY};
+	\node[st,double] (done) at (15.6,0) {COMPLETED};
+	\node[st,minimum width=3.6cm] (failed) at (3.9,-2.6) {PAYMENT\_FAILED};
+	\node[st,double] (canc) at (0,-5.2) {CANCELLED};
+	\draw[->] (pending) -- (paid);
+	\draw[->] (paid) -- (prep);
+	\draw[->] (prep) -- (ready);
+	\draw[->] (ready) -- (done);
+	\draw[->] (pending) to[bend left=15] (failed);
+	\draw[->] (failed) to[bend left=15] (pending);
+	\draw[->] (failed) -- (paid);
+	\draw[->] (pending) -- (canc);
+	\draw[->] (failed) -- (canc);
+\draw[->] (paid.east) -- (6.1,0) -- (6.1,-5.2) -- node[above,font=\scriptsize] {Duyệt đổi món} (canc.east);
+\end{tikzpicture}}
+\caption{Sơ đồ máy trạng thái của đơn hàng}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|p{0.22\linewidth}|p{0.28\linewidth}|X|}
+\hline
+\textbf{Từ} & \textbf{Sang} & \textbf{Sự kiện} \\ \hline
+PENDING & PAID & Thanh toán thành công \\ \hline
+PENDING & PAYMENT\_FAILED & Thanh toán lỗi \\ \hline
+PENDING & CANCELLED & Khách hủy đơn \\ \hline
+PAYMENT\_FAILED & PENDING hoặc PAID & Thử thanh toán lại \\ \hline
+PAYMENT\_FAILED & CANCELLED & Khách hủy đơn \\ \hline
+PAID & CANCELLED & Chỉ khi yêu cầu đổi món được duyệt, chuyển giá trị sang đơn mới \\ \hline
+PAID & PREPARING & Barista nhận pha chế \\ \hline
+PREPARING & READY & Pha xong \\ \hline
+READY & COMPLETED & Giao cho khách \\ \hline
+\end{tabularx}
+\caption{Các chuyển trạng thái hợp lệ}
+\end{table}
+
+Khách không được tự hủy đơn PAID. Chuyển PAID sang CANCELLED chỉ được thực hiện trong nghiệp vụ đổi món đã được barista duyệt, đồng thời chuyển giá trị đã trả sang đơn thay thế. Máy trạng thái chỉ kiểm tra chuyển tiếp; service phải kiểm tra quyền, điều kiện và giao dịch nguyên tử. Giao diện barista xử lý PREPARING, READY và COMPLETED. Khi đã pha chế, không áp dụng luồng đổi món này.
+
+\input{sections/staff-design.tex}
+
+\subsection{Quy tắc tính giá, giảm giá và điểm thưởng}
+\begin{itemize}
+	\item \textbf{Giá một ly} = giá menu (giá size S) + phụ thu size + phụ thu topping. Phụ thu size: S cộng 0đ, M cộng 5.000đ, L cộng 10.000đ. Mỗi topping (Trân châu, Kem) cộng 5.000đ. Ví dụ: Cappuccino 45.000đ, size L, thêm Trân châu là 45.000 + 10.000 + 5.000 = 60.000đ.
+	\item \textbf{Mã giảm giá:} giảm theo phần trăm, làm tròn xuống đến đồng, không giảm quá tổng tiền; mã có hạn dùng và có thể bị tắt. Mã mẫu BREW10 giảm 10\%.
+	\item \textbf{Điểm thưởng:} khách được cộng 1 điểm cho mỗi 10.000đ đã thanh toán (tính trên số tiền sau giảm), cộng khi đơn chuyển sang PAID.
+\end{itemize}
+Các mức phụ thu, mức giảm và tỷ lệ điểm là chính sách cấu hình của cửa hàng.
+\input{sections/promotions-design.tex}
+
+\input{sections/report12-current-business.tex}
+
+\input{sections/report12-uml.tex}
+
+\subsection{Thiết kế giao diện}
+\label{sec:catalog-ui}
+Menu ưu tiên tên món, giá và hình ảnh; trang chi tiết gom size, topping và số lượng trước thao tác thêm giỏ. Giỏ hàng cho sửa lựa chọn và xem tổng trước khi tạo đơn. Các màn hình thanh toán, đổi món và quầy được minh họa tại phần nghiệp vụ tương ứng.
+\begin{figure}[htbp]\centering
+\includegraphics[width=.48\linewidth,height=.37\textheight,keepaspectratio]{assets/catalog-cart/ui-menu.png}\hfill
+\includegraphics[width=.48\linewidth,height=.37\textheight,keepaspectratio]{assets/catalog-cart/ui-detail.png}
+\caption{Menu và chi tiết món trên môi trường local, dùng API danh mục}
+\vspace{3mm}
+\includegraphics[width=.83\linewidth,height=.30\textheight,keepaspectratio]{assets/catalog-cart/ui-cart.png}
+\caption{Giỏ hàng trước khi gửi đặt đơn; thao tác thêm món chỉ lưu ở trình duyệt}
+\end{figure}
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Hiện thực hệ thống}
+\subsection{Cấu trúc thư mục}
+\begin{lstlisting}[style=brew,language={}]
+brewlite/
+  docker-compose.yml
+  README.md
+  backend/             (NestJS)
+    prisma/            schema, migrations, seed
+    src/
+      auth/  users/  products/  promotions/
+      orders/  payments/  common/  prisma/
+    test/              test end-to-end
+  frontend/            (Next.js)
+    src/
+      app/             cac trang
+      features/        auth, catalog, cart, orders, payments
+      components/  lib/
+\end{lstlisting}
+Mỗi tính năng nằm trong thư mục riêng ở cả backend (module của NestJS) và frontend (thư mục \texttt{features}) để các thành viên ít đụng vào code của nhau.
+
+\subsection{Menu, chi tiết sản phẩm và giỏ hàng}
+\input{sections/catalog-cart-implementation.tex}
+
+\subsection{Xác thực}
+\input{sections/auth-implementation.tex}
+
+\subsection{Tạo đơn và tích hợp thanh toán}
+\texttt{POST /orders} nhận danh sách món (mã sản phẩm, size, topping, số lượng), tự lấy giá từ cơ sở dữ liệu, tính lại tổng tiền và lưu đơn PENDING. Giá do trình duyệt gửi lên không được tin.
+
+Cổng giả lập dùng để kiểm tra luồng Ví/Thẻ có kiểm soát; khi bật VNPay, endpoint mock bị chặn để không bỏ qua cổng. Luồng VNPay tách quá trình khách thao tác ở cổng khỏi transaction ghi nhận kết quả tại backend.
+
+\input{sections/vnpay-implementation.tex}
+
+\subsection{Toàn vẹn đơn hàng, thanh toán và tồn kho}
+\subsubsection{Order State Machine}
+Bảng chuyển trạng thái hợp lệ nằm trong một tệp riêng, không phụ thuộc cơ sở dữ liệu nên kiểm thử được độc lập.
+\begin{lstlisting}[style=brew]
+export const ORDER_TRANSITIONS = {
+  PENDING: ['PAID', 'PAYMENT_FAILED', 'CANCELLED'],
+  PAYMENT_FAILED: ['PENDING', 'PAID', 'CANCELLED'],
+  PAID: ['PREPARING', 'CANCELLED'],
+  PREPARING: ['READY'],
+  READY: ['COMPLETED'],
+  COMPLETED: [],
+  CANCELLED: [],
+};
+
+export function assertTransition(from, to) {
+  if (!canTransition(from, to)) {
+    throw new ConflictException('Khong the chuyen don tu ' + from + ' sang ' + to);
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Thanh toán idempotent}
+Mỗi yêu cầu thanh toán kèm header \texttt{Idempotency-Key}. Cùng một khóa chỉ được xử lý một lần; các lần sau trả lại kết quả của lần đầu, nên khách bấm nhiều lần hoặc mạng chập chờn cũng không ghi nhận khoản thanh toán hai lần bởi cùng một yêu cầu. Toàn bộ thanh toán chạy trong một giao dịch cơ sở dữ liệu. Dòng đơn hàng được khóa bằng \texttt{SELECT ... FOR UPDATE} để hai yêu cầu cùng một đơn phải xếp hàng, nhờ đó cổng thanh toán chỉ bị gọi một lần. Cột \texttt{idempotencyKey} duy nhất trong bảng Payment là chốt chặn cuối cùng.
+\begin{lstlisting}[style=brew]
+await tx.$queryRaw`SELECT id FROM "Order"
+                   WHERE id = ${dto.orderId} FOR UPDATE`;
+const replay = await this.findReplay(tx, userId, key, dto.orderId);
+if (replay) return replay;   // cung Idempotency-Key: tra ket qua cu
+\end{lstlisting}
+
+\subsubsection{Kiểm soát tồn kho khi đặt đồng thời}
+Khi nhiều khách cùng đặt món sử dụng chung nguyên liệu, backend phải bảo đảm tổng lượng giữ thành công không vượt tồn kho. Hệ thống tính nhu cầu theo size/topping, khóa các dòng Ingredient theo thứ tự id tăng dần, kiểm tra đủ lượng rồi mới trừ trong cùng transaction tạo Order và snapshot. Khách gửi lại cùng yêu cầu không bị giữ kho lần hai; hủy hợp lệ hoặc hết thời hạn giữ món sẽ hoàn đúng lượng đã lưu, không tính lại từ công thức hiện tại. Các phần dưới trình bày trách nhiệm từng hàm, cơ chế phối hợp và ảnh code hiện thực.
+\input{sections/inventory-implementation.tex}
+
+\subsubsection{Khuyến mãi và điểm thưởng}
+\input{sections/promotions-implementation.tex}
+
+\input{sections/exchange-implementation.tex}
+
+\input{sections/staff-implementation.tex}
+
+\subsection{Đóng gói và triển khai}
+Trong môi trường phát triển, PostgreSQL chạy qua Docker Compose; backend và frontend chạy ở hai terminal riêng. Việc đóng gói dịch vụ gắn với cấu hình mạng, biến môi trường và kiểm tra trạng thái sẵn sàng. Seed chạy chủ động cho dữ liệu mẫu; migration áp dụng có kiểm soát để bảo toàn dữ liệu.
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Kiểm thử và kết quả}
+\subsection{Chiến lược kiểm thử}
+Nhóm dùng hai loại kiểm thử tự động bằng Vitest:
+\begin{itemize}
+	\item \textbf{Test đơn vị} (\texttt{npm run test}): kiểm tra các hàm thuần như state machine và tính giảm giá, chạy trong vài giây và không cần cơ sở dữ liệu.
+	\item \textbf{Test tích hợp API} (\texttt{npm run test:e2e}): dựng cả ứng dụng NestJS và gọi API thật bằng Supertest trên PostgreSQL thật. Mỗi test tự tạo người dùng, sản phẩm và đơn tạm rồi xóa đi sau khi chạy, không đụng vào dữ liệu mẫu.
+\end{itemize}
+Test API tập trung vào hợp đồng và dữ liệu; browser E2E kiểm tra thao tác xuyên suốt từ trình duyệt tới backend và database. Dùng cơ sở dữ liệu kiểm thử riêng. Các lệnh test chạy trong thư mục \texttt{backend}, và test end-to-end cần cơ sở dữ liệu đang chạy.
+
+\subsection{Kiểm thử các quy tắc toàn vẹn nghiệp vụ}
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|p{0.22\linewidth}|p{0.28\linewidth}|X|}
+\hline
+\textbf{Yêu cầu} & \textbf{Tệp test} & \textbf{Nội dung kiểm tra} \\ \hline
+(a) Chặn chuyển trạng thái sai & \path{order-state-machine.spec.ts} và các ca hủy đơn trong \path{payments.e2e-spec.ts} & Các bước nhảy cóc như PENDING sang READY bị chặn; COMPLETED và CANCELLED không đi tiếp; hủy đơn hai lần và thanh toán đơn đã hủy bị từ chối \\ \hline
+(b) Gửi 2 lần cùng \texttt{Idempotency-Key} chỉ tạo 1 đơn & \path{order-idempotency.e2e-spec.ts} và \path{payments.e2e-spec.ts} & Gửi liên tiếp và gửi đồng thời cùng khóa chỉ tạo một Order ở test tạo đơn; test thanh toán chỉ tạo 1 dòng Payment và cùng một \texttt{paymentId} \\ \hline
+(c) Đặt đồng thời không vượt tồn kho & \path{inventory.e2e-spec.ts} & 10 đơn đồng thời cho món còn 3 phần thì đúng 3 đơn thành công, 7 đơn bị từ chối, kho về 0 \\ \hline
+Khuyến mãi và điểm thưởng & \path{discount.spec.ts}, \path{promotions.e2e-spec.ts} & Tính giảm giá và điểm đúng; mã sai, hết hạn hoặc đã tắt bị từ chối; điểm chỉ cộng một lần \\ \hline
+\end{tabularx}
+\caption{Ánh xạ giữa quy tắc nghiệp vụ và các test}
+\end{table}
+
+\subsection{Danh sách test case tự động}
+\begin{longtable}{|p{0.30\linewidth}|p{0.60\linewidth}|}
+\hline
+\textbf{Tệp test} & \textbf{Các ca kiểm tra chính} \\ \hline
+\endhead
+\path{order-state-machine.spec.ts} & Luồng thành công PENDING, PAID, PREPARING, READY, COMPLETED; thanh toán lỗi rồi thử lại; 9 ca chuyển trạng thái sai bị chặn; hai trạng thái cuối không đi tiếp; danh sách chuyển tiếp hợp lệ khớp đúng bảng luật \\ \hline
+\path{discount.spec.ts} & Giảm 10\% của 120.000đ là 12.000đ; làm tròn xuống; không giảm quá tổng tiền; phần trăm không dương thì không giảm; dưới 10.000đ chưa được điểm; 108.000đ được 10 điểm \\ \hline
+\path{payments.e2e-spec.ts} & Gửi hai lần liên tiếp và đồng thời cùng khóa; cùng khóa cho đơn khác bị 409; thanh toán lỗi rồi thử lại; thanh toán lại đơn PAID bị 409; thiếu header bị 400; hủy đơn hai lần và đơn đã thanh toán không hủy được \\ \hline
+\path{inventory.e2e-spec.ts} & 10 đơn đồng thời cho món còn 3 phần; 6 đơn số lượng 2 cho món còn 5 phần; đơn lớn hơn tồn kho bị từ chối; hai dòng cùng món được cộng dồn; đơn nhiều dòng thiếu một món bị hoàn tác toàn bộ; hủy đơn hoàn kho đúng một lần \\ \hline
+\path{promotions.e2e-spec.ts} & Mã hợp lệ không phân biệt hoa thường; mã không tồn tại, hết hạn, đã tắt bị 400; đơn có mã giảm đúng 10\%; mã sai thì không tạo đơn và không trừ kho; thanh toán đúng số tiền sau giảm và cộng điểm đúng một lần \\ \hline
+\caption{Các test tự động} \\
+\end{longtable}
+
+\input{sections/inventory-testing.tex}
+
+\input{sections/vnpay-testing.tex}
+
+\input{sections/exchange-testing.tex}
+
+\input{sections/auth-testing.tex}
+
+\input{sections/promotions-testing.tex}
+
+\input{sections/staff-testing.tex}
+
+\input{sections/catalog-cart-testing.tex}
+
+\subsection{Kiểm thử chức năng thủ công}
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\textbf{Mã} & \textbf{Thao tác} & \textbf{Kết quả mong đợi} \\ \hline
+TC01 & Mở trang chủ & Hiện lưới 4 món có giá; tắt backend thì hiện dòng báo lỗi \\ \hline
+TC02 & Mở chi tiết Cappuccino, chọn size L và Trân châu & Thành tiền 60.000đ \\ \hline
+TC03 & Thêm cùng món cùng size hai lần & Số lượng tăng thành 2, không thêm dòng mới; tải lại trang giỏ vẫn còn \\ \hline
+TC04 & Đăng ký trùng email & Báo lỗi ``Email đã được đăng ký'' \\ \hline
+TC05 & Đăng nhập sai mật khẩu & Báo lỗi chung ``Email hoặc mật khẩu không đúng'' \\ \hline
+TC06 & Bấm ``Đặt hàng'' ở giỏ hàng & Tạo đơn PENDING, giỏ hàng về trống, tồn kho giảm \\ \hline
+TC07 & Thanh toán đơn PENDING bằng Ví & Đơn chuyển PAID, hiện ``Đã nhận thanh toán, chờ quầy xác nhận'' \\ \hline
+TC08 & Thanh toán với tùy chọn giả lập lỗi & Đơn chuyển PAYMENT\_FAILED, vẫn thanh toán lại hoặc hủy được \\ \hline
+TC09 & Hủy đơn PENDING & Đơn chuyển CANCELLED, tồn kho được hoàn lại \\ \hline
+TC10 & Đơn đã PAID & Không có nút hủy; gọi API hủy trả lỗi 409 \\ \hline
+TC11 & Nhập mã BREW10 với giỏ 120.000đ & Giảm 12.000đ, tổng 108.000đ; thanh toán xong được 10 điểm \\ \hline
+TC12 & Nhập mã không tồn tại & Báo lỗi ``Mã giảm giá không tồn tại'' \\ \hline
+\end{tabularx}
+\caption{Các ca kiểm thử chức năng thủ công}
+\end{table}
+
+
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Hướng dẫn triển khai}
+\subsection{Chạy bằng Docker}
+Ở thư mục gốc của dự án (cần mở Docker Desktop):
+\begin{lstlisting}[style=brew,language={}]
+docker compose up -d db
+\end{lstlisting}
+Lệnh trên hiện chỉ chạy PostgreSQL ở cổng 5432; backend và frontend phải chạy ở hai terminal riêng. Kiểm tra cổng và DATABASE\_URL nếu máy có nhiều PostgreSQL. Dừng bằng \texttt{docker compose down}; không dùng tùy chọn xóa volume khi cần giữ dữ liệu.
+
+\subsection{Chạy chế độ phát triển}
+Terminal backend, từ thư mục gốc:
+\begin{lstlisting}[style=brew,language={}]
+cd backend
+npm.cmd install
+npx.cmd prisma generate
+npx.cmd prisma migrate status
+npm.cmd run start:dev
+\end{lstlisting}
+Sao lưu trước khi áp dụng thay đổi cấu trúc; dùng \texttt{npx.cmd prisma migrate deploy} cho các migration tăng dần và \texttt{npx.cmd prisma generate} để đồng bộ client. Với database mẫu mới, chủ động chạy \texttt{npx.cmd prisma db seed}. Quá trình triển khai bảo toàn dữ liệu và không reset database vận hành.
+
+Terminal frontend, mở mới tại thư mục gốc:
+\begin{lstlisting}[style=brew,language={}]
+cd frontend
+npm.cmd install
+npm.cmd run dev
+\end{lstlisting}
+Địa chỉ phát triển: web \url{http://localhost:3000}, API mặc định \url{http://localhost:3001}; PORT và cấu hình thực tế có thể thay đổi. Ngrok cho callback Sandbox phải trỏ tới backend, Return URL và IPN URL phải đúng route được khai báo.
+
+\subsection{Biến môi trường}
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{|p{0.22\linewidth}|p{0.28\linewidth}|X|}
+\hline
+\textbf{Biến} & \textbf{Nơi dùng} & \textbf{Ý nghĩa} \\ \hline
+\texttt{DATABASE\_URL} & backend & Chuỗi kết nối PostgreSQL \\ \hline
+\texttt{JWT\_SECRET} & backend & Khóa ký token đăng nhập \\ \hline
+\texttt{NEXT\_PUBLIC\_API\_URL} & frontend & Địa chỉ backend mà trình duyệt gọi \\ \hline
+\texttt{PORT}, \texttt{FRONTEND\_URL} & backend & Cổng API và địa chỉ frontend để chuyển hướng sau thanh toán \\ \hline
+\texttt{VNPAY\_*} & backend & Mã merchant, khóa ký, URL Sandbox, Return/IPN theo cấu hình; không đưa khóa thật vào báo cáo \\ \hline
+\end{tabularx}
+\caption{Các biến môi trường}
+\end{table}
+
+\subsection{Dữ liệu mẫu}
+Hệ thống có sẵn 4 sản phẩm (Cà phê sữa 35.000đ, Americano 40.000đ, Cappuccino 45.000đ, Trà đào 39.000đ, tồn kho theo Ingredient và định lượng Recipe, không phải 50 phần cố định cho mỗi món) và mã giảm giá BREW10 giảm 10\%. Tài khoản được tạo ở trang đăng ký.
+
+\section{Đánh giá và hướng phát triển}
+\subsection{Giá trị của thiết kế}
+Việc tách công thức, định lượng lựa chọn và snapshot giúp hệ thống đồng thời phục vụ bán hàng và bảo toàn tài nguyên lịch sử. Transaction cùng khóa dòng bảo vệ phần nguyên liệu cuối; idempotency bảo vệ request gửi lại; version kiểm soát cập nhật hồ sơ nghiệp vụ. Deadline bền vững phối hợp giữ món với thanh toán và cung cấp thông báo rõ cho khách.
+\subsection{Định hướng mở rộng}
+Các hướng mở rộng gồm cấu hình định lượng theo từng sản phẩm/size, công cụ nhập và kiểm kê nguyên liệu, phân tích nhu cầu tiêu thụ, quan sát tác vụ nền và tối ưu trải nghiệm đặt lại. Nghiệp vụ giao hàng được xem xét trong phạm vi vận hành cửa hàng, còn báo cáo tập trung vào đặt và nhận món tại quầy.
+
+\section{Kết luận}
+BrewLite đã có các luồng chọn món, đặt đơn, thanh toán giả lập/VNPay Sandbox, nghiệp vụ quầy và đổi món. Báo cáo trình bày yêu cầu sản phẩm, thiết kế, hiện thực, kiểm thử và hướng dẫn triển khai để phục vụ bàn giao và bảo trì. Các quy tắc được liên kết với mô hình dữ liệu, hàm hiện thực và kịch bản kiểm thử, giúp giải thích từ nhu cầu nghiệp vụ tới quyết định kỹ thuật.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\clearpage
+\begin{thebibliography}{80}
+
+\bibitem{VNPAYPAY}
+VNPAY, \textit{Kết nối cổng thanh toán và API QueryDr},
+\url{https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html},
+truy cập ngày 12/11/2026.
+
+\bibitem{VNPAYFAQ}
+VNPAY, \textit{Câu hỏi thường gặp về tham số và Return/IPN},
+\url{https://sandbox.vnpayment.vn/apis/docs/faqs/},
+truy cập ngày 12/11/2026.
+
+\bibitem{NEST}
+NestJS Documentation,
+``\textbf{link: https://docs.nestjs.com}'',
+\textit{NestJS - A progressive Node.js framework}, lần truy cập cuối: 11/2026.
+
+\bibitem{NEXT}
+Next.js Documentation,
+``\textbf{link: https://nextjs.org/docs}'',
+\textit{Next.js by Vercel}, lần truy cập cuối: 11/2026.
+
+\bibitem{PRISMA}
+Prisma Documentation,
+``\textbf{link: https://www.prisma.io/docs}'',
+\textit{Prisma ORM}, lần truy cập cuối: 11/2026.
+
+\bibitem{VITEST}
+Vitest Documentation,
+``\textbf{link: https://vitest.dev}'',
+\textit{Vitest - Next generation testing framework}, lần truy cập cuối: 11/2026.
+
+\bibitem{DOCKER}
+Docker Documentation,
+``\textbf{link: https://docs.docker.com}'',
+\textit{Docker and Docker Compose}, lần truy cập cuối: 11/2026.
+
+\bibitem{SCRUM}
+Ken Schwaber và Jeff Sutherland,
+``\textbf{link: https://scrumguides.org}'',
+\textit{The Scrum Guide}, lần truy cập cuối: 11/2026.
+
+\end{thebibliography}
+\end{document}

@@ -368,10 +368,6 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type VoucherCreateNestedOneWithoutOrdersInput = {
   create?: Prisma.XOR<Prisma.VoucherCreateWithoutOrdersInput, Prisma.VoucherUncheckedCreateWithoutOrdersInput>
   connectOrCreate?: Prisma.VoucherCreateOrConnectWithoutOrdersInput

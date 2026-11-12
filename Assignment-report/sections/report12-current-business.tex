@@ -1,0 +1,13 @@
+\subsection{VNPay Sandbox và xác minh kết quả}
+\input{sections/vnpay-design.tex}
+
+\subsection{Giữ kho và hoàn theo snapshot}
+\input{sections/inventory-design.tex}
+
+\subsection{Đổi món, chuyển tiền và thanh toán chênh lệch}
+\input{sections/exchange-design.tex}
+
+\subsection{Version trong hồ sơ xử lý và khoản thu dư}
+OrderExchange và PaymentRefundCase dùng version để phát hiện cập nhật trên dữ liệu cũ. Hai nhân viên cùng đọc version=0: người ghi trước cập nhật với điều kiện id/version/trạng thái rồi tăng lên 1; người còn lại bị 409. Đây là optimistic concurrency cho hồ sơ; việc giữ nguyên liệu sử dụng khóa dòng trong transaction.
+
+PaymentRefundCase liên kết duy nhất với attempt đã thu nhưng không áp dụng được. Quy trình OPEN, PROCESSING, COMPLETED có ghi chú, người xử lý, thời gian và chứng từ duy nhất. Nhân viên thực hiện chuyển trả bên ngoài rồi ghi nhận bằng chứng; backend theo dõi bằng chứng từ và nhật ký xử lý. Thu trùng khác với khách đổi ý sau trả tiền và không bị ép sử dụng khoản dư để mua món khác.

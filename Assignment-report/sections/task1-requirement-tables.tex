@@ -1,0 +1,54 @@
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.07\textwidth}|>{\raggedright\arraybackslash}p{0.2\textwidth}|>{\raggedright\arraybackslash}p{0.07\textwidth}|>{\raggedright\arraybackslash}p{0.58\textwidth}|}
+\caption{Yêu cầu chức năng và tiêu chí chấp nhận}\\\hline
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận có thể kiểm chứng} \\ \hline
+\endfirsthead
+\hline
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận có thể kiểm chứng} \\ \hline
+\endhead
+FR-01 & Xem menu& Must & AC-01: GET /products trả danh sách có id, tên, giá, ảnh; UI có loading, empty và error; lỗi tải không làm mất điều hướng \\ \hline
+FR-02 & Xem chi tiết và tùy chọn& Must & AC-02: GET /products/:id trả chi tiết/options; chọn S/M/L, topping cập nhật giá; id không tồn tại có trạng thái không tìm thấy \\ \hline
+FR-03 & Giỏ hàng& Must & AC-03: thêm/gộp đúng tùy chọn, đổi số lượng, xóa; tổng bằng tổng dòng; reload còn giỏ; giỏ rỗng không gửi đơn \\ \hline
+FR-04 & Đăng ký, đăng nhập và JWT& Must & AC-04: đăng ký email duy nhất; sai mật khẩu không cấp token; API bảo vệ thiếu/sai JWT trả 401; response không lộ passwordHash \\ \hline
+FR-05 & Tạo đơn và tính giá ở backend& Must & AC-05: input hợp lệ trả Order PENDING; tiền từ quy tắc backend; sai size/topping/qty bị từ chối không đổi database; cùng key/nội dung không tạo thêm đơn \\ \hline
+FR-06 & Thanh toán Ví/Thẻ mô phỏng& Must & AC-06: khi chỉ bật mock, thành công ghi Payment/PAID; lỗi có kết quả PAYMENT\_FAILED; mock bị chặn khi VNPay bật để không bỏ qua cổng \\ \hline
+FR-07 & Xác nhận, theo dõi và lịch sử& Must & AC-07: chủ đơn xem đúng mã/trạng thái/món/tiền; GET /orders/me không trả đơn người khác; refresh/realtime không nhân đôi dữ liệu \\ \hline
+FR-08 & Barista quản lý trạng thái& Must & AC-08: chỉ BARISTA gọi staff API; chuyển trạng thái đúng máy trạng thái đơn hàng; không pha đơn thiếu tiền hoặc có REQUESTED; trạng thái cũ bị từ chối khi thao tác đồng thời \\ \hline
+FR-09 & Giữ kho đồng thời và hủy an toàn độ đúng nghiệp vụ & Should & AC-09: hai khách tranh phần cuối chỉ một đơn giữ thành công; kho không âm; định lượng đúng size/topping; hủy hợp lệ hoàn snapshot một lần dù Recipe đã đổi; đơn hết hạn giữ món được đóng và thông báo đặt lại; đơn đã pha không được tự hủy \\ \hline
+FR-10 & Voucher và điểm thưởng & Should & AC-10: mã hết hạn/inactive bị từ chối; giảm và điểm theo chính sách giảm giá và tích điểm; callback lặp không cộng lại điểm \\ \hline
+FR-11 & VNPay URL và QR & Should & AC-11: backend tạo URL ký đúng số tiền còn phải trả; QR mở cùng URL và có nút mở trang; URL hết hạn/đơn không payable không hiển thị QR khả dụng \\ \hline
+FR-12 & Kết quả cổng an toàn & Should & AC-12: sai chữ ký/merchant/amount không đổi PAID; Return chỉ chuyển hướng; IPN/QueryDr hợp lệ cập nhật đúng một lần trong transaction \\ \hline
+FR-13 & Thanh toán lại, kết quả muộn và thu trùng & Should & AC-13: cùng key trả cùng lần; mã còn hạn tái dùng; sau hết hạn QR và đơn còn hạn giữ món có thể cấp lần mới, không xóa lần cũ; hai lần thành công chỉ một lần áp dụng cho đơn và khoản dư có hồ sơ xử lý \\ \hline
+FR-14 & Khách yêu cầu đổi món & Should & AC-14: liên kết hỗ trợ nhỏ trên đơn PAID mở menu/giỏ riêng; chọn size/topping bình thường; báo giá từ backend; cùng key không tạo trùng; REQUESTED có thể rút bằng version \\ \hline
+FR-15 & Quầy duyệt đổi và thu chênh lệch & Should & AC-15: giá đã xác nhận giữ theo snapshot; duyệt chuyển credit/đổi giữ kho nguyên tử; tiền thu mới = total - credit; thấp hơn giá trị cũ bị từ chối; hai người cùng duyệt chỉ một thành công \\ \hline
+FR-16 & Theo dõi hoàn khoản thu không áp dụng & Should & AC-16: thu dư mở một hồ sơ theo attempt; BARISTA nhận xử lý, nhập chứng từ rồi hoàn tất theo version; chứng từ trùng trả lỗi; khách không tự xác nhận hoàn \\ \hline
+FR-17 & Hàng đợi hỗ trợ tại quầy & Should & AC-17: queue lọc trạng thái, tìm mã/email, phân trang 20 dòng; xem món cũ/mới, tiền và ghi chú; thiếu quyền 403; page/status sai 400 \\ \hline
+FR-18 & Đóng gói và chạy local& Must & AC-18: clone sạch, điền biến mẫu, một lệnh Compose chạy web/API/DB; migration+seed trên DB sạch tạo được dữ liệu; health endpoint phản ánh tình trạng dịch vụ \\ \hline
+FR-19 & CI/CD và bàn giao& Must & AC-19: PR tự install/lint/test/build; failed check không merge; release tạo image có version/SHA, deploy, migrate an toàn, smoke test; có cách rollback và URL HTTPS frontend/API/health \\ \hline
+FR-20 & Giao hàng & Won't & AC-20: phạm vi bàn giao ghi rõ chưa có UI tài xế/điều phối/tracking; không quảng bá trạng thái hiện tại là vòng đời giao hàng đầy đủ \\ \hline
+\end{longtable}
+\endgroup
+\subsection{Yêu cầu phi chức năng và phép kiểm chứng}
+Các ngưỡng là mục tiêu nghiệm thu, chưa phải số liệu đo đã đạt.
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.07\textwidth}|>{\raggedright\arraybackslash}p{0.16\textwidth}|>{\raggedright\arraybackslash}p{0.07\textwidth}|>{\raggedright\arraybackslash}p{0.62\textwidth}|}
+\caption{NFR và phép kiểm chứng}\\\hline
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận / phép đo} \\ \hline
+\endfirsthead
+\hline
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Tiêu chí chấp nhận / phép đo} \\ \hline
+\endhead
+NFR-01 & Bảo mật xác thực/phân quyền & Must & Mật khẩu băm; khách không đọc đơn người khác/gọi staff; 401/403/404 đúng hợp đồng; không có secret trong Git/log/ảnh \\ \hline
+NFR-02 & Toàn vẹn tiền và kho & Must & Chạy test cạnh tranh/idempotency/rollback: không kho âm, không nhân đôi settlement/điểm, không chuyển credit vượt tổng; mọi lỗi giữa transaction không để dữ liệu dở dang \\ \hline
+NFR-03 & Hiệu năng API nội bộ & Should & Với 50 sản phẩm, 20 người dùng đồng thời, sau warm-up: p95 GET sản phẩm và GET đơn \(\leq\)500ms trên môi trường ghi rõ CPU/RAM/DB; tách độ trễ gateway khỏi số liệu; ghi tỷ lệ lỗi và lệnh đo \\ \hline
+NFR-04 & Mobile-first và khả năng truy cập & Must & Ở 390px và 1440px không tràn ngang; nhãn form, focus bàn phím, thông báo lỗi và trạng thái chờ rõ; nút chính tối thiểu 44px; xác nhận tiền không chỉ dựa màu sắc \\ \hline
+NFR-05 & Tính khả dụng và phục hồi & Must & Có loading/empty/error, retry có kiểm soát; mất Return không mất kết quả đã ghi; không treo UI vô hạn; health check production dùng cho smoke \\ \hline
+NFR-06 & Tái tạo và triển khai & Must & Install từ lockfile; build frontend/backend; migration+seed trên database mới; Compose đủ 3 dịch vụ; HTTPS và DB production không public trực tiếp \\ \hline
+NFR-07 & Quan sát và hỗ trợ & Must & Log có thời gian và tham chiếu lỗi, không lộ token/secret; phân biệt Order/attempt/refund; có hướng dẫn xử lý lỗi thanh toán; health không trả cấu hình nhạy cảm \\ \hline
+NFR-08 & Bảo trì và truy vết & Must & Mỗi FR/NFR liên kết use-case, thiết kế, code/test; sơ đồ có nguồn+render; quyết định có ADR; không có đường dẫn/file minh chứng giả \\ \hline
+NFR-09 & Quality gate & Must & CI tự chạy trên PR, branch protection yêu cầu checks; lưu link/log một lần thành công và một lần phát hiện lỗi; test không dùng database production \\ \hline
+NFR-10 & Sao lưu, migration và khôi phục & Must & Backup trước migration; thử khôi phục DB riêng; script deploy không reset hoặc seed đè DB đang dùng; runbook rollback nêu phần app và phần dữ liệu \\ \hline
+NFR-11 & Phiên đăng nhập nhất quán & Should & Chính sách một tài khoản/origin hoặc phiên riêng/tab được chốt; đổi tài khoản/logout không để response cũ ghi đè user/token mới; có test hai tab và reload \\ \hline
+NFR-12 & Cài đặt PWA & Could & Có manifest, icon và kiểm tra cài đặt nếu nhóm chọn triển khai PWA; không coi hỗ trợ mobile là bằng chứng đã có offline/PWA \\ \hline
+\end{longtable}
+\endgroup

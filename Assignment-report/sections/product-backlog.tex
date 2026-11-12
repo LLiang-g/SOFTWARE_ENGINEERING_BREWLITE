@@ -1,0 +1,40 @@
+\section{Product Backlog chính -- 10 task Assignment 1}
+\subsection{Quy ước và tiêu chí hoàn thành}
+Nhóm giữ mười task phát triển sản phẩm của Assignment 1 làm Product Backlog chính. Mã A1-01 đến A1-10 phân biệt với A2-01 đến A2-05 của Assignment 2. Mỗi task Assignment 1 có tối đa một điểm theo đề; đây không phải điểm đã được nghiệm thu. ``Có mã'' chưa có nghĩa đạt toàn bộ Definition of Done.
+
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{.07\textwidth}|>{\raggedright\arraybackslash}p{.20\textwidth}|>{\raggedright\arraybackslash}p{.36\textwidth}|>{\raggedright\arraybackslash}p{.28\textwidth}|}
+\caption{Mười task sản phẩm theo Assignment 1}\\\hline
+\textbf{Mã} & \textbf{Task} & \textbf{Tiêu chí nghiệm thu chính} & \textbf{Hiện trạng và phần còn lại}\\\hline
+\endfirsthead
+\hline\textbf{Mã} & \textbf{Task} & \textbf{Tiêu chí nghiệm thu chính} & \textbf{Hiện trạng và phần còn lại}\\\hline
+\endhead
+A1-01 & Khởi tạo dự án và cấu trúc & Next.js/NestJS chạy; Git, README, biến môi trường mẫu. & Có nền tảng; README gốc còn trống.\\\hline
+A1-02 & API danh sách sản phẩm & GET /products trả id, tên, giá, ảnh từ mẫu hoặc database. & Có API/seed; cần kết quả test commit nộp.\\\hline
+A1-03 & Trang Menu & Gọi API, lưới sản phẩm, loading/empty. & Có UI; một số ảnh mẫu đang 404.\\\hline
+A1-04 & Chi tiết và tùy chọn & Size S/M/L, topping, cập nhật giá. & Có mã; cần test giá và nghiệm thu UI.\\\hline
+A1-05 & Giỏ hàng & Thêm/gộp, sửa, xóa, lưu state, tổng và badge. & Có mã; cần E2E tích hợp thật.\\\hline
+A1-06 & API tạo đơn & Validate giỏ, tính giá backend, tạo PENDING và trả mã. & Có mã, snapshot và key; cần chạy test bản nộp.\\\hline
+A1-07 & Đăng ký / đăng nhập & bcrypt, JWT, guard và API xác thực. & Có mã; chính sách phiên nhiều tab còn mở.\\\hline
+A1-08 & Thanh toán không tiền mặt & Mock Ví/Thẻ, PAID hoặc PAYMENT\_FAILED, xác nhận. & Có mock/VNPay. Cần đối chiếu giữ giỏ khi lỗi; hiện retry từ đơn.\\\hline
+A1-09 & Xác nhận, lịch sử, bàn giao & GET /orders/me, xác nhận, Compose ba dịch vụ, README, demo. & UI/API có; Dockerfile/README trống, Compose mới có DB.\\\hline
+A1-10 & Nghiệp vụ backend & State machine; idempotency; transaction + optimistic locking cho kho; voucher/điểm; test a/b/c. & Có nhiều cơ chế/test. Kho bản hiện tại dùng khóa dòng; cần đáp ứng lại optimistic locking hoặc nghiệm thu phương án thay thế.\\\hline
+\end{longtable}\endgroup
+
+\subsection{Chi tiết Task 10 và Definition of Done}
+Task 10 gồm bốn nội dung: kiểm soát chuyển trạng thái, thanh toán idempotent, kho đồng thời và khuyến mãi/điểm. Đề yêu cầu test chứng minh chặn chuyển sai, gửi hai lần cùng key không tạo trùng và đặt đồng thời không vượt kho.
+
+Lịch sử nhánh an có commit triển khai khóa lạc quan, nhưng bản tích hợp đang dùng khóa dòng cho nguyên liệu. Hai kỹ thuật khác nhau; version trên hồ sơ đổi/hoàn không tự đáp ứng yêu cầu optimistic locking cho tồn kho. Phần này phải được giải quyết hoặc xác nhận chấp nhận phương án thay thế, chưa tự đánh dấu Task 10 đạt hoàn toàn.
+
+Definition of Done: code chạy/build được, đúng tiêu chí; có commit và review; API validate; UI có loading/lỗi; README đủ hướng dẫn. Số lượng commit hoặc tính năng mở rộng không thay thế những điều kiện này.
+
+\subsection{Khung ba Sprint phát triển sản phẩm}
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{|l|X|l|}\hline
+\textbf{Sprint} & \textbf{Mục tiêu gợi ý theo Assignment 1} & \textbf{Task}\\\hline
+1 & Nền tảng và menu & A1-01 đến A1-04\\\hline
+2 & Giỏ, tạo đơn và xác thực & A1-05 đến A1-07\\\hline
+3 & Thanh toán, bàn giao và nghiệp vụ nâng cao & A1-08 đến A1-10\\\hline
+\end{tabularx}\caption{Khung Product Backlog; chưa phải biên bản Sprint đã thực hiện}
+\end{table}
+Ngày Sprint, phân công PO/SM và số liệu burndown được bổ sung từ bằng chứng thực tế. Lịch sử Git dùng làm mốc kỹ thuật, không tự suy ra ngày hoàn thành Sprint. VNPay, snapshot kho, barista/realtime và đổi món là mở rộng gắn với các task này.
