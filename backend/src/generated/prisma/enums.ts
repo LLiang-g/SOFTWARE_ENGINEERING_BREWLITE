@@ -33,10 +33,22 @@ export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 export const PaymentMethod = {
   WALLET: 'WALLET',
-  CARD: 'CARD'
+  CARD: 'CARD',
+  VNPAY: 'VNPAY'
 } as const
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const VnpayAttemptStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED',
+  REVIEW: 'REVIEW'
+} as const
+
+export type VnpayAttemptStatus = (typeof VnpayAttemptStatus)[keyof typeof VnpayAttemptStatus]
 
 
 export const Role = {
@@ -53,3 +65,22 @@ export const LoyaltyTransactionType = {
 } as const
 
 export type LoyaltyTransactionType = (typeof LoyaltyTransactionType)[keyof typeof LoyaltyTransactionType]
+
+
+export const ExchangeStatus = {
+  WITHDRAWN: 'WITHDRAWN',
+  REQUESTED: 'REQUESTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type ExchangeStatus = (typeof ExchangeStatus)[keyof typeof ExchangeStatus]
+
+
+export const RefundCaseStatus = {
+  OPEN: 'OPEN',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type RefundCaseStatus = (typeof RefundCaseStatus)[keyof typeof RefundCaseStatus]

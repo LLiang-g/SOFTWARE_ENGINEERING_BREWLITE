@@ -113,7 +113,7 @@ describe('Nguyên liệu và công thức (e2e)', () => {
         ]);
 
         expect(res.status).toBe(409);
-        expect(res.body.message).toContain('chỉ còn');
+        expect(res.body.message).toContain('Không đủ nguyên liệu');
         expect(await stockOf(cup)).toBe(3);
         expect(await prisma.orderItem.count({ where: { productId: { in: [a, b] } } })).toBe(0);
     });

@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam dpi 150
+skinparam usecaseBackgroundColor #FFF4DA
+skinparam usecaseBorderColor #6B4A32
+title UC-01 - Đặt và thanh toán đơn
+actor "Khách hàng" as Customer
+actor "Dịch vụ thanh toán\nMock / VNPay Sandbox" as Gateway
+rectangle "Phạm vi UC-01" {
+  usecase "UC-01\nĐặt và thanh toán đơn" as Checkout
+  usecase "Tạo đơn và giữ nguyên liệu" as Create
+  usecase "Thực hiện thanh toán" as Pay
+  usecase "UC-07\nÁp dụng voucher" as Voucher
+  usecase "UC-11\nKiểm tra kết quả" as Check
+  usecase "Tạo lần thanh toán mới\nsau mã hết hạn" as Retry
+}
+Customer -right- Checkout
+Customer -right- Check
+Checkout ..> Create : <<include>>
+Checkout ..> Pay : <<include>>
+Voucher ..> Checkout : <<extend>>
+Retry ..> Pay : <<extend>>
+Pay -right- Gateway
+Check -right- Gateway
+@enduml

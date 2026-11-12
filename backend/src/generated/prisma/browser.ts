@@ -33,6 +33,11 @@ export type Ingredient = Prisma.IngredientModel
  */
 export type Recipe = Prisma.RecipeModel
 /**
+ * Model ToppingRecipe
+ * 
+ */
+export type ToppingRecipe = Prisma.ToppingRecipeModel
+/**
  * Model User
  * 
  */
@@ -48,6 +53,11 @@ export type Voucher = Prisma.VoucherModel
  */
 export type Order = Prisma.OrderModel
 /**
+ * Model OrderCreateRequest
+ * 
+ */
+export type OrderCreateRequest = Prisma.OrderCreateRequestModel
+/**
  * Model OrderItem
  * 
  */
@@ -58,7 +68,37 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model VnpayAttempt
+ * 
+ */
+export type VnpayAttempt = Prisma.VnpayAttemptModel
+/**
+ * Model PaymentStartRequest
+ * 
+ */
+export type PaymentStartRequest = Prisma.PaymentStartRequestModel
+/**
+ * Model PaymentAudit
+ * 
+ */
+export type PaymentAudit = Prisma.PaymentAuditModel
+/**
+ * Model OrderInventoryReservation
+ * 
+ */
+export type OrderInventoryReservation = Prisma.OrderInventoryReservationModel
+/**
  * Model LoyaltyTransaction
  * 
  */
 export type LoyaltyTransaction = Prisma.LoyaltyTransactionModel
+/**
+ * Model OrderExchange
+ * 
+ */
+export type OrderExchange = Prisma.OrderExchangeModel
+/**
+ * Model PaymentRefundCase
+ * 
+ */
+export type PaymentRefundCase = Prisma.PaymentRefundCaseModel

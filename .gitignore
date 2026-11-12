@@ -3,3 +3,9 @@ dist
 .next
 .env
 .idea
+.env.docker
+/tmp/
+/proposed-fixes/
+/backups/
+/deploy-state/
+/backend/reports/

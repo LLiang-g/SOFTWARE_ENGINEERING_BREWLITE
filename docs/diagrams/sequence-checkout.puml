@@ -1,0 +1,45 @@
+@startuml
+title Checkout - transaction and asynchronous payment
+actor Customer
+participant "Next.js UI" as UI
+participant "NestJS API" as API
+database PostgreSQL as DB
+participant "VNPay Sandbox" as Pay
+Customer -> UI : Confirm cart
+UI -> API : POST /orders (JWT, key, items)
+API -> API : Validate JWT/DTO, compute prices
+alt Invalid request or authentication
+ API --> UI : 400 / 401
+else Valid request
+ API -> DB : Begin transaction, lookup creation key
+ alt Existing matching key
+  DB --> API : Existing order
+ else New key
+  API -> DB : Lock ingredients in ID order
+  alt Insufficient stock
+   API -> DB : Rollback
+   API --> UI : Conflict / unavailable items
+  else Available
+   API -> DB : Deduct stock, write snapshot and order
+   API -> DB : Commit
+  end
+ end
+ API --> UI : Order and server total
+ UI -> API : Start payment (new request key)
+ API -> DB : Persist attempt/reference
+ API --> UI : Signed payment URL
+ Customer -> Pay : Open URL / pay
+ Pay -> API : Signed IPN (may repeat)
+ API -> API : Verify hash, merchant, amount, reference
+ API -> DB : Transaction: lock order, apply at most once
+ API --> Pay : IPN acknowledgement
+ Pay -> API : Browser Return
+ API --> UI : Redirect 303 to order page
+ UI -> API : Read authoritative order/payment status
+ API --> UI : Paid / failed / verifying
+ opt Unknown or delayed result
+  API -> Pay : QueryDr outside DB transaction
+  Pay --> API : Query result (not always definitive)
+ end
+end
+@enduml

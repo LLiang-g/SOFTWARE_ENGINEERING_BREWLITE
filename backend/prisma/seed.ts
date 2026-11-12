@@ -58,10 +58,23 @@ async function main() {
             };
             await prisma.recipe.upsert({
                 where: { productId_ingredientId: key },
-                update: { quantity },
-                create: { ...key, quantity },
+                update: { quantity, scalesWithSize: name !== 'Ly nhựa' },
+                create: { ...key, quantity, scalesWithSize: name !== 'Ly nhựa' },
             });
         }
+    }
+
+    // Chỉ tạo topping chưa có, không đặt lại stock topping khi seed lại.
+    for (const [code, name, quantity] of [
+        ['TRAN_CHAU', 'Trân châu topping', 30], ['KEM', 'Kem topping', 20],
+    ] as const) {
+        const ingredient = await prisma.ingredient.upsert({
+            where: { name }, update: {}, create: { name, unit: 'g', stock: 0 },
+        });
+        await prisma.toppingRecipe.upsert({
+            where: { toppingCode_ingredientId: { toppingCode: code, ingredientId: ingredient.id } },
+            update: {}, create: { toppingCode: code, ingredientId: ingredient.id, quantity },
+        });
     }
 
     // Đưa bộ đếm id về sau id lớn nhất, vì seed chèn id gõ tay.

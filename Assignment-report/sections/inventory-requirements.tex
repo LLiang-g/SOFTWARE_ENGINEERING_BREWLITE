@@ -1,0 +1,19 @@
+\subsection{Yêu cầu nghiệp vụ đặt hàng, giữ kho và hoàn kho}
+\label{sec:inventory-requirements}
+Luồng đặt hàng được tổ chức thành ba thời điểm riêng biệt: khách chọn món, backend tạo đơn và hệ thống xác minh thanh toán. Việc thêm món vào giỏ chỉ lưu lựa chọn ở trình duyệt. Nguyên liệu được giữ khi backend chấp nhận tạo Order ở trạng thái PENDING; thanh toán thành công xác nhận quyền phục vụ đơn đã giữ, không trừ nguyên liệu thêm một lần nữa.
+
+\begin{longtable}{|p{.12\linewidth}|p{.79\linewidth}|}
+\hline\textbf{Mã quy tắc} & \textbf{Nội dung và tiêu chí chấp nhận}\\\hline\endhead
+INV-01 & Chỉ khách đã xác thực được tạo đơn. Backend kiểm tra sản phẩm, size, topping, số lượng và voucher; tự tính giá. Yêu cầu không hợp lệ không tạo đơn hoặc làm thay đổi kho.\\\hline
+INV-02 & Khi tạo đơn, cộng gộp nhu cầu nguyên liệu của tất cả món và topping. Một nguyên liệu dùng chung chỉ có một tổng lượng cần giữ; vật tư không tăng theo size được tính riêng.\\\hline
+INV-03 & Kiểm kho, trừ nguyên liệu, lưu Order/OrderItem, snapshot và kết quả idempotency thuộc cùng transaction. Một bước thất bại phải hoàn tác toàn bộ các thay đổi trong transaction.\\\hline
+INV-04 & Nhiều khách tranh phần nguyên liệu cuối: tổng lượng giữ thành công không vượt tồn thực tế. Cùng khách, cùng key và cùng nội dung phải trả lại đơn cũ, không trừ kho lần hai.\\\hline
+INV-05 & Khách chỉ tự hủy đơn PENDING hoặc PAYMENT\_FAILED chưa sử dụng credit chuyển từ đơn cũ; phải sở hữu đơn. Giao dịch còn cần xác minh được kiểm tra trước khi cho hủy. Đơn PAID không đi qua API hủy thông thường.\\\hline
+INV-06 & Hủy hợp lệ hoàn theo lượng đã lưu tại thời điểm đặt, không theo Recipe hiện tại. Hủy đồng thời hoặc gọi hoàn lại không được cộng kho hai lần; thiếu bằng chứng snapshot phải chuyển quầy kiểm tra.\\\hline
+INV-07 & Đơn chưa thanh toán có thời hạn giữ món mặc định 30 phút. Hết hạn, backend chặn thanh toán mới và tác vụ nền đóng đơn đủ điều kiện, hoàn snapshot; giao diện thông báo khách đặt lại.\\\hline
+INV-08 & Thời hạn QR không vượt thời hạn giữ món. QR hết hạn trước deadline của đơn được cấp lại; việc cấp QR không tự gia hạn giữ nguyên liệu. Tiền về muộn được ghi nhận vào quy trình xử lý khoản thu không áp dụng.\\\hline
+INV-09 & Đơn đã có Payment, bằng chứng đã nhận tiền hoặc credit chuyển từ đơn cũ được bảo toàn để quầy xử lý; không tự đóng như đơn bỏ thanh toán thông thường. Khi duyệt đổi món, hoàn lượng cũ và giữ lượng mới phải cùng thành công hoặc cùng rollback.\\\hline
+\caption{Quy tắc và tiêu chí chấp nhận của luồng quản lý nguyên liệu}
+\end{longtable}
+
+Ví dụ, khách chọn hai ly M có topping trong giỏ chưa làm kho giảm. Sau khi gửi đặt hàng thành công, lượng nguyên liệu đã giữ được ghi cùng mã đơn. Nếu khách chưa thanh toán và hủy hợp lệ, lượng này được cộng lại. Nếu khách trả tiền thành công, đơn chuyển PAID và quầy tiếp nhận; kho không bị trừ lần nữa khi chuyển trạng thái.

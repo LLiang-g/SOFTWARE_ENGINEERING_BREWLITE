@@ -1,0 +1,38 @@
+@startuml usecase-checkout
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam usecase {
+  BackgroundColor #FFF8E1
+  BorderColor #8D6E63
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #5D4037
+}
+title UC-01 Đặt và thanh toán đơn hàng
+
+actor "Khách hàng" as KH
+actor "Dịch vụ thanh toán\n(mô phỏng)" as PAY
+
+rectangle "Hệ thống BrewLite" {
+  usecase "UC-01\nĐặt và thanh toán\nđơn hàng" as UC01
+  usecase "UC-01.1\nXác thực người dùng\n(JWT)" as UC011
+  usecase "UC-01.2\nKiểm tra tồn kho\nvà trừ kho" as UC012
+  usecase "UC-01.3\nThanh toán qua\ndịch vụ thanh toán" as UC013
+  usecase "UC-01.4\nCộng điểm thưởng" as UC014
+  usecase "UC-07\nÁp dụng mã giảm giá" as UC07
+  usecase "UC-01.5\nThanh toán lại\nsau khi lỗi" as UC015
+  usecase "UC-06\nHủy đơn chưa\nthanh toán" as UC06
+}
+
+KH --> UC01
+UC01 ..> UC011 : <<include>>
+UC01 ..> UC012 : <<include>>
+UC01 ..> UC013 : <<include>>
+UC01 ..> UC014 : <<include>>
+UC07 ..> UC01 : <<extend>>
+UC015 ..> UC01 : <<extend>>
+UC06 ..> UC01 : <<extend>>
+UC013 --> PAY
+@enduml

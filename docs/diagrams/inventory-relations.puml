@@ -1,0 +1,66 @@
+@startuml
+title Order inventory - selected data relationships
+hide methods
+skinparam classAttributeIconSize 0
+class Product {
+ id: Int
+ name: String
+ price: Int
+}
+class Ingredient {
+ id: Int
+ unit: String
+ stock: Int
+}
+class Recipe {
+ productId: Int
+ ingredientId: Int
+ quantity: Int
+ scalesWithSize: Boolean
+}
+class ToppingRecipe {
+ toppingCode: String
+ ingredientId: Int
+ quantity: Int
+}
+class Order {
+ id: Int
+ status: OrderStatus
+ reservationExpiresAt: DateTime?
+ reservationExpiredAt: DateTime?
+}
+class OrderItem {
+ productId: Int
+ size: Size
+ toppings: String[]
+ qty: Int
+}
+class OrderInventoryReservation {
+ orderId: Int
+ ingredientId: Int
+ quantity: Int
+ releasedAt: DateTime?
+}
+class OrderCreateRequest {
+ userId: Int
+ idempotencyKey: String
+ requestHash: String
+ orderId: Int?
+}
+Product "1" -- "0..*" Recipe
+Ingredient "1" -- "0..*" Recipe
+Ingredient "1" -- "0..*" ToppingRecipe
+Product "1" -- "0..*" OrderItem
+Order "1" *-- "1..*" OrderItem
+Order "1" -- "0..*" OrderInventoryReservation
+Ingredient "1" -- "0..*" OrderInventoryReservation
+Order "0..1" -- "0..1" OrderCreateRequest
+note bottom of Recipe
+Unique(productId, ingredientId)
+quantity > 0
+end note
+note bottom of OrderInventoryReservation
+Unique(orderId, ingredientId)
+Snapshot of the quantity actually reserved
+end note
+@enduml

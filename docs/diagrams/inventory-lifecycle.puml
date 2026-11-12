@@ -1,0 +1,25 @@
+@startdot
+digraph inventory {
+ graph [rankdir=TB, bgcolor=white, pad=0.2, nodesep=0.35, ranksep=0.48];
+ node [shape=box, style="rounded,filled", fillcolor="#f2f6fa", color="#51667c", fontname="Arial", fontsize=17, margin="0.16,0.12"];
+ edge [fontname="Arial", fontsize=13, color="#51667c"];
+ cart [label="Select items in cart\nNo inventory reservation"];
+ validate [label="POST order: authenticate, claim key\nValidate prices; size/topping demand"];
+ stock [label="Transaction: lock ingredients\nCheck total demand against stock"];
+ fail [label="Rollback\nShow unavailable selection",fillcolor="#fff0ec"];
+ order [label="Deduct stock; write PENDING order\nSave exact quantities as snapshots; COMMIT"];
+ paid [label="Verified payment before deadline\nPAID: keep reservation, no second deduction",fillcolor="#eaf6ee"];
+ cancel [label="Customer cancellation allowed\nLock Order; recheck status/payment"];
+ expiry [label="Hold deadline passed\nWorker locks Order; no funds/credit"];
+ release [label="Transaction: return snapshot quantities\nSet releasedAt and CANCELLED\nExpiry additionally sets reservationExpiredAt"];
+ notify [label="COMMIT then notify UI\nExpired: ask customer to place a new order"];
+ late [label="Late successful IPN\nREVIEW + refund handling case\nDo not reopen or deduct again",fillcolor="#fff5da"];
+ cart -> validate -> stock;
+ stock -> fail [label="insufficient"];
+ stock -> order [label="sufficient"];
+ order -> paid; order -> cancel; order -> expiry;
+ cancel -> release; expiry -> release; release -> notify; notify -> late [label="if payment arrives late"];
+ {rank=same; paid; cancel; expiry;}
+ {rank=same; stock; fail;}
+}
+@enddot

@@ -1,0 +1,36 @@
+@startuml
+title Paid order exchange - quote, approval and credit
+skinparam defaultFontSize 15
+actor Customer
+participant "Menu / exchange cart" as UI
+participant "NestJS API" as API
+database PostgreSQL as DB
+actor Barista
+Customer -> UI: Select replacement items, size and toppings
+UI -> API: Quote(orderId, items)
+API --> UI: Server total, credit, delta and fingerprint
+Customer -> UI: Confirm quote and reason
+UI -> API: Request(key, items, expectedQuote)
+API -> DB: Lock source Order; store REQUESTED + quote
+note right of DB: Source remains paid/reserved
+note right of DB: REQUESTED blocks preparation
+Barista -> API: Decide(id, version, approve, note)
+API -> DB: Begin; lock source Order, recheck state/version
+alt Reject or customer withdraws before decision
+ API -> DB: Update request state/version; keep source order
+else Approve while source is PAID
+ API -> DB: Lock union of old/new ingredients in ID order
+ API -> DB: Release old snapshot; reserve new selection
+ API -> DB: Create replacement + credit; cancel source
+ API -> DB: APPROVED + replacement link + version increment
+ note right of DB: Any failure rolls back all changes
+end
+API -> DB: Commit
+API --> UI: Refresh order/request state
+alt Delta = 0
+ UI --> Customer: Replacement already PAID
+else Delta > 0
+ UI -> API: VNPay payment for delta only
+ API --> UI: Payment URL / QR
+end
+@enduml

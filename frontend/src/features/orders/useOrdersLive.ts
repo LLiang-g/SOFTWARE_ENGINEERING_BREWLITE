@@ -46,7 +46,9 @@ export function useOrdersLive(enabled: boolean, load: LoadOrders) {
             if (socket.active) void refresh();
         });
 
+        const poll = setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, 15000);
         return () => {
+            clearInterval(poll);
             activeLoad.current = null;
             request.current?.abort();
             socket.removeAllListeners();

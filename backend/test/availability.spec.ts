@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calcServings } from './availability';
+import { calcServings } from '../src/products/availability';
 
 describe('calcServings', () => {
     it('món chưa có công thức thì chưa pha được', () => {

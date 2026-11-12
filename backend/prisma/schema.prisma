@@ -27,6 +27,15 @@ enum OrderStatus {
 enum PaymentMethod {
   WALLET
   CARD
+  VNPAY
+}
+
+enum VnpayAttemptStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+  REVIEW
 }
 
 enum Role {
@@ -55,6 +64,8 @@ model Ingredient {
   unit    String
   stock   Int      @default(0)
   recipes Recipe[]
+  toppingRecipes ToppingRecipe[]
+  reservations OrderInventoryReservation[]
 }
 
 // Công thức món: một dòng cho mỗi nguyên liệu, quantity là lượng dùng cho một ly.
@@ -64,11 +75,21 @@ model Recipe {
   productId    Int
   ingredientId Int
   quantity     Int
+  scalesWithSize Boolean @default(true)
 
   product    Product    @relation(fields: [productId], references: [id])
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
 
   @@unique([productId, ingredientId])
+}
+
+model ToppingRecipe {
+  id Int @id @default(autoincrement())
+  toppingCode String
+  ingredientId Int
+  quantity Int
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  @@unique([toppingCode, ingredientId])
 }
 
 model User {
@@ -79,6 +100,9 @@ model User {
   loyaltyPoints       Int                  @default(0)
   orders              Order[]
   loyaltyTransactions LoyaltyTransaction[]
+  orderCreateRequests OrderCreateRequest[]
+  paymentStartRequests PaymentStartRequest[]
+  paymentAudits PaymentAudit[]
 }
 
 model Voucher {
@@ -91,6 +115,12 @@ model Voucher {
 }
 
 model Order {
+  @@index([status, reservationExpiresAt, id], map: "Order_reservation_expiry_idx")
+  reservationExpiresAt DateTime?
+  reservationExpiredAt DateTime?
+  creditApplied Int @default(0)
+  exchangeRequests OrderExchange[] @relation("ExchangeSource")
+  replacementFor OrderExchange? @relation("ExchangeReplacement")
   id        Int         @id @default(autoincrement())
   userId    Int
   status    OrderStatus @default(PENDING)
@@ -104,6 +134,23 @@ model Order {
   items    OrderItem[]
   payments Payment[]
   loyaltyTransactions LoyaltyTransaction[]
+  inventoryReservations OrderInventoryReservation[]
+  createRequest OrderCreateRequest?
+  vnpayAttempts VnpayAttempt[]
+}
+
+// Key thuộc một khách hàng, không thuộc một tiến trình backend.
+model OrderCreateRequest {
+  userId         Int
+  idempotencyKey String   @db.VarChar(100)
+  requestHash    String   @db.Char(64)
+  orderId        Int?     @unique
+  createdAt      DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@id([userId, idempotencyKey])
 }
 
 model OrderItem {
@@ -126,8 +173,73 @@ model Payment {
   amount         Int
   method         PaymentMethod
   createdAt      DateTime      @default(now())
+  vnpayAttemptId Int?          @unique
 
   order Order @relation(fields: [orderId], references: [id])
+  vnpayAttempt VnpayAttempt? @relation(fields: [vnpayAttemptId], references: [id], onDelete: Restrict)
+}
+
+model VnpayAttempt {
+  refundCase PaymentRefundCase?
+  id                 Int @id @default(autoincrement())
+  orderId            Int
+  txnRef             String @unique @db.VarChar(32)
+  amount             Int
+  status             VnpayAttemptStatus @default(PENDING)
+  paymentUrl         String
+  merchantCode       String
+  createDate         String @db.VarChar(14)
+  expiresAt          DateTime
+  providerTxnNo      String? @unique
+  responseCode       String?
+  transactionStatus  String?
+  paidAt             DateTime?
+  reviewReason       String?
+  lastCheckedAt      DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  payment Payment?
+  requests PaymentStartRequest[]
+  audits PaymentAudit[]
+
+  @@index([orderId, createdAt])
+}
+
+model PaymentStartRequest {
+  userId Int
+  key String @db.VarChar(100)
+  attemptId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  attempt VnpayAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  @@id([userId, key])
+}
+
+model PaymentAudit {
+  id Int @id @default(autoincrement())
+  attemptId Int
+  actorId Int?
+  action String @db.VarChar(40)
+  note String @db.VarChar(1000)
+  createdAt DateTime @default(now())
+  attempt VnpayAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  @@index([attemptId, createdAt])
+}
+
+model OrderInventoryReservation {
+  id           Int       @id @default(autoincrement())
+  orderId      Int
+  ingredientId Int
+  quantity     Int
+  releasedAt   DateTime?
+
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, ingredientId])
+  @@index([ingredientId])
 }
 
 // Sổ cái điểm thưởng: mỗi lần cộng hoặc trừ điểm là một dòng, points dương là cộng.
@@ -145,4 +257,49 @@ model LoyaltyTransaction {
 
   @@unique([orderId, type])
   @@index([userId, createdAt])
+}
+
+enum ExchangeStatus {
+  WITHDRAWN
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+enum RefundCaseStatus {
+  OPEN
+  PROCESSING
+  COMPLETED
+}
+model OrderExchange {
+  quotedTotal Int?
+  quotedLines Json?
+  id Int @id @default(autoincrement())
+  sourceOrderId Int
+  replacementOrderId Int? @unique
+  key String @db.VarChar(100)
+  requestHash String @db.Char(64)
+  items Json
+  reason String @db.VarChar(1000)
+  status ExchangeStatus @default(REQUESTED)
+  version Int @default(0)
+  decisionNote String? @db.VarChar(1000)
+  decidedBy Int?
+  createdAt DateTime @default(now())
+  decidedAt DateTime?
+  sourceOrder Order @relation("ExchangeSource", fields:[sourceOrderId], references:[id], onDelete:Restrict)
+  replacementOrder Order? @relation("ExchangeReplacement", fields:[replacementOrderId], references:[id], onDelete:Restrict)
+  @@unique([sourceOrderId,key])
+}
+model PaymentRefundCase {
+  id Int @id @default(autoincrement())
+  attemptId Int @unique
+  amount Int
+  status RefundCaseStatus @default(OPEN)
+  version Int @default(0)
+  handledBy Int?
+  reference String? @unique @db.VarChar(200)
+  note String? @db.VarChar(1000)
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  attempt VnpayAttempt @relation(fields:[attemptId], references:[id], onDelete:Restrict)
 }

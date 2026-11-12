@@ -21,7 +21,7 @@ export default function ProductImage({
         }
     }, []);
 
-    if (failed) {
+    if (!src?.trim() || failed) {
         return <DrinkArt kind={drinkKindFor(alt)} className="h-[78%] w-auto" />;
     }
 

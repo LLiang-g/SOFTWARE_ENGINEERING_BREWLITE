@@ -1,0 +1,80 @@
+@startuml
+title BrewLite - domain overview (selected attributes)
+hide methods
+skinparam classAttributeIconSize 0
+class User {
+id: Int
+email: String
+}
+class Product {
+id: Int
+price: Int
+}
+class Order {
+id: Int
+status: OrderStatus
+total: Int
+creditApplied: Int
+}
+class OrderItem {
+qty: Int
+size: String
+lineTotal: Int
+}
+class Payment {
+amount: Int
+idempotencyKey: String
+}
+class Voucher {
+code: String
+discountPercent: Int
+}
+class LoyaltyTransaction {
+points: Int
+}
+class Ingredient {
+stock: Int
+}
+class Recipe {
+quantity: Int
+}
+class OrderInventoryReservation {
+quantity: Int
+releasedAt: DateTime?
+}
+class VnpayAttempt {
+txnRef: String
+amount: Int
+}
+class OrderExchange {
+version: Int
+quotedTotal: Int
+}
+class PaymentRefundCase {
+version: Int
+}
+enum OrderStatus {
+PENDING
+PAID
+PAYMENT_FAILED
+PREPARING
+READY
+COMPLETED
+CANCELLED
+}
+User "1" -- "0..*" Order
+Order "1" *-- "1..*" OrderItem
+Product "1" -- "0..*" OrderItem
+Order "1" -- "0..*" Payment
+Voucher "0..1" -- "0..*" Order
+User "1" -- "0..*" LoyaltyTransaction
+Product "1" -- "0..*" Recipe
+Ingredient "1" -- "0..*" Recipe
+Order "1" -- "0..*" OrderInventoryReservation
+Ingredient "1" -- "0..*" OrderInventoryReservation
+Order "1" -- "0..*" VnpayAttempt
+Order "1" -- "0..*" OrderExchange : source order
+VnpayAttempt "1" -- "0..1" PaymentRefundCase
+Order ..> OrderStatus
+note bottom of Voucher : Promotion domain concept is stored as Voucher.
+@enduml

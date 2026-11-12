@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCartStore, selectTotal } from './cart.store';
@@ -13,6 +13,7 @@ import { formatPrice } from '@/lib/format';
 import { VoucherInfo } from '@/lib/types';
 import { IconMinus, IconPlus, IconTag, IconTrash } from '@/components/icons';
 import DrinkArt, { DRINK_TINT, drinkKindFor } from '@/features/catalog/DrinkArt';
+import { completeCheckoutIntent, discardCheckoutIntent, prepareCheckoutIntent } from './checkout-intent';
 
 export default function CartView() {
     const router = useRouter();
@@ -25,6 +26,7 @@ export default function CartView() {
     const token = useAuthStore((s) => s.token);
 
     const [placing, setPlacing] = useState(false);
+    const placingRef = useRef(false);
     const [error, setError] = useState<string | null>(null);
     const [voucherInput, setVoucherInput] = useState('');
     const [voucher, setVoucher] = useState<VoucherInfo | null>(null);
@@ -57,14 +59,19 @@ export default function CartView() {
     }
 
     async function handlePlaceOrder() {
-        if (!token) {
+        if (placingRef.current || applying) return;
+        const auth = useAuthStore.getState();
+        if (!auth.token || !auth.user) {
             router.push('/login?next=/cart');
             return;
         }
+        placingRef.current = true;
         setError(null);
         setPlacing(true);
+        let succeeded = false;
         try {
-            const order = await createOrder(
+            const intent = prepareCheckoutIntent(
+                auth.user.id,
                 items.map((i) => ({
                     productId: i.productId,
                     size: i.size,
@@ -73,11 +80,18 @@ export default function CartView() {
                 })),
                 voucher?.code,
             );
+            const order = await createOrder(intent.items, intent.voucherCode, intent.key);
+            if (useAuthStore.getState().token !== auth.token) {
+                setError('Đơn đã được ghi nhận. Đăng nhập đúng tài khoản để xem lịch sử đơn.');
+                return;
+            }
             clearCart();
+            completeCheckoutIntent(auth.user.id, intent.key);
+            succeeded = true;
             router.push(`/orders/${order.id}`);
         } catch (err) {
             if (err instanceof ApiError) {
-                if (err.status === 401) {
+                if (err.status === 401 && useAuthStore.getState().token === auth.token) {
                     useAuthStore.getState().logout();
                     router.push('/login?next=/cart');
                     return;
@@ -85,10 +99,16 @@ export default function CartView() {
                 setError(err.message);
             } else {
                 setError(
-                    'Không kết nối được máy chủ. Hãy kiểm tra backend đã chạy chưa.',
+                    err instanceof Error && !(err instanceof TypeError)
+                        ? err.message
+                        : 'Chưa xác nhận được kết quả đặt hàng. Hãy thử lại cùng giỏ hoặc kiểm tra lịch sử đơn trước khi đổi món.',
                 );
             }
-            setPlacing(false);
+        } finally {
+            if (!succeeded) {
+                placingRef.current = false;
+                setPlacing(false);
+            }
         }
     }
 
@@ -119,7 +139,7 @@ export default function CartView() {
     }
 
     return (
-        <div>
+        <fieldset disabled={placing} className="m-0 min-w-0 border-0 p-0">
             <ul className="space-y-3">
                 {items.map((item) => (
                     <li key={item.key} className="rounded-[22px] border border-line bg-paper p-3.5">
@@ -246,7 +266,23 @@ export default function CartView() {
                     <span className="font-semibold">Tổng</span>
                     <span className="font-display text-2xl font-bold tabular-nums">{formatPrice(total)}</span>
                 </div>
-                {error && <p role="alert" className="mt-3 rounded-xl bg-chili-soft px-3 py-2 text-sm text-chili">{error}</p>}
+                {error && (
+                    <div className="mt-3 rounded-xl bg-chili-soft px-3 py-2 text-sm text-chili">
+                        <p role="alert">{error}</p>
+                        <Link href="/orders" className="mt-2 inline-block underline">Kiểm tra lịch sử đơn</Link>
+                        <button type="button" className="mt-2 ml-4 underline" onClick={() => {
+                            if (placingRef.current) return;
+                            const user = useAuthStore.getState().user;
+                            if (!user || !window.confirm('Đơn trước có thể đã được tạo. Bạn đã kiểm tra lịch sử và muốn bắt đầu một lần đặt mới?')) return;
+                            try {
+                                discardCheckoutIntent(user.id);
+                                setError(null);
+                            } catch {
+                                setError('Không cập nhật được dữ liệu đặt hàng trong trình duyệt. Hãy kiểm tra quyền lưu trữ.');
+                            }
+                        }}>Bắt đầu lần đặt mới</button>
+                    </div>
+                )}
             </section>
 
             <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_24px_-14px_rgba(43,26,18,0.3)] md:static md:z-auto md:mt-4 md:border-0 md:bg-transparent md:p-0 md:shadow-none">
@@ -254,7 +290,7 @@ export default function CartView() {
                     <button
                         type="button"
                         onClick={handlePlaceOrder}
-                        disabled={placing}
+                        disabled={placing || applying}
                         className="flex h-14 w-full items-center justify-between rounded-full bg-espresso px-6 text-base font-semibold text-white transition hover:bg-roast active:scale-[0.99] disabled:opacity-60"
                     >
                         <span>{placing ? 'Đang đặt...' : token ? 'Đặt hàng' : 'Đăng nhập để đặt hàng'}</span>
@@ -262,6 +298,6 @@ export default function CartView() {
                     </button>
                 </div>
             </div>
-        </div>
+        </fieldset>
     );
 }

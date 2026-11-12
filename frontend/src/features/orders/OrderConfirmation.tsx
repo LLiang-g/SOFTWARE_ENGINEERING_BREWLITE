@@ -1,5 +1,6 @@
 'use client';
 
+import ExchangePanel from './ExchangePanel';
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { IconCheck } from '@/components/icons';
@@ -200,10 +201,10 @@ export default function OrderConfirmation({ id }: { id: number }) {
     }
 
     const showProgress = STEPS.includes(order.status);
-    const payable = PAYABLE_STATUSES.includes(order.status);
-    const canCancel = CANCELLABLE_STATUSES.includes(order.status);
+    const payable = PAYABLE_STATUSES.includes(order.status) && !order.reservationTimedOut;
+    const canCancel = CANCELLABLE_STATUSES.includes(order.status) && !order.reservationTimedOut;
     const success = showProgress;
-    const message = MESSAGES[order.status];
+    const message = order.expiryMessage ?? (order.reservationTimedOut ? "Đã hết thời gian thanh toán. Hệ thống đang kết thúc giữ món." : MESSAGES[order.status]);
 
     return (
         <div>
@@ -212,7 +213,7 @@ export default function OrderConfirmation({ id }: { id: number }) {
             <article className="rounded-[24px] bg-paper shadow-[0_14px_34px_-16px_rgba(43,26,18,0.35)]">
                 <header className={`rounded-t-[24px] px-5 pt-6 pb-7 ${BAND[order.status]}`}>
                     <h1 className="font-display text-[1.4rem] leading-snug font-bold tracking-tight">
-                        {HEADINGS[order.status]}
+                        {order.reservationExpiredAt ? "Đơn đã hết thời gian giữ món" : HEADINGS[order.status]}
                     </h1>
                     {message && <p className="mt-1 text-[15px] opacity-90">{message}</p>}
                     <p className="mt-6 text-sm opacity-80">Mã đơn</p>
@@ -259,10 +260,27 @@ export default function OrderConfirmation({ id }: { id: number }) {
                                 </p>
                             </>
                         )}
-                        <p className="flex items-baseline justify-between pt-1">
-                            <span className="font-semibold">Tổng</span>
-                            <span className="font-display text-2xl font-bold tabular-nums">{formatPrice(order.total)}</span>
-                        </p>
+                        {order.creditApplied > 0 ? (
+                            <>
+                                <p className="flex justify-between text-muted">
+                                    <span>Tổng tiền món</span>
+                                    <span className="tabular-nums">{formatPrice(order.total)}</span>
+                                </p>
+                                <p className="flex justify-between gap-3 text-pandan">
+                                    <span>Tiền chuyển từ đơn cũ</span>
+                                    <span className="shrink-0 tabular-nums">−{formatPrice(order.creditApplied)}</span>
+                                </p>
+                                <p className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+                                    <span className="font-semibold">{payable ? 'Cần thanh toán thêm' : success ? 'Chênh lệch đã thanh toán' : 'Chênh lệch của lần đổi'}</span>
+                                    <span className="shrink-0 font-display text-2xl font-bold tabular-nums">{formatPrice(order.amountDue)}</span>
+                                </p>
+                            </>
+                        ) : (
+                            <p className="flex items-baseline justify-between pt-1">
+                                <span className="font-semibold">Tổng</span>
+                                <span className="font-display text-2xl font-bold tabular-nums">{formatPrice(order.total)}</span>
+                            </p>
+                        )}
                     </div>
 
                     {success && order.pointsEarned > 0 && (
@@ -273,17 +291,22 @@ export default function OrderConfirmation({ id }: { id: number }) {
                 </div>
             </article>
 
+            {order.reservationExpiredAt && <Link href="/" className="mt-4 flex min-h-12 items-center justify-center rounded-full bg-espresso px-5 font-semibold text-white">Đặt món lại</Link>}
+            {payable && order.reservationExpiresAt && <p role="status" className="mt-4 text-sm text-muted">Món được giữ đến {new Date(order.reservationExpiresAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })}. Hết thời gian, đơn sẽ đóng và cần đặt lại.</p>}
             {error && <p role="alert" className="mt-3 rounded-2xl bg-chili-soft px-4 py-3 text-sm text-chili">{error}</p>}
 
-            {payable && (
+            {(
                 <PaymentPanel
                     orderId={order.id}
-                    total={order.total}
+                    total={order.amountDue ?? order.total}
                     onResult={reloadAfterPayment}
+                    readOnly={!payable}
                 />
             )}
 
-            {canCancel && (
+            <ExchangePanel orderId={order.id} canRequest={order.status === 'PAID'} />
+
+            {canCancel && !(order.creditApplied > 0) && (
                 <button
                     type="button"
                     onClick={handleCancel}

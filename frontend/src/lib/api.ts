@@ -3,8 +3,15 @@ import { AuthResponse, Product, ProductDetail, VoucherInfo } from './types';
 export const API_URL =
     process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
+// Server Components use the Docker network; the browser uses the public URL.
+function catalogApiUrl(): string {
+    return typeof window === 'undefined'
+        ? process.env.SERVER_API_URL ?? API_URL
+        : API_URL;
+}
+
 export async function getProducts(): Promise<Product[]> {
-    const res = await fetch(`${API_URL}/products`, { cache: 'no-store' });
+    const res = await fetch(`${catalogApiUrl()}/products`, { cache: 'no-store' });
     if (!res.ok) {
         throw new Error('Không tải được danh sách sản phẩm');
     }
@@ -12,7 +19,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function getProduct(id: number): Promise<ProductDetail | null> {
-    const res = await fetch(`${API_URL}/products/${id}`, { cache: 'no-store' });
+    const res = await fetch(`${catalogApiUrl()}/products/${id}`, { cache: 'no-store' });
     if (res.status === 404) return null;
     if (!res.ok) {
         throw new Error('Không tải được sản phẩm');

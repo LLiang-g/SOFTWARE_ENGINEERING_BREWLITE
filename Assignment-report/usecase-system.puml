@@ -1,0 +1,41 @@
+@startuml usecase-system
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam usecase {
+  BackgroundColor #FFF8E1
+  BorderColor #8D6E63
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #5D4037
+}
+title Use-case tổng quát của hệ thống BrewLite
+
+actor "Khách hàng" as KH
+actor "Dịch vụ thanh toán\n(mô phỏng)" as PAY
+actor "Nhân viên quầy\n(ngoài MVP)" as NV
+
+rectangle "Hệ thống BrewLite" {
+  usecase "UC-02\nXem menu và\nchi tiết sản phẩm" as UC02
+  usecase "UC-03\nQuản lý giỏ hàng" as UC03
+  usecase "UC-04\nĐăng ký / Đăng nhập" as UC04
+  usecase "UC-01\nĐặt và thanh toán\nđơn hàng" as UC01
+  usecase "UC-05\nXem lịch sử và\ntheo dõi đơn" as UC05
+  usecase "UC-06\nHủy đơn chưa\nthanh toán" as UC06
+  usecase "UC-07\nÁp dụng mã giảm giá" as UC07
+  usecase "UC-08\nCập nhật trạng thái\npha chế" as UC08
+}
+
+KH --> UC02
+KH --> UC03
+KH --> UC04
+KH --> UC01
+KH --> UC05
+KH --> UC06
+
+UC01 ..> UC04 : <<include>>
+UC07 ..> UC01 : <<extend>>
+UC01 --> PAY
+NV --> UC08
+@enduml

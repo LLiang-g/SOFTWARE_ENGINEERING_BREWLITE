@@ -1,0 +1,10 @@
+# Overlay; first compose file must be the initialized deployment project's file.
+services:
+  backend:
+    image: ${BACKEND_IMAGE:?Exact backend digest required}
+  frontend:
+    image: ${FRONTEND_IMAGE:?Exact frontend digest required}
+  migrate:
+    image: ${TOOLS_IMAGE:?Exact tools digest required}
+  seed:
+    image: ${TOOLS_IMAGE:?Exact tools digest required}

@@ -1,5 +1,6 @@
 import {
     ConflictException,
+    ForbiddenException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,8 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { assertTransition } from '../orders/order-state-machine';
 import { LoyaltyService } from '../promotions/loyalty.service';
 import { OrdersGateway } from '../realtime/orders.gateway';
+
+import { holdHasExpired, RESERVATION_EXPIRED_MESSAGE } from '../orders/reservation-policy';
 
 export type PayResult = {
     orderId: number;
@@ -35,6 +38,10 @@ export class PaymentsService {
         idempotencyKey: string,
         dto: CreatePaymentDto,
     ): Promise<PayResult> {
+        if (process.env.PAYMENT_MOCK_ENABLED !== 'true' || process.env.VNPAY_ENABLED === 'true') {
+            throw new ForbiddenException('Thanh toán mô phỏng đang tắt');
+        }
+        if (!['WALLET', 'CARD'].includes(dto.method)) throw new ForbiddenException('Phương thức mock không hợp lệ');
         try {
             const outcome = await this.prisma.$transaction(
                 (tx) => this.payInTransaction(tx, userId, idempotencyKey, dto),
@@ -80,6 +87,11 @@ export class PaymentsService {
         const order = await tx.order.findUnique({ where: { id: dto.orderId } });
         if (!order || order.userId !== userId) {
             throw new NotFoundException('Không tìm thấy đơn hàng');
+        }
+        if (['PENDING', 'PAYMENT_FAILED'].includes(order.status) && holdHasExpired(order)) throw new ConflictException(RESERVATION_EXPIRED_MESSAGE);
+        if (order.creditApplied > 0) throw new ConflictException('Đơn đổi món chỉ thanh toán chênh lệch qua VNPay');
+        if (await tx.vnpayAttempt.findFirst({ where: { orderId: dto.orderId, status: { in: ['PENDING', 'REVIEW'] } } })) {
+            throw new ConflictException('Đơn đang có giao dịch VNPay cần xử lý');
         }
         if (order.status === 'PAID') {
             throw new ConflictException('Đơn này đã được thanh toán');
