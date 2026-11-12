@@ -284,6 +284,12 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Debug token (xóa sau khi xong)
+        shell: powershell
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+        run: |
+          "tokenLength=$($env:REGISTRY_TOKEN.Length)"
       - name: Login for this job only
         shell: powershell
         env:
