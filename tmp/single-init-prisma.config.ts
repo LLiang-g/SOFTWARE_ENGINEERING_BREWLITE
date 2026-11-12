@@ -1,1 +1,0 @@
-export default {schema:"D:\\Mấy cái trên trường\\cnpm\\backend\\prisma\\schema.prisma",datasource:{url:process.env.DATABASE_URL}};
