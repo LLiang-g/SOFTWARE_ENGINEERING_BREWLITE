@@ -6,3 +6,4 @@ dist
 .env.docker
 /tmp/
 /proposed-fixes/
+/backups/
