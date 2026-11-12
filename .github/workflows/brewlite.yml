@@ -287,7 +287,7 @@ jobs:
       - name: Login for this job only
         shell: powershell
         env:
-          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
           REGISTRY_USER: ${{ github.actor }}
         run: |
           $env:DOCKER_CONFIG = Join-Path $env:RUNNER_TEMP ('brewlite-docker-' + $env:GITHUB_RUN_ID)
