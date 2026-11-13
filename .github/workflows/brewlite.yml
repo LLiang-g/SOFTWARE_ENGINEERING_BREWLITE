@@ -289,17 +289,21 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         run: |
-          $sha = [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:REGISTRY_TOKEN))).Replace('-','').Substring(0,8)
-          "tokenSha8=$sha"
-          "envNames=" + ((Get-ChildItem Env: | Where-Object { $_.Name -match 'DOCKER|PROXY' } | ForEach-Object { $_.Name }) -join ',')
-          $cfg = Join-Path $env:USERPROFILE '.docker\config.json'
-          if (Test-Path $cfg) {
-            $j = Get-Content $cfg -Raw | ConvertFrom-Json
-            "configKeys=" + (($j.PSObject.Properties.Name) -join ',')
-            "credsStore=" + $j.credsStore
-          } else { "no config.json" }
-          $out = $env:REGISTRY_TOKEN | docker login ghcr.io --username LLiang-g --password-stdin 2>&1
-          "login output: $out"
+          "docker path: $((Get-Command docker).Source)"
+          "docker version: $(docker --version)"
+          $tmp = Join-Path $env:RUNNER_TEMP 'dbg-docker'
+          New-Item -ItemType Directory -Force $tmp | Out-Null
+          '{}' | Out-File -FilePath (Join-Path $tmp 'config.json') -Encoding ascii
+          "--- A: config sach, stdin"
+          $env:REGISTRY_TOKEN | docker --config $tmp login ghcr.io -u LLiang-g --password-stdin 2>&1 | Out-String
+          "exit A=$LASTEXITCODE"
+          "--- B: config sach, -p"
+          docker --config $tmp login ghcr.io -u LLiang-g -p $env:REGISTRY_TOKEN 2>&1 | Out-String
+          "exit B=$LASTEXITCODE"
+          "--- C: cmd, stdin khong co xuong dong"
+          cmd /c "<nul set /p=%REGISTRY_TOKEN%| docker --config $tmp login ghcr.io -u LLiang-g --password-stdin" 2>&1 | Out-String
+          "exit C=$LASTEXITCODE"
+          exit 0
       - name: Login for this job only
         shell: powershell
         env:
