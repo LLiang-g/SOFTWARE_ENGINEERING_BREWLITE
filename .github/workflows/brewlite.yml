@@ -289,20 +289,25 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         run: |
-          "docker path: $((Get-Command docker).Source)"
-          "docker version: $(docker --version)"
+          $ErrorActionPreference = 'Continue'
+          "OutputEncoding=$($OutputEncoding.WebName) preambleBytes=$($OutputEncoding.GetPreamble().Length)"
           $tmp = Join-Path $env:RUNNER_TEMP 'dbg-docker'
           New-Item -ItemType Directory -Force $tmp | Out-Null
           '{}' | Out-File -FilePath (Join-Path $tmp 'config.json') -Encoding ascii
-          "--- A: config sach, stdin"
-          $env:REGISTRY_TOKEN | docker --config $tmp login ghcr.io -u LLiang-g --password-stdin 2>&1 | Out-String
-          "exit A=$LASTEXITCODE"
-          "--- B: config sach, -p"
-          docker --config $tmp login ghcr.io -u LLiang-g -p $env:REGISTRY_TOKEN 2>&1 | Out-String
+          "--- B: -p"
+          docker --config $tmp login ghcr.io -u LLiang-g -p $env:REGISTRY_TOKEN 2>&1 | ForEach-Object { "$_" }
           "exit B=$LASTEXITCODE"
-          "--- C: cmd, stdin khong co xuong dong"
-          cmd /c "<nul set /p=%REGISTRY_TOKEN%| docker --config $tmp login ghcr.io -u LLiang-g --password-stdin" 2>&1 | Out-String
+          "--- C: cmd, stdin khong xuong dong"
+          cmd /c "<nul set /p=%REGISTRY_TOKEN%| docker --config $tmp login ghcr.io -u LLiang-g --password-stdin 2>&1"
           "exit C=$LASTEXITCODE"
+          "--- D: stdin ASCII ep cung"
+          $bytes = [Text.Encoding]::ASCII.GetBytes($env:REGISTRY_TOKEN)
+          $psi = New-Object Diagnostics.ProcessStartInfo 'docker', "--config `"$tmp`" login ghcr.io -u LLiang-g --password-stdin"
+          $psi.RedirectStandardInput = $true; $psi.RedirectStandardOutput = $true; $psi.RedirectStandardError = $true; $psi.UseShellExecute = $false
+          $p = [Diagnostics.Process]::Start($psi)
+          $p.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length); $p.StandardInput.Close()
+          $p.StandardOutput.ReadToEnd(); $p.StandardError.ReadToEnd(); $p.WaitForExit()
+          "exit D=$($p.ExitCode)"
           exit 0
       - name: Login for this job only
         shell: powershell
