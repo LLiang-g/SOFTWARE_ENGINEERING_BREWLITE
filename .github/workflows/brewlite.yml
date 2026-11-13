@@ -289,16 +289,17 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         run: |
-          "whoami=$(whoami)"
-          "psversion=$($PSVersionTable.PSVersion)"
-          "context=$(docker context show)"
-          $pair = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("LLiang-g:$env:REGISTRY_TOKEN"))
-          try {
-            $r = Invoke-WebRequest "https://ghcr.io/token?service=ghcr.io" -UseBasicParsing -Headers @{ Authorization = "Basic $pair" }
-            "ghcr token endpoint: $($r.StatusCode)"
-          } catch {
-            "ghcr token endpoint error: $($_.Exception.Message)"
-          }
+          $sha = [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:REGISTRY_TOKEN))).Replace('-','').Substring(0,8)
+          "tokenSha8=$sha"
+          "envNames=" + ((Get-ChildItem Env: | Where-Object { $_.Name -match 'DOCKER|PROXY' } | ForEach-Object { $_.Name }) -join ',')
+          $cfg = Join-Path $env:USERPROFILE '.docker\config.json'
+          if (Test-Path $cfg) {
+            $j = Get-Content $cfg -Raw | ConvertFrom-Json
+            "configKeys=" + (($j.PSObject.Properties.Name) -join ',')
+            "credsStore=" + $j.credsStore
+          } else { "no config.json" }
+          $out = $env:REGISTRY_TOKEN | docker login ghcr.io --username LLiang-g --password-stdin 2>&1
+          "login output: $out"
       - name: Login for this job only
         shell: powershell
         env:
