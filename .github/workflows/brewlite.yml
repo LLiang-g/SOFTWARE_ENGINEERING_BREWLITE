@@ -61,7 +61,7 @@ jobs:
       - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml
       - run: npm run test:e2e -- --reporter=default --reporter=junit --outputFile.junit=reports/api.xml
       - run: npm run build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-test-results
@@ -144,7 +144,7 @@ jobs:
         if: always()
         shell: bash
         run: docker compose --env-file .env.docker logs --no-color > ci-compose.log
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: docker-smoke-results
@@ -258,7 +258,7 @@ jobs:
           printf '%s\n' "BACKEND_IMAGE=$BASE-backend@$BACKEND" "FRONTEND_IMAGE=$BASE-frontend@$FRONTEND" "TOOLS_IMAGE=$BASE-tools@$TOOLS" > release-images.env
           printf '### Published images\n\nCommit: `%s`\n\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
           cat release-images.env >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-images-${{ github.sha }}
           path: release-images.env
