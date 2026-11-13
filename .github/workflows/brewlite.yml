@@ -289,12 +289,15 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         run: |
+          "whoami=$(whoami)"
+          "psversion=$($PSVersionTable.PSVersion)"
+          "context=$(docker context show)"
+          $pair = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("LLiang-g:$env:REGISTRY_TOKEN"))
           try {
-            $r = Invoke-WebRequest https://api.github.com/user -UseBasicParsing -Headers @{ Authorization = "Bearer $env:REGISTRY_TOKEN"; 'User-Agent' = 'brewlite' }
-            "login=$(($r.Content | ConvertFrom-Json).login)"
-            "scopes=$($r.Headers['X-OAuth-Scopes'])"
+            $r = Invoke-WebRequest "https://ghcr.io/token?service=ghcr.io" -UseBasicParsing -Headers @{ Authorization = "Basic $pair" }
+            "ghcr token endpoint: $($r.StatusCode)"
           } catch {
-            "api error: $($_.Exception.Message)"
+            "ghcr token endpoint error: $($_.Exception.Message)"
           }
       - name: Login for this job only
         shell: powershell
