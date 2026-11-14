@@ -1,0 +1,25 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam shadowing false
+start
+:Push / Pull request / Run workflow;
+fork
+  :Backend lint\nMigration + schema diff\nUnit / API test + build;
+fork again
+  :Frontend lint + build\nTest điều phối deploy;
+end fork
+:Docker build + HTTP smoke\nBackup / restore trên DB CI;
+:CI passed\nMọi job kiểm tra đều success;
+if (Nhánh mặc định hoặc tag phiên bản?) then (Có)
+  :Publish GHCR\nbackend / frontend / tools\nLưu digest theo commit;
+  if (Đủ điều kiện kích hoạt deploy?) then (Có)
+    :Job triển khai theo môi trường\nBackup → migrate → cập nhật → smoke;
+  else (Không)
+    :Deploy skipped;
+  endif
+else (Không)
+  :Kết thúc CI cho nhánh / PR;
+endif
+stop
+@enduml

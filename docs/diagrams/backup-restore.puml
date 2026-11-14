@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam shadowing false
+database "Database\nđang dùng" as source
+rectangle "pg_dump\ncustom archive" as dump
+folder "Host backups/\n.dump + .json\nSHA-256" as files
+rectangle "Kiểm hash\npg_restore\ntransaction" as restore
+database "Database mới\nbrewlite_restore_*" as target
+source --> dump : snapshot
+dump --> files : docker cp
+files --> restore
+restore --> target
+note bottom of target
+Đọc bảng / số dòng / constraint
+Ghi verification JSON
+end note
+@enduml

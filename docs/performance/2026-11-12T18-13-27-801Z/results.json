@@ -1,0 +1,110 @@
+{
+  "measuredAtUtc": "2026-11-12T18:16:26.945Z",
+  "gitCommit": "95b957af5277e3e75afae08a759b4fa66386aaa2",
+  "sourceSnapshotSha256": "642120610b4007077c47f727262a9996d988411e1e388a66d9e2635fc832bd01",
+  "configuration": {
+    "products": 50,
+    "users": 20,
+    "ordersPerUser": 5,
+    "itemsPerOrder": 3,
+    "warmupSeconds": 10,
+    "measurementSeconds": 30,
+    "timeoutMs": 5000,
+    "thresholdMs": 500
+  },
+  "environment": {
+    "cpu": "Intel(R) Core(TM) i5-10500H CPU @ 2.50GHz",
+    "logicalCpus": 12,
+    "ramGiB": 15.82596206665039,
+    "platform": "win32",
+    "osRelease": "10.0.26200",
+    "node": "v24.22.2",
+    "database": {
+      "version": "PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "max_connections": "100",
+      "shared_buffers": "128MB"
+    },
+    "apiMode": "fresh NestJS production build; dedicated local process",
+    "loadGenerator": "Node fetch / HTTP keep-alive; same host as API",
+    "network": "loopback API; PostgreSQL on localhost",
+    "traffic": "20 closed-loop users per endpoint, no think time; endpoints measured in separate phases"
+  },
+  "results": [
+    {
+      "id": "products-list",
+      "endpoint": "GET /products",
+      "requests": 4354,
+      "errors": 0,
+      "errorRatePercent": 0,
+      "elapsedSeconds": 30.1357779,
+      "requestsPerSecond": 144.47942954875572,
+      "minMs": 46.21399999999994,
+      "meanMs": 137.6707157556269,
+      "p50Ms": 115.69490000000224,
+      "p90Ms": 203.6903999999995,
+      "p95Ms": 284.75800000000163,
+      "p99Ms": 341.67989999999554,
+      "maxMs": 529.6324000000022,
+      "pass": true
+    },
+    {
+      "id": "product-detail",
+      "endpoint": "GET /products/:id",
+      "requests": 8724,
+      "errors": 0,
+      "errorRatePercent": 0,
+      "elapsedSeconds": 30.0419164,
+      "requestsPerSecond": 290.3942572718164,
+      "minMs": 24.59200000000419,
+      "meanMs": 68.79070040119241,
+      "p50Ms": 63.35910000000149,
+      "p90Ms": 90.02390000000014,
+      "p95Ms": 101.97389999999723,
+      "p99Ms": 146.54559999999765,
+      "maxMs": 242.93299999999,
+      "pass": true
+    },
+    {
+      "id": "order-detail",
+      "endpoint": "GET /orders/:id",
+      "requests": 10438,
+      "errors": 0,
+      "errorRatePercent": 0,
+      "elapsedSeconds": 30.026809900000007,
+      "requestsPerSecond": 347.6226756942301,
+      "minMs": 34.4316000000108,
+      "meanMs": 57.48777338570602,
+      "p50Ms": 55.20260000000417,
+      "p90Ms": 67.98889999999665,
+      "p95Ms": 74.07880000000296,
+      "p99Ms": 93.97570000000997,
+      "maxMs": 121.78469999998924,
+      "pass": true
+    },
+    {
+      "id": "orders-mine",
+      "endpoint": "GET /orders/me",
+      "requests": 9294,
+      "errors": 0,
+      "errorRatePercent": 0,
+      "elapsedSeconds": 30.049228100000008,
+      "requestsPerSecond": 309.29247064419593,
+      "minMs": 46.60940000001574,
+      "meanMs": 64.5717809662147,
+      "p50Ms": 60.263100000011036,
+      "p90Ms": 83.07190000000992,
+      "p95Ms": 91.18880000000354,
+      "p99Ms": 106.3237000000081,
+      "maxMs": 132.74220000000787,
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "limitations": [
+    "One local run, not a guarantee for other hardware or Internet traffic.",
+    "Only GET endpoints; no VNPay/network gateway latency or browser rendering measured.",
+    "API and load generator share CPU; database host resources and other background workloads are not isolated.",
+    "This is a read workload with synthetic data, not a capacity limit or long-duration soak test."
+  ],
+  "cleanup": "Temporary API/database removed after measurement."
+}
