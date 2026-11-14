@@ -23,9 +23,14 @@ test('nhân viên xử lý đơn từ Chờ duyệt đến Đã hoàn tất, kh�
   await payOrder(page);
 
   // Nhân viên: dùng trình duyệt riêng, vì hai người đăng nhập hai tài khoản khác nhau
-  const baristaContext = await browser.newContext({ baseURL: BASE_URL });
+  // Trình duyệt tạo tay không tự quay video như `page` của test, nên phải bật recordVideo
+  // và lưu vào thư mục kết quả của test này.
+  const baristaContext = await browser.newContext({
+    baseURL: BASE_URL,
+    recordVideo: { dir: test.info().outputPath('barista-video') },
+  });
+  const bp = await baristaContext.newPage();
   try {
-    const bp = await baristaContext.newPage();
     await loginAsBarista(bp);
     await expect(bp).toHaveURL(/\/barista/);
     await expect(bp.getByRole('heading', { name: 'Đơn hàng tại quầy' })).toBeVisible();
@@ -52,7 +57,15 @@ test('nhân viên xử lý đơn từ Chờ duyệt đến Đã hoàn tất, kh�
     await expect(completed).toBeVisible({ timeout: 20_000 });
     await expect(completed.getByRole('button')).toHaveCount(0);
   } finally {
+    // Đóng trình duyệt thì file video mới được ghi xong, rồi đính kèm vào báo cáo.
     await baristaContext.close();
+    const video = bp.video();
+    if (video) {
+      await test.info().attach('video-nhan-vien', {
+        path: await video.path(),
+        contentType: 'video/webm',
+      });
+    }
   }
 
   // Khách tải lại trang đơn và thấy đơn đã hoàn tất
