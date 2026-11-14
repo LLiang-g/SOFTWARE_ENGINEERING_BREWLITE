@@ -1,0 +1,66 @@
+name: BrewLite E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      # Hai file môi trường bị .gitignore nên runner phải tự tạo.
+      # PAYMENT_MOCK_ENABLED=true để trang đơn hàng hiện nút thanh toán mô phỏng.
+      - name: Tạo file môi trường
+        run: |
+          printf 'POSTGRES_PASSWORD=ci-postgres-pass\n' > .env.docker
+          printf 'JWT_SECRET=ci-jwt-secret-not-for-production\nPAYMENT_MOCK_ENABLED=true\nVNPAY_ENABLED=false\n' > backend/.env
+
+      # Phải có bảng và dữ liệu TRƯỚC khi backend khởi động,
+      # vì healthcheck của backend gọi /products và frontend chờ backend khỏe.
+      - name: Bật database
+        run: docker compose --env-file .env.docker up -d --wait db
+
+      - name: Migrate và seed
+        run: |
+          docker compose --env-file .env.docker --profile setup run --rm migrate
+          docker compose --env-file .env.docker --profile setup run --rm seed
+
+      - name: Bật backend và frontend
+        run: docker compose --env-file .env.docker up -d --build --wait --wait-timeout 300
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Cài Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Chạy test e2e
+        working-directory: e2e
+        env:
+          E2E_BASE_URL: http://localhost:3000
+        run: npx playwright test
+
+      - name: In log container khi lỗi
+        if: failure()
+        run: docker compose --env-file .env.docker logs --tail 200
+
+      - name: Lưu báo cáo (hình, video, trace)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 14
