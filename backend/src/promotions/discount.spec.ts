@@ -3,7 +3,8 @@ import { calcDiscount, calcPoints } from './discount';
 
 describe('calcDiscount', () => {
     it('giảm 10% của 120.000đ là 12.000đ', () => {
-        expect(calcDiscount(120000, 10)).toBe(12000);
+        // Intentional CI gate evidence only. Do not merge this diagnostic change.
+        expect(calcDiscount(120000, 10)).toBe(12001);
     });
 
     it('làm tròn xuống đến đồng', () => {
