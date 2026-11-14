@@ -1,13 +1,17 @@
 name: BrewLite E2E
 
+# The main CI calls this workflow for the same commit before publishing.
+# Keep manual runs for diagnosis; avoid duplicate automatic runs on push/PR.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_call:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   e2e:
+    name: Browser order and barista flows
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -18,7 +22,7 @@ jobs:
       - name: Tạo file môi trường
         run: |
           printf 'POSTGRES_PASSWORD=ci-postgres-pass\n' > .env.docker
-          printf 'JWT_SECRET=ci-jwt-secret-not-for-production\nPAYMENT_MOCK_ENABLED=true\nVNPAY_ENABLED=false\n' > backend/.env
+          printf 'JWT_SECRET=ci-jwt-secret-not-for-production\nPAYMENT_MOCK_ENABLED=true\nVNPAY_ENABLED=false\nORDER_EXPIRY_WORKER_ENABLED=false\n' > backend/.env
 
       # Phải có bảng và dữ liệu TRƯỚC khi backend khởi động,
       # vì healthcheck của backend gọi /products và frontend chờ backend khỏe.
@@ -49,11 +53,11 @@ jobs:
         working-directory: e2e
         env:
           E2E_BASE_URL: http://localhost:3000
-        run: npx playwright test
+        run: npx playwright test --workers=1
 
-      - name: In log container khi lỗi
-        if: failure()
-        run: docker compose --env-file .env.docker logs --tail 200
+      - name: Capture isolated E2E container logs
+        if: always()
+        run: docker compose --env-file .env.docker logs --no-color --tail 200 > e2e-compose.log
 
       - name: Lưu báo cáo (hình, video, trace)
         if: always()
@@ -63,4 +67,10 @@ jobs:
           path: |
             e2e/playwright-report
             e2e/test-results
+            e2e-compose.log
           retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Dispose isolated E2E containers and database
+        if: always()
+        run: docker compose --env-file .env.docker --profile setup down -v --remove-orphans

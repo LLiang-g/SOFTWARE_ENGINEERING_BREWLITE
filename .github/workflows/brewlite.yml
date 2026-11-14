@@ -157,10 +157,17 @@ jobs:
         if: always()
         run: docker compose --env-file .env.docker --profile setup down -v
 
+  browser_e2e:
+    name: Browser E2E
+    needs: [backend, frontend]
+    uses: ./.github/workflows/e2e.yml
+    permissions:
+      contents: read
+
   passed:
     name: CI passed
     if: always()
-    needs: [backend, frontend, docker]
+    needs: [backend, frontend, docker, browser_e2e]
     runs-on: ubuntu-latest
     steps:
       - name: Require every CI job to pass
