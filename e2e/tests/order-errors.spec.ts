@@ -65,7 +65,8 @@ test('giỏ hàng trống hiện thông báo và có nút quay lại chọn món
   await page.goto('/cart');
   await expect(page.getByRole('heading', { name: 'Giỏ hàng đang trống' })).toBeVisible();
   await page.getByRole('link', { name: 'Chọn món' }).click();
-  await expect(page).toHaveURL(/localhost:\d+\/$/);
+  // Về trang chủ, đúng với mọi địa chỉ (localhost hay production)
+  await expect(page).toHaveURL(/^https?:\/\/[^/]+\/$/);
 });
 
 test('mã giảm giá không tồn tại hiện lỗi và không giảm giá', async ({ page }) => {
