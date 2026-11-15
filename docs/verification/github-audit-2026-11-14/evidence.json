@@ -1,0 +1,336 @@
+{
+  "checkedDate": "2026-11-14",
+  "timezone": "Asia/Saigon",
+  "repository": "LLiang-g/SOFTWARE_ENGINEERING_BREWLITE",
+  "connectionPermissions": {
+    "admin": false,
+    "push": true,
+    "maintain": false
+  },
+  "main": {
+    "sha": "57480206454c4482eaf68ad2f6c91ea9a7ad144a",
+    "protected": false,
+    "protection": {
+      "enabled": false,
+      "required_status_checks": {
+        "enforcement_level": "off",
+        "contexts": [],
+        "checks": []
+      }
+    }
+  },
+  "rulesets": [],
+  "pullRequests": [
+    {
+      "number": 3,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/pull/3",
+      "title": "chore(deps): bump actions/upload-artifact from 4 to 7",
+      "mergedAt": null,
+      "headSha": "0ea9eddae9544a32089127c75062dfdf95440a12"
+    },
+    {
+      "number": 2,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/pull/2",
+      "title": "chore(deps): bump actions/checkout from 6 to 7",
+      "mergedAt": null,
+      "headSha": "0b4235b615556782e0733c1de8946e2f6b2d5e12"
+    },
+    {
+      "number": 1,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/pull/1",
+      "title": "Khanh",
+      "mergedAt": "2026-11-12T15:53:23Z",
+      "headSha": "95b957af5277e3e75afae08a759b4fa66386aaa2"
+    }
+  ],
+  "issuesExcludingPRs": [],
+  "selectedRuns": [
+    {
+      "id": 43600981314,
+      "number": 3,
+      "name": "BrewLite E2E",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43600981314",
+      "event": "push",
+      "sha": "57480206454c4482eaf68ad2f6c91ea9a7ad144a",
+      "conclusion": "success",
+      "createdAt": "2026-11-14T13:40:55Z"
+    },
+    {
+      "id": 43596977311,
+      "number": 43,
+      "name": "BrewLite CI CD",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311",
+      "event": "push",
+      "sha": "0bd33352da418dc0dbfca96d6ee560d5cc147e6a",
+      "conclusion": "success",
+      "createdAt": "2026-11-14T12:53:03Z"
+    },
+    {
+      "id": 43251828645,
+      "number": 2,
+      "name": "BrewLite CI CD",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645",
+      "event": "pull_request",
+      "sha": "95b957af5277e3e75afae08a759b4fa66386aaa2",
+      "conclusion": "success",
+      "createdAt": "2026-11-12T15:48:48Z"
+    }
+  ],
+  "gateJobs": [
+    {
+      "name": "Frontend lint build",
+      "conclusion": "success",
+      "id": 132453467141,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132453467141"
+    },
+    {
+      "name": "Backend lint unit API build",
+      "conclusion": "success",
+      "id": 132453467266,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132453467266"
+    },
+    {
+      "name": "Docker smoke backup restore",
+      "conclusion": "success",
+      "id": 132453744185,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132453744185"
+    },
+    {
+      "name": "Browser E2E / Browser order and barista flows",
+      "conclusion": "success",
+      "id": 132453744221,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132453744221"
+    },
+    {
+      "name": "CI passed",
+      "conclusion": "success",
+      "id": 132454424166,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132454424166"
+    },
+    {
+      "name": "Publish versioned images",
+      "conclusion": "skipped",
+      "id": 132454455778,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132454455778"
+    },
+    {
+      "name": "Deploy tested images",
+      "conclusion": "skipped",
+      "id": 132454456541,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43596977311/job/132454456541"
+    }
+  ],
+  "prJobs": [
+    {
+      "name": "Frontend lint build",
+      "conclusion": "success",
+      "id": 131299380394,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131299380394"
+    },
+    {
+      "name": "Backend lint unit API build",
+      "conclusion": "success",
+      "id": 131299381091,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131299381091"
+    },
+    {
+      "name": "Docker smoke backup restore",
+      "conclusion": "success",
+      "id": 131300297309,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131300297309"
+    },
+    {
+      "name": "CI passed",
+      "conclusion": "success",
+      "id": 131301527418,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131301527418"
+    },
+    {
+      "name": "Publish versioned images",
+      "conclusion": "skipped",
+      "id": 131301591986,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131301591986"
+    },
+    {
+      "name": "Deploy tested images",
+      "conclusion": "skipped",
+      "id": 131301593528,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131301593528"
+    }
+  ],
+  "gateArtifacts": [
+    {
+      "id": 14115137362,
+      "name": "docker-smoke-results",
+      "size": 3088,
+      "expired": false,
+      "digest": "sha256:724d476b9b748c8a5bad47d87915bde823fe7e0bc133e2959332e367af383731"
+    },
+    {
+      "id": 14114608067,
+      "name": "backend-test-results",
+      "size": 8286,
+      "expired": false,
+      "digest": "sha256:ccdef86a54b5baaebfbb6b07ef1deeb57b7e483c152afb33d221a62d8082253c"
+    },
+    {
+      "id": 14114153246,
+      "name": "playwright-report",
+      "size": 211341,
+      "expired": false,
+      "digest": "sha256:5d633fb8ae2ffc6b5448ae9968e76d721af9679269eeba3770c44654a6d5b5b8"
+    }
+  ],
+  "failureClassification": [
+    {
+      "run": 36,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43386074505",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Backup migrate deploy smoke and application rollback"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 11,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43274780585",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 24,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43378938750",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 30,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43383050598",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 14,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43279927483",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 26,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43380652000",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Debug token (xóa sau khi xong)"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 22,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43370697336",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 18,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43283645205",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 32,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43384033841",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Backup migrate deploy smoke and application rollback"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 20,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43366321518",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Debug token (xóa sau khi xong)"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 28,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43382218725",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Debug token (xóa sau khi xong)"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 10,
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43268017877",
+      "failed": [
+        {
+          "name": "Deploy tested images",
+          "steps": [
+            "Login for this job only"
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Read-only API collection; no GitHub settings or repository contents changed.",
+    "No classic branch protection is enabled on main at inspection; rulesets collection is empty.",
+    "All 12 failed CI CD runs inspected failed in Deploy tested images, not lint/test/build.",
+    "Issue list without PRs is empty; this does not establish whether a separate GitHub Project exists."
+  ]
+}

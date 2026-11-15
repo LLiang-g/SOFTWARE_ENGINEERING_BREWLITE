@@ -1,0 +1,17 @@
+# Source: https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475074814
+# Selected original log lines, ANSI colors removed; timestamps preserved.
+2026-11-14T14:18:42.7568792Z ##[group]Run npm ci --ignore-scripts
+2026-11-14T14:18:52.8771119Z ##[group]Run npm run lint
+2026-11-14T14:18:55.6477266Z ##[group]Run npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml
+2026-11-14T14:18:57.0078465Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+2026-11-14T14:18:57.0082624Z  FAIL  src/promotions/discount.spec.ts > calcDiscount > giảm 10% của 120.000đ là 12.000đ
+2026-11-14T14:18:57.0088417Z AssertionError: expected 12000 to be 12001 // Object.is equality
+2026-11-14T14:18:57.0089769Z - Expected
+2026-11-14T14:18:57.0090349Z + Received
+2026-11-14T14:18:57.0091334Z - 12001
+2026-11-14T14:18:57.0091825Z + 12000
+2026-11-14T14:18:57.0122870Z       7|         expect(calcDiscount(120000, 10)).toBe(12001);
+2026-11-14T14:18:57.0129720Z  Test Files  1 failed | 6 passed (7)
+2026-11-14T14:18:57.0131738Z       Tests  1 failed | 41 passed (42)
+2026-11-14T14:18:57.0657639Z ##[error]Process completed with exit code 1.
+

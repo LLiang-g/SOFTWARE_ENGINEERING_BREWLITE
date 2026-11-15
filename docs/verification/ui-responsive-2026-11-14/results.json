@@ -1,0 +1,156 @@
+{
+  "date": "2026-11-14",
+  "browser": "Microsoft Edge",
+  "environment": "isolated Docker stack, ports 4100/4101",
+  "scope": "five unauthenticated screens at two widths; layout and basic form labels/focus, not a full accessibility audit",
+  "results": [
+    {
+      "name": "menu",
+      "url": "/",
+      "width": 390,
+      "layout": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "noHorizontalOverflow": true,
+      "labels": null
+    },
+    {
+      "name": "detail",
+      "url": "/products/1",
+      "width": 390,
+      "layout": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "noHorizontalOverflow": true,
+      "labels": null
+    },
+    {
+      "name": "cart",
+      "url": "/cart",
+      "width": 390,
+      "layout": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "noHorizontalOverflow": true,
+      "labels": null
+    },
+    {
+      "name": "login",
+      "url": "/login",
+      "width": 390,
+      "layout": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "noHorizontalOverflow": true,
+      "labels": {
+        "email": true,
+        "password": true,
+        "keyboardFocus": {
+          "tag": "INPUT",
+          "type": "password"
+        }
+      }
+    },
+    {
+      "name": "register",
+      "url": "/register",
+      "width": 390,
+      "layout": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "noHorizontalOverflow": true,
+      "labels": {
+        "email": true,
+        "password": true,
+        "keyboardFocus": {
+          "tag": "INPUT",
+          "type": "password"
+        }
+      }
+    },
+    {
+      "name": "menu",
+      "url": "/",
+      "width": 1440,
+      "layout": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "noHorizontalOverflow": true,
+      "labels": null
+    },
+    {
+      "name": "detail",
+      "url": "/products/1",
+      "width": 1440,
+      "layout": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "noHorizontalOverflow": true,
+      "labels": null
+    },
+    {
+      "name": "cart",
+      "url": "/cart",
+      "width": 1440,
+      "layout": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "noHorizontalOverflow": true,
+      "labels": null
+    },
+    {
+      "name": "login",
+      "url": "/login",
+      "width": 1440,
+      "layout": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "noHorizontalOverflow": true,
+      "labels": {
+        "email": true,
+        "password": true,
+        "keyboardFocus": {
+          "tag": "INPUT",
+          "type": "password"
+        }
+      }
+    },
+    {
+      "name": "register",
+      "url": "/register",
+      "width": 1440,
+      "layout": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "noHorizontalOverflow": true,
+      "labels": {
+        "email": true,
+        "password": true,
+        "keyboardFocus": {
+          "tag": "INPUT",
+          "type": "password"
+        }
+      }
+    }
+  ]
+}

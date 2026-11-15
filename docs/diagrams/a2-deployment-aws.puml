@@ -1,0 +1,51 @@
+@startuml
+top to bottom direction
+skinparam dpi 160
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam nodesep 25
+skinparam ranksep 25
+node "Local development" as local {
+ artifact "Git working copy\nbackend/ + frontend/" as source
+}
+node "CI: GitHub Actions (Ubuntu)" as ci {
+ artifact "Lint / unit / API / build\nDocker smoke + backup/restore" as checks
+ artifact "Build & publish\nSHA tag + immutable digest" as publish
+ artifact "deploy-aws job\nproduction environment\nCI secrets + temporary SSH access" as job
+ checks --> publish
+ publish --> job
+}
+cloud "GHCR registry" as registry {
+ artifact "backend / frontend / tools\n@sha256 digest" as images
+}
+node "User device" as user {
+ artifact "Browser\nHTTPS web client" as browser
+}
+node "Production: AWS EC2 Ubuntu\nap-southeast-1 | 13.228.196.157" as ec2 {
+ node "Docker Compose network" as network {
+  node "Caddy reverse proxy\n80 / 443 / 8443" as caddy
+  node "Next.js standalone\nfrontend:3000" as web
+  node "NestJS API\nbackend:3001\nGET /health + Socket.IO" as api
+  database "PostgreSQL 16\ndb:5432" as db
+  artifact "tools image\nPrisma migrate deploy / seed" as tools
+  caddy --> web : HTTP internal
+  caddy --> api : HTTP / WebSocket internal
+  web --> api : SERVER_API_URL (SSR)
+  api --> db : PostgreSQL
+  tools --> db : migration
+ }
+ storage "Persistent Docker volumes\nbrewlite-data / caddy-data / caddy-config" as volumes
+ artifact "Server .env (not in Git)\nDB password / JWT / origin\nrelease.env: images + commit" as env
+ artifact "backups/*.dump\nDocker stdout/stderr logs\nhealthchecks" as ops
+ db --> volumes
+ caddy --> volumes
+ env ..> network : runtime configuration
+ network ..> ops
+}
+source --> checks : Git push / manual dispatch
+publish --> images : HTTPS push (CI token)
+job --> ec2 : SSH/SCP 22 (runner IP /32 only)
+images --> network : HTTPS image pull
+browser --> caddy : HTTPS 443 web\nHTTPS 8443 API / WSS
+job --> caddy : HTTPS public smoke\nweb + /health, matching commit
+@enduml

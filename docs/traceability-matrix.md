@@ -1,47 +1,41 @@
-# Ma trận truy vết BrewLite — baseline Task 1
+﻿# Ma trận truy vết BrewLite
 
-Ngày 12/11/2026. Đây là baseline liên kết yêu cầu với code/test, chưa xác nhận mọi AC đã PASS. ACT-01 (activity-checkout), SEQ-01 (sequence-checkout), CLASS-01 (class-domain) có nguồn .puml và ảnh .png tại docs/diagrams. DEP-01 chưa có; sơ đồ hiện có mô tả chọn lọc, chưa bao phủ mọi nghiệp vụ đổi món/hoàn khoản thu dư.
+Cập nhật 14/11/2026 theo repo và bằng chứng hiện có. Mỗi dòng phân biệt code, phép thử và giới hạn kết luận; không tự gán toàn bộ AC PASS. Sơ đồ cập nhật cho A2: `docs/diagrams/a2-sequence-checkout.*`, `a2-class-domain.*`; activity và use-case giữ nguồn tương ứng. ADR tại `docs/architecture/adr/`.
 
-Use-case nguồn/render hiện có tại `docs/diagrams/usecase-system.*`, `usecase-checkout.*`. Tiêu chí AC và NFR nằm trong `docs/requirements/srs.md`. Quy tắc nằm trong `business-rules.md`.
+Browser E2E: `docs/verification/browser-e2e-2026-11-14/` (16/16, Edge, Docker local). CI gate: ảnh Actions #43, commit `0bd3335`, success. Hai phạm vi bằng chứng được ghi riêng. Task 3.2/production vẫn để sau.
 
-| Yêu cầu | Use-case / quy tắc | Thiết kế | Code / API hiện có | Test / bằng chứng hiện có hoặc cần bổ sung |
-| --- | --- | --- | --- | --- |
-| FR-01 | UC-02 | ACT-01, CLASS-01 | products.service.ts, ProductGrid; GET /products | availability.spec.ts, ingredients.e2e-spec.ts; thêm E2E menu |
-| FR-02 | UC-02, BR-01 | CLASS-01 | products.service.ts, ProductDetail; GET /products/:id | Cần bổ sung test riêng cho giá size/topping và browser E2E tùy chọn |
-| FR-03 | UC-03 | ACT-01 | cart.store.ts, CartView.tsx | Browser E2E thật cần bổ sung |
-| FR-04 | UC-04 | SEQ-01 | auth.service.ts, jwt.strategy.ts, AuthForm | auth-roles.e2e-spec.ts; kiểm tra phiên nhiều tab chưa xong |
-| FR-05 | UC-01, BR-02/07 | SEQ-01 | orders.service.ts; POST /orders | order-idempotency.e2e-spec.ts, inventory.e2e-spec.ts |
-| FR-06 | UC-01, BR-09 | SEQ-01 | payments.service.ts, mock-gateway.service.ts | payments.e2e-spec.ts, staff-orders.e2e-spec.ts |
-| FR-07 | UC-05 | ACT-01 | OrderHistory, OrderConfirmation; GET /orders/me, /orders/:id | auth-roles.e2e-spec.ts, staff-orders.e2e-spec.ts; browser nghiệm thu |
-| FR-08 | UC-08, BR-21 | State machine trong code; cần CLASS-01 | staff-orders.controller.ts, orders.service.ts, order-state-machine.ts | order-state-machine.spec.ts, staff-orders.e2e-spec.ts, payment-exchange.e2e-spec.ts |
-| FR-09 | UC-06, BR-04/05/06 | SEQ-01/CLASS-01 | inventory.service.ts; reserve/release; snapshot | inventory.e2e-spec.ts, inventory-snapshot.e2e-spec.ts |
-| FR-10 | UC-07, BR-03/13 | CLASS-01 | promotions.service.ts, loyalty.service.ts | promotions.e2e-spec.ts, loyalty.e2e-spec.ts |
-| FR-11 | UC-01 | SEQ-01 | vnpay.gateway.ts, PaymentQr.tsx, VnpayPanel | vnpay.crypto.spec.ts, vnpay.e2e-spec.ts; merchant demo cần lưu minh chứng |
-| FR-12 | UC-01, BR-08/09 | SEQ-01 | vnpay.crypto.ts, vnpay.service.ts; IPN/QueryDr/Return | vnpay.e2e-spec.ts, vnpay.crypto.spec.ts |
-| FR-13 | UC-11, BR-10/11 | SEQ-01 | VnpayService.start/check/apply, PaymentRefundCase | payment-exchange.e2e-spec.ts, vnpay.e2e-spec.ts |
-| FR-14 | UC-09, BR-14/15/19 | ACT-01/CLASS-01 | ExchangeWorkspace, ExchangeService.quote/request/withdraw | payment-exchange.e2e-spec.ts; verify-ui.cjs trong bản vá 08 dùng fixture |
-| FR-15 | UC-09, BR-16/17/18 | SEQ-01/CLASS-01 | ExchangeService.decide, creditApplied; VNPay thu delta | payment-exchange.e2e-spec.ts; UI tổng tiền bản vá 09 |
-| FR-16 | UC-10, BR-20 | CLASS-01 | PaymentRefundCase, updateRefund, PaymentAudit | payment-exchange.e2e-spec.ts; chưa có refund tự động |
-| FR-17 | UC-09/10/11 | ACT-01 | StaffPaymentCases, queue API | payment-exchange.e2e-spec.ts; verify-ui.cjs bản vá 08 |
-| FR-18 | Vận hành local | DEP-01 | Compose hiện chỉ DB; Dockerfile trống, chưa health | Thiếu test compose/clean migration/health |
-| FR-19 | Delivery | DEP-01 | Chưa thấy workflow/URL production trong local | Thiếu CI pass/fail, required checks, CD/smoke/rollback/release |
-| FR-20 | Ngoài phạm vi | Không nghiệm thu hiện tại | Chưa có vòng đời giao hàng riêng | Không đánh dấu PASS một chức năng chưa triển khai |
+| Mã | Use-case / nhóm | Thiết kế | Code / API | Test / bằng chứng | Phạm vi kết luận |
+| --- | --- | --- | --- | --- | --- |
+| FR-01 | UC-02 | Activity/class | products.service.ts; ProductGrid; GET /products | ingredients.e2e-spec.ts; Playwright order-flow | Code/API + browser flow |
+| FR-02 | UC-02 | Class | ProductDetail; GET /products/:id | availability/ingredient-demand; Playwright size M | Topping runtime kiểm bằng API; browser chưa kiểm mọi lựa chọn |
+| FR-03 | UC-03 | Activity | cart.store.ts; CartView | Playwright order-flow/order-errors | Đã có browser E2E, không coi là mọi thao tác giỏ đều được bao phủ |
+| FR-04 | UC-04 | Sequence; ADR-002 | auth service/strategy/guards | auth-roles; Playwright register/permission | Không thay thế kiểm toán bảo mật |
+| FR-05 | UC-01 | Sequence; ADR-004 | OrdersService; POST /orders | order-idempotency; inventory; Playwright checkout | Một ý định không tạo/giữ kho lặp |
+| FR-06 | UC-01 | Sequence; ADR-005 | PaymentsService + MockGateway | payments; Playwright success/retry | PAYMENT_MOCK_ENABLED=true, VNPAY_ENABLED=false |
+| FR-07 | UC-05 | Activity/sequence | GET /orders/me, /orders/:id; confirmation | API ownership; Playwright reload COMPLETED | Đọc lịch sử và chi tiết đúng chủ |
+| FR-08 | UC-08 | State machine/class | StaffOrdersController; OrdersService | staff-orders; Playwright staff-flow | 409 giả lập kiểm UI; concurrency có API test riêng |
+| FR-09 | UC-06 | ADR-004 | InventoryService; snapshot/expiry | inventory; inventory-snapshot; size-topping-expiry | Khóa dòng nguyên liệu ở bản hiện tại |
+| FR-10 | UC-07 | Promotion(Voucher)/LoyaltyTransaction | promotions/loyalty services | discount; promotions; loyalty; browser voucher | Snapshot tiền và cộng điểm một lần |
+| FR-11 | UC-01 | Gateway; ADR-005 | VnpayGateway; PaymentQr | vnpay tests | Playwright hiện dùng mock, không chứng minh gateway Sandbox live |
+| FR-12 | UC-01 | Sequence; ADR-005 | VnpayService IPN/Return/QueryDr | vnpay.crypto; vnpay API | Chữ ký, merchant, số tiền và tham chiếu |
+| FR-13 | UC-11 | ADR-004/005 | Vnpay start/check/apply; refund case | payment-exchange; vnpay API | Thanh toán lại và tiền về muộn |
+| FR-14 | UC-09 | Exchange design | ExchangeWorkspace; quote/request/withdraw | payment-exchange API | Không có browser coverage đầy đủ cho đổi món |
+| FR-15 | UC-09 | Exchange + version | ExchangeService.decide; creditApplied | payment-exchange API | Duyệt nguyên tử và thu chênh lệch |
+| FR-16 | UC-10 | Refund case + version | StaffRefundController; updateRefund | payment-exchange API | Hồ sơ/chứng từ, không tự chuyển tiền ngân hàng |
+| FR-17 | UC-09/10/11 | Queue API | StaffPaymentCases; staff APIs | payment-exchange API | Lọc, quyền và các điều kiện hồ sơ |
+| FR-18 | Vận hành local | Docker/ADR-007 | Dockerfiles; Compose; migrate/seed | Docker smoke và local E2E stack | Đã có stack đủ web/API/DB; bỏ ghi chú cũ chỉ có DB |
+| FR-19 | Delivery | Pipeline + ADR | brewlite.yml; reusable e2e.yml; deploy scripts | Actions #43 / 0bd3335; local 16/16 | Gate đã chạy; URL production/release chốt riêng |
+| FR-20 | Phạm vi | Context/scope | Không có UI tài xế | Không nghiệm thu chức năng ngoài phạm vi | Won't |
+| NFR-01 | Bảo mật | ADR-002/007 | Guards/JWT/bcrypt/input validation | auth roles/API ownership/browser permission | Test quyền, không pentest toàn hệ thống |
+| NFR-02 | Toàn vẹn | ADR-004 | Transaction/unique/row lock/version | inventory/idempotency/exchange | Phân biệt snapshot, khóa và chống lặp |
+| NFR-03 | Hiệu năng | Môi trường đo local | docs/performance/tools/run.cjs | JSON/CSV: 32.810 request, p95 bốn API <500ms | Chỉ phạm vi lần đo đã mô tả |
+| NFR-04 | Responsive/accessibility | UI/ADR-006 | Tailwind/forms/focus | Ảnh UI và desktop browser E2E | Cần kiểm 390px/1440px và accessibility toàn bộ |
+| NFR-05 | Khả dụng | Error/retry + ADR-007 | UI states; authoritative payment status | Playwright injected errors; health/smoke | Không suy thành uptime SLA |
+| NFR-06 | Tái tạo/triển khai | ADR-001/003/007 | Lockfile/Docker/migrations | Docker smoke/local clean E2E | Public HTTPS production để sau |
+| NFR-07 | Quan sát | ADR-007 | Nest console/Docker logs/deploy state | CI artifacts + logs | Không khẳng định có logging tập trung |
+| NFR-08 | Truy vết | ADR-001..007; diagrams | Tài liệu và ma trận này | Kiểm đường dẫn và đối chiếu theo mã | Trạng thái tài liệu, không tự chứng nhận mọi AC đạt |
+| NFR-09 | Quality gate | Dependency chain | CI passed needs browser_e2e | Actions #43; validator 13 trường hợp local | CI fail đã kiểm chứng ở run #45; owner còn cần bật required checks |
+| NFR-10 | Sao lưu/phục hồi | ADR-003/007 | scripts/database; scripts/deploy | Docker smoke backup/restore | Rollback app tách phục hồi dữ liệu |
+| NFR-11 | Phiên | Auth store/UI policy | Zustand session state | Browser contexts riêng cho khách/barista | Không suy ra test hai tab cùng origin đã đủ |
+| NFR-12 | PWA | Frontend direction | Next.js responsive | Chưa có hồ sơ install/offline | Could; không gọi mobile UI là PWA đã cài đặt |
 
-## Truy vết phi chức năng
-
-| Mã | Code / tài liệu liên quan | Phép kiểm chứng còn phải gắn minh chứng |
-| --- | --- | --- |
-| NFR-01 | JWT/guards/DTO/auth service | auth-roles API test; scan secret và kiểm tra deployment |
-| NFR-02 | Transaction/unique/Order lock/Ingredient lock/version | Inventory, snapshot, idempotency, VNPay, exchange test trên commit nộp |
-| NFR-03 | API sản phẩm/đơn | Chưa có script và kết quả đo tải |
-| NFR-04 | Components Next.js, ảnh docs/staff và screenshots bản vá | Checklist trình duyệt/mobile/bàn phím trên bản nộp |
-| NFR-05 | Loading/error/realtime/payment check | Cần health và diễn tập lỗi kết nối/Return/IPN |
-| NFR-06 | Lockfile/schema/seed/Compose | Cần dựng sạch, Docker đủ 3 dịch vụ và production |
-| NFR-07 | PaymentAudit và log ứng dụng | Cần health/log vận hành/runbook hỗ trợ |
-| NFR-08 | Tài liệu requirements/ma trận này | Cần sơ đồ/ADR và review liên kết |
-| NFR-09 | Chưa có workflow local | Cần CI trên PR, required checks, minh chứng pass/fail |
-| NFR-10 | Lịch sử migration cần đối chiếu | Cần runbook và test restore/rollback ở DB riêng |
-| NFR-11 | auth.store.ts hiện localStorage | Cần chốt chính sách và test nhiều tab |
-| NFR-12 | Chưa manifest/service worker | Nếu chọn triển khai PWA, kiểm tra khả năng cài đặt và cập nhật |
-
-Đường dẫn code/test rút gọn: backend/src/, backend/test/ và frontend/src/features/ như tên module trong bảng. Tại bước nghiệm thu, bổ sung đường dẫn đầy đủ, tên test/AC và commit SHA; ma trận không dùng số lượng test đã chạy ở một bản vá khác làm kết quả của commit hiện tại.

@@ -1,0 +1,13 @@
+# PR #1, CI run #2, backend job 131299381091
+# Selected original lines; ANSI colors removed, UTC timestamps preserved.
+2026-11-12T15:49:06.6406947Z ##[group]Run npm ci --ignore-scripts
+2026-11-12T15:49:19.1970863Z ##[group]Run npm run lint
+2026-11-12T15:49:19.3695430Z Found 0 warnings and 0 errors.
+2026-11-12T15:49:22.0028028Z ##[group]Run npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml
+2026-11-12T15:49:23.3586306Z  Test Files  7 passed (7)
+2026-11-12T15:49:23.3587631Z       Tests  42 passed (42)
+2026-11-12T15:49:23.4194540Z ##[group]Run npm run test:e2e -- --reporter=default --reporter=junit --outputFile.junit=reports/api.xml
+2026-11-12T15:49:46.8841313Z  Test Files  12 passed (12)
+2026-11-12T15:49:46.8842579Z       Tests  135 passed (135)
+2026-11-12T15:49:46.9687607Z ##[group]Run npm run build
+2026-11-12T15:49:47.0816083Z > nest build
