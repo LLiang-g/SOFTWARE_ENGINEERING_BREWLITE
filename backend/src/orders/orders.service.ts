@@ -108,8 +108,10 @@ export class OrdersService {
           }
 
           // Trừ kho và tạo đơn nằm chung một giao dịch: lỗi ở đâu thì hoàn tác tất cả.
+          // Giữ nguyên liệu
           const reservations = await this.inventory.reserve(tx, dto.items);
-
+          
+          // Lưu đơn, chi tiết món và snapshot nguyên liệu
           const created = await tx.order.create({
             data: {
               userId,

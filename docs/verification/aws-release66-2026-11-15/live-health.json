@@ -1,0 +1,4 @@
+{
+  "status": 200,
+  "body": "{\"status\":\"ok\",\"database\":\"up\",\"commit\":\"c3ecfd24fa20de0c9a55fd3a492afc6cba33623e\",\"uptimeSeconds\":267}"
+}

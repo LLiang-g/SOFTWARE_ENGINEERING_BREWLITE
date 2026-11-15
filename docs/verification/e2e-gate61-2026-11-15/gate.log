@@ -1,0 +1,21 @@
+2026-11-15T05:46:31.6597242Z   RESULTS: {
+  "backend": {
+    "result": "success",
+    "outputs": {}
+  },
+  "frontend": {
+    "result": "success",
+    "outputs": {}
+  },
+  "docker": {
+    "result": "success",
+    "outputs": {}
+  },
+  "browser_e2e": {
+    "result": "success",
+    "outputs": {}
+  }
+}
+2026-11-15T05:46:31.6599150Z ##[endgroup]
+2026-11-15T05:46:31.8944731Z Cleaning up orphan processes
+
