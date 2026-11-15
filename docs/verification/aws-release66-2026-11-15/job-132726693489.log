@@ -1,0 +1,18 @@
+2026-11-15T06:34:46.5209794Z ✔ internal success preserves old good until public confirmation (65.067107ms)
+2026-11-15T06:34:46.5211689Z ✔ public smoke failure: rollback restores old release and removes pending (75.614936ms)
+2026-11-15T06:34:46.5213600Z ✔ confirmation after public success promotes correct commit (73.743272ms)
+2026-11-15T06:34:46.5214733Z ✔ wrong commit cannot overwrite old good (67.767476ms)
+2026-11-15T06:34:46.5215797Z ✔ failed confirmation health preserves old good for rollback (89.280523ms)
+2026-11-15T06:34:46.5216916Z ✔ unhealthy new stack rolls back but deploy remains failed (69.36449ms)
+2026-11-15T06:34:46.5217804Z ✔ migration failure stops before app replacement and keeps old good (48.832981ms)
+2026-11-15T06:34:46.5219019Z ✔ first release cannot pretend rollback succeeded without previous good (65.314207ms)
+2026-11-15T06:34:46.5219797Z ✔ second deploy is refused while first is unconfirmed (64.376583ms)
+2026-11-15T06:34:46.5220516Z ✔ workflow orders public smoke before confirmation and gates release tests (0.43307ms)
+2026-11-15T06:34:46.5299542Z ℹ tests 10
+2026-11-15T06:34:46.5299859Z ℹ suites 0
+2026-11-15T06:34:46.5300144Z ℹ pass 10
+2026-11-15T06:34:46.5300447Z ℹ fail 0
+2026-11-15T06:34:46.5300726Z ℹ cancelled 0
+2026-11-15T06:34:46.5300982Z ℹ skipped 0
+2026-11-15T06:34:46.5301182Z ℹ todo 0
+2026-11-15T06:34:46.5301426Z ℹ duration_ms 681.537417

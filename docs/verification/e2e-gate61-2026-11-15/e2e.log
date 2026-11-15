@@ -1,0 +1,6 @@
+2026-11-15T05:46:05.6313269Z ##[group]Run npx playwright test --workers=1
+2026-11-15T05:46:05.6313621Z npx playwright test --workers=1
+2026-11-15T05:46:06.3142857Z Running 16 tests using 1 worker
+2026-11-15T05:46:21.9464144Z   16 passed (15.7s)
+2026-11-15T05:46:22.2028572Z Artifact name is valid!
+2026-11-15T05:46:22.9468816Z Finished uploading artifact content to blob storage!

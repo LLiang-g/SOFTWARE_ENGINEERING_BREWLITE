@@ -6,6 +6,7 @@ Backend dùng NestJS và PostgreSQL/Prisma; frontend dùng Next.js. Thanh toán 
 
 ## Mục lục
 
+- [Phiên bản production và nghiệm thu](#phiên-bản-production-và-nghiệm-thu)
 - [Chức năng](#chức-năng)
 - [Công nghệ và cấu trúc](#công-nghệ-và-cấu-trúc)
 - [Chuẩn bị](#chuẩn-bị)
@@ -15,9 +16,25 @@ Backend dùng NestJS và PostgreSQL/Prisma; frontend dùng Next.js. Thanh toán 
 - [Thiết lập VNPay Sandbox](#thiết-lập-vnpay-sandbox)
 - [Kiểm thử và build](#kiểm-thử-và-build)
 - [Sao lưu và thử khôi phục](#sao-lưu-và-thử-khôi-phục)
-- [CI/CD](#cicd)
+- [CI/CD và triển khai AWS](#cicd-và-triển-khai-aws)
+- [Rollback ứng dụng AWS](#rollback-ứng-dụng-aws)
+- [Demo và hồ sơ bàn giao](#demo-và-hồ-sơ-bàn-giao)
 - [Xử lý lỗi thường gặp](#xử-lý-lỗi-thường-gặp)
 - [Tài liệu và đóng góp](#tài-liệu-và-đóng-góp)
+
+## Phiên bản production và nghiệm thu
+
+| Thành phần | Địa chỉ |
+| --- | --- |
+| Website HTTPS | https://13.228.196.157 |
+| Quầy barista | https://13.228.196.157/barista |
+| API sản phẩm | https://13.228.196.157:8443/products |
+| API health | https://13.228.196.157:8443/health |
+| Mã nguồn | https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE |
+
+Môi trường AWS dùng **thanh toán mô phỏng WALLET/CARD**, không chuyển tiền thật; VNPay Sandbox có thể cấu hình riêng khi chạy local. Tài khoản khách tự đăng ký. Tài khoản barista production được nhóm cấp riêng cho người nghiệm thu, không dùng mật khẩu local mẫu và không công bố thông tin đăng nhập thật trong repo.
+
+Phiên bản đã kiểm chứng ngày 15/11/2026: commit `c3ecfd24fa20de0c9a55fd3a492afc6cba33623e`, [Actions #66](https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43685962677). Cùng lần chạy đạt 16 browser E2E, 10 test release giả lập, publish, deploy, HTTPS smoke và confirm release. Endpoint health trả `status`, `database`, `commit`, `uptimeSeconds`; dùng `commit` để nhận biết bản đang chạy sau mỗi lần cập nhật. IP EC2 có thể thay đổi khi vận hành; nếu đổi IP phải đồng bộ URL trong cấu hình và cập nhật tài liệu.
 
 ## Chức năng
 
@@ -40,19 +57,20 @@ Phạm vi hiện tại tập trung đặt và nhận món tại quầy. Giao di�
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, Zustand |
 | Backend | NestJS 12, TypeScript, JWT, Socket.IO |
 | Database | PostgreSQL 16, Prisma 7 |
-| Kiểm thử | Vitest, Supertest |
-| Vận hành | Docker Compose, GitHub Actions, GHCR, PowerShell |
+| Kiểm thử | Vitest, Supertest, Playwright (Chromium), Node test runner |
+| Vận hành | Docker Compose, GitHub Actions, GHCR, AWS EC2, Caddy, Bash/PowerShell |
 
 ```text
 .
 ├── backend/                 # API, schema/migration/seed Prisma, test
 ├── frontend/                # Website khách hàng và quầy barista
+├── e2e/                     # Browser E2E Playwright, report/video/trace
 ├── scripts/database/        # Backup và thử khôi phục database
 ├── scripts/deploy/          # Triển khai và rollback ứng dụng
-├── deploy/                  # Compose dùng image phát hành
+├── deploy/                  # AWS production và Compose image phát hành
 ├── .github/                 # Workflow CI/CD và Dependabot
 ├── docs/                    # Thiết kế, sơ đồ, tài liệu và bằng chứng kiểm thử
-├── Assignment-report/       # Mã LaTeX và PDF báo cáo
+├── Assignment-report/       # Báo cáo tổng, bàn giao riêng (đang ignore)
 ├── docker-compose.yml       # Môi trường local đầy đủ
 └── vnpay.postman_collection.json
 ```
@@ -144,6 +162,7 @@ Chạy từng lệnh, chỉ tiếp tục khi lệnh trước thành công. `migr
 | Website | http://localhost:3000 |
 | Quầy barista | http://localhost:3000/barista |
 | API danh sách sản phẩm | http://localhost:3001/products |
+| API health | http://localhost:3001/health |
 | Cấu hình chế độ thanh toán công khai | http://localhost:3001/payments/vnpay/config |
 | PostgreSQL | `localhost:5432`, database/user `brewlite` |
 
@@ -274,11 +293,15 @@ Unit test không cần DB. API test đọc `DATABASE_URL` và có ghi dữ liệ
 $env:DATABASE_URL = 'postgresql://brewlite:brewlite_local_dev@localhost:5432/brewlite_test?schema=public'
 $env:JWT_SECRET = 'chuoi-bi-mat-rieng-cho-test-local'
 $env:ORDER_EXPIRY_WORKER_ENABLED = 'false'
+$env:PAYMENT_MOCK_ENABLED = 'true'
+$env:VNPAY_ENABLED = 'false'
 npx.cmd prisma migrate deploy
 npm.cmd run test:e2e
 Remove-Item Env:DATABASE_URL
 Remove-Item Env:JWT_SECRET
 Remove-Item Env:ORDER_EXPIRY_WORKER_ENABLED
+Remove-Item Env:PAYMENT_MOCK_ENABLED
+Remove-Item Env:VNPAY_ENABLED
 ```
 
 Thay thông tin kết nối theo máy. DB `brewlite_test` phải tồn tại trước khi migrate; dọn dữ liệu thử sau khi kiểm tra. Các biến PowerShell chỉ áp dụng trong terminal đó và ưu tiên hơn `.env`.
@@ -293,6 +316,33 @@ npm.cmd run start
 ```
 
 `start` chạy bản build production, không thay cho `dev`. Xem bộ đo hiệu năng tại [docs/performance/method.md](docs/performance/method.md) và kiểm chứng bổ sung tại [docs/verification/README.md](docs/verification/README.md). Import [VNPay Postman collection](vnpay.postman_collection.json) khi cần kiểm tra API; đối chiếu URL/token với môi trường đang chạy.
+
+### Browser E2E và kiểm thử release
+
+Chạy trên stack **local/test riêng** đã migrate/seed, bật `PAYMENT_MOCK_ENABLED=true`, tắt `VNPAY_ENABLED`, đặt `ORDER_EXPIRY_WORKER_ENABLED=false` trong `backend/.env` cho môi trường thử rồi recreate backend. Không thay cấu hình môi trường có dữ liệu cần giữ chỉ để chạy test. Theo mặc định web/API dùng cổng 3000/3001.
+
+Tại thư mục gốc, mở terminal khác:
+
+```powershell
+cd e2e
+npm.cmd ci
+npx.cmd playwright install chromium
+$env:E2E_BASE_URL = 'http://localhost:3000'
+npx.cmd playwright test --workers=1
+npm.cmd run report
+```
+
+Trên Linux, cài browser bằng `npx playwright install --with-deps chromium`. Test tạo khách/đơn và thay trạng thái quầy; fixture barista cần phù hợp tài khoản mẫu trong test. Vì có ghi dữ liệu, không trỏ cả bộ test vào production. Một số ca UI chủ động giả lập HTTP lỗi để kiểm tra phản hồi; các bất biến database được kiểm riêng bằng API integration test.
+
+HTML nằm ở `e2e/playwright-report/`; video và dữ liệu từng ca ở `e2e/test-results/`. Video luôn bật, screenshot khi lỗi, trace giữ khi lỗi. Mở report để xem assertion và đính kèm; các thư mục này được workflow upload thành artifact `playwright-report`.
+
+Kiểm thử release/rollback giả lập, chạy từ thư mục gốc:
+
+```powershell
+node --test scripts/deploy/tests/aws-release.test.cjs
+```
+
+Cần Node 24 và Bash (Linux hoặc Git Bash trên Windows); nếu đường dẫn Git Bash khác máy tác giả, đặt `$env:BASH_PATH = 'C:/Program Files/Git/bin/bash.exe'`. Test dùng thư mục tạm và Docker giả, không truy cập AWS/database thật. Kết quả này kiểm chứng orchestration, khác việc chủ động gây lỗi và phục hồi trên EC2.
 
 ## Sao lưu và thử khôi phục
 
@@ -310,13 +360,125 @@ powershell -ExecutionPolicy Bypass -File scripts/database/restore-test.ps1 -Back
 
 Script kiểm tra hash, tạo **database phục hồi riêng** và lưu kết quả kiểm tra; không tự ghi đè database vận hành. Xem [hướng dẫn kỹ thuật backup/restore](docs/GIAI-THICH-KY-THUAT-BACKUP-RESTORE.md) trước khi thực hiện chuyển đổi dữ liệu thật.
 
-## CI/CD
+## CI/CD và triển khai AWS
 
-Workflow [`.github/workflows/brewlite.yml`](.github/workflows/brewlite.yml) chạy backend lint/unit/API/build, frontend lint/build và Docker smoke/backup-restore. Image phát hành lên GHCR được gắn với phiên bản/digest.
+Workflow chính: [`.github/workflows/brewlite.yml`](.github/workflows/brewlite.yml). Workflow [E2E](.github/workflows/e2e.yml) được gọi bằng `workflow_call` cho cùng commit; có thể chạy thủ công để chẩn đoán.
 
-Deploy cần cấu hình riêng: Windows self-hosted runner mang label `brewlite-deploy`, environment `production`, biến `DEPLOY_ROOT` trỏ đến thư mục triển khai trên máy runner và các env ứng dụng tại máy đó. Có thể kích hoạt qua `workflow_dispatch` với `deploy=true`; deploy tự động trên push dùng biến `DEPLOY_ENABLED=true`. Nếu environment yêu cầu reviewer, cần duyệt trước khi job chạy.
+```text
+Push / PR / Tag / Manual
+  → Backend lint + unit/API + build / Frontend lint + build
+  → Docker smoke + backup/restore / Browser E2E
+  → AWS release confirmation tests (chạy song song)
+  → CI passed (tất cả dependency phải success)
+  → Build + push GHCR (backend, frontend, tools)
+  → Deploy AWS EC2 → Public HTTPS smoke → Confirm release
+```
 
-Clone và chạy local không cần thiết lập runner/CD. Job CI xanh hoặc publish thành công không đồng nghĩa đã triển khai máy đích. Xem [tài liệu CI/CD](docs/GIAI-THICH-KY-THUAT-CICD.md) và script trong `scripts/deploy/` để vận hành bản phát hành.
+CI chạy trên mọi nhánh/PR; publish dành cho nhánh mặc định hoặc tag phiên bản, không publish từ PR. Image có tag `sha-<commit>` hoặc tag phiên bản hợp lệ; OCI label giữ revision, bản deploy nhận image theo digest `@sha256:...`. Artifact `release-images.env` ghi ba image cụ thể. Tag phát hành không tự kích hoạt deploy AWS: job AWS chỉ nhận nhánh mặc định và điều kiện bên dưới.
+
+### Chuẩn bị EC2 lần đầu
+
+1. Tạo EC2 Ubuntu tại `ap-southeast-1`, cài Docker Engine và Compose plugin, cho user `ubuntu` chạy Docker. Kiểm tra `docker version` và `docker compose version` từ phiên SSH của user này. EC2 phải có outbound tới GHCR và dịch vụ cấp chứng chỉ.
+2. Security Group mở public TCP 80/443/8443 cho Caddy; không mở database 5432 hoặc các cổng ứng dụng 3000/3001. SSH 22 được workflow cấp tạm cho IP /32 của runner; khi cài đặt thủ công chỉ cho IP quản trị cần thiết.
+3. Tạo `~/brewlite`, file `~/brewlite/.env`, quyền `chmod 600`. File này được script Bash source nên dùng cú pháp `KEY=value`, đặt giá trị có khoảng trắng trong nháy, không dùng lệnh shell. Điền giá trị riêng:
+
+```dotenv
+PUBLIC_IP=YOUR_EC2_PUBLIC_IP
+FRONTEND_URL=https://YOUR_EC2_PUBLIC_IP
+POSTGRES_USER=brewlite
+POSTGRES_DB=brewlite
+POSTGRES_PASSWORD=REPLACE_WITH_RANDOM_ALPHANUMERIC_SECRET
+JWT_SECRET=REPLACE_WITH_LONG_RANDOM_SECRET
+BARISTA_EMAIL=YOUR_BARISTA_EMAIL
+BARISTA_PASSWORD=REPLACE_WITH_PRIVATE_PASSWORD
+PAYMENT_MOCK_ENABLED=true
+ORDER_EXPIRY_WORKER_ENABLED=true
+```
+
+Mẫu trên không phải mật khẩu để dùng thật. Dùng mật khẩu DB ngẫu nhiên dạng chữ/số giúp tránh lỗi URL vì Compose ghép trực tiếp connection string. Compose production hiện đặt `VNPAY_ENABLED=false`. Volume `brewlite-data` giữ DB; `caddy-data`/`caddy-config` giữ trạng thái TLS/proxy. Caddy tự xử lý HTTPS IP theo [Caddyfile](deploy/aws/Caddyfile).
+
+### Cấu hình GitHub
+
+Repo → Settings → Secrets and variables → Actions; cấu hình environment `production` và quyền truy cập theo nhóm:
+
+| Loại | Tên | Giá trị / mục đích |
+| --- | --- | --- |
+| Secret | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Credentials cấp/thu hồi ingress cho Security Group EC2; giới hạn quyền theo tài nguyên cần dùng |
+| Secret | `EC2_SSH_KEY` | Private SSH key tương ứng user ubuntu; không commit |
+| Variable | `EC2_HOST` | Public IP của EC2 |
+| Variable | `EC2_SG_ID` | ID Security Group cần điều khiển SSH |
+| **Repository variable** | `PUBLIC_API_URL` | `https://YOUR_EC2_PUBLIC_IP:8443`; dùng lúc build frontend trong job publish |
+| Variable | `AWS_DEPLOY_ENABLED` | `true` nếu muốn tự deploy khi push main; để tắt nếu chỉ chạy thủ công |
+
+`GITHUB_TOKEN` do Actions tự cấp; publish có `packages: write`, deploy có `packages: read`. Các package GHCR phải cho repo quyền đọc. `PUBLIC_API_URL` nên đặt cấp repository vì publish chạy trước job có environment production. Giá trị public được nhúng vào frontend lúc build, không phải secret. Không đặt secret chỉ ở environment production nếu job cần dùng trước khi vào environment đó.
+
+Windows runner là luồng legacy, chỉ chạy khi `WINDOWS_DEPLOY_ENABLED=true`; không cần bật khi dùng AWS.
+
+### Phát hành và kiểm tra
+
+1. Push nhánh riêng, tạo PR về main, đợi toàn bộ quality gate đạt rồi review/merge.
+2. Vào Actions → BrewLite CI CD → Run workflow → chọn **main**, bật input `deploy`. Nếu production yêu cầu reviewer thì duyệt deployment. Hoặc bật `AWS_DEPLOY_ENABLED=true` để tự triển khai khi push main.
+3. Theo dõi publish, deploy, public smoke, confirm. Chỉ kết luận release hoàn thành khi các bước này thành công.
+
+Runner mở SSH tạm, upload `deploy/aws/` vào `~/brewlite`, truyền token GHCR qua stdin. Script kéo image, chờ DB, tạo custom dump trước migration nếu đã có schema, chạy `prisma migrate deploy`, seed khi số sản phẩm bằng 0, rồi chờ stack healthy. Không reset DB. Dump giữ năm bản gần nhất tại `~/brewlite/backups/`; sao lưu thêm ngoài EC2 nếu cần bảo vệ trước mất ổ/máy.
+
+Public smoke kiểm web và API health qua HTTPS có xác minh chứng chỉ, yêu cầu health chứa đúng commit. Sau smoke đạt, `deploy.sh confirm <commit>` xác nhận bản mới. Kiểm tra từ máy người nghiệm thu:
+
+```powershell
+curl.exe -f https://13.228.196.157/
+curl.exe -f https://13.228.196.157:8443/health
+```
+
+Trên EC2, xem stack/log (không in `.env` ra log công khai):
+
+```bash
+cd ~/brewlite
+docker compose --env-file .env --env-file release.env -f docker-compose.prod.yml ps
+docker compose --env-file .env --env-file release.env -f docker-compose.prod.yml logs --tail 100 backend frontend caddy
+```
+
+## Rollback ứng dụng AWS
+
+`release.env` chỉ bản được chọn chạy; `release.pending.env` là bản chờ public smoke; `release.good.env` là bản đã xác nhận. Bản tốt cũ được giữ đến khi HTTPS smoke và confirm đều đạt. Nếu smoke/confirm lỗi sau deploy, workflow gọi rollback; nếu startup/API nội bộ lỗi, script thử rollback và vẫn trả lỗi để pipeline đỏ.
+
+Rollback thủ công trên EC2 bằng tài khoản được phép SSH:
+
+```bash
+cd ~/brewlite
+./deploy.sh rollback
+```
+
+Lệnh chọn image trong `release.good.env`, chờ healthy và kiểm API, xóa pending khi thành công. Khi B đang pending, lệnh quay về A đã xác nhận; khi B đã confirm thì good là B, **lệnh này không tự tìm lại A trong lịch sử**. Muốn quay về bản xa hơn phải chọn digest đã lưu từ artifact của lần phát hành tương ứng và thực hiện một deployment có kiểm soát. Lần đầu chưa có good thì không có bản để rollback.
+
+Nếu runner bị hủy hoặc mất kết nối giữa deploy và confirm, kiểm tra pending và health; gọi rollback để hủy bản đang chờ hoặc chỉ confirm đúng commit sau khi tự kiểm public HTTPS đạt. Script từ chối deploy mới khi còn pending. Không xác nhận thủ công để bỏ qua smoke đang lỗi.
+
+Rollback image **không đảo migration và không khôi phục dữ liệu**. Schema cần tương thích với image được phục hồi; khôi phục dump là quyết định riêng để tránh mất giao dịch mới. Không dùng `down -v`, migrate reset hoặc seed để rollback.
+
+## Demo và hồ sơ bàn giao
+
+Người ngoài nhóm có thể dùng quy trình local ở trên hoặc URL HTTPS production. Demo mock, không nhập thông tin thẻ thật:
+
+1. Mở menu, xem chi tiết, chọn size/topping còn kho, thêm giỏ và sửa số lượng; đối chiếu tổng tiền.
+2. Tạo tài khoản khách, đăng nhập, áp `BREW10` nếu còn hợp lệ và tạo đơn.
+3. Chọn Ví/Thẻ mô phỏng; thử thành công để thấy PAID, mã đơn và lịch sử. Tạo đơn thử khác nếu muốn xem thanh toán lỗi/thử lại.
+4. Mở cửa sổ/context riêng đăng nhập barista được nhóm cấp, nhận đơn → đang pha → sẵn sàng → hoàn tất; khách đối chiếu trạng thái. Khách chỉ tự hủy đơn chưa thanh toán theo điều kiện nghiệp vụ.
+5. Mở Actions để đối chiếu commit, test artifact và deploy; xem `/health` cùng commit đã phát hành.
+
+Nếu kho topping bằng 0, chọn đồ uống không topping hoặc dùng môi trường thử đã chuẩn bị nguyên liệu. Test/demonstration tạo dữ liệu thật trong môi trường được chọn; dùng tài khoản và đơn demo riêng.
+
+| Hồ sơ bàn giao | Vị trí / cách đối chiếu |
+| --- | --- |
+| Bối cảnh, SRS, use-case | [docs/requirements](docs/requirements/) |
+| Backlog/Sprint | [Product Backlog](docs/product-backlog.md), [Sprint Backlog](docs/process/assignment2-sprint-backlog.md) |
+| UML và quyết định kiến trúc | [docs/diagrams](docs/diagrams/), [ADR](docs/architecture/adr/) |
+| Truy vết yêu cầu → code/test | [docs/traceability-matrix.md](docs/traceability-matrix.md) |
+| Unit/API/browser E2E | `backend/src/**/*.spec.ts`, `backend/test/`, `e2e/tests/`; artifact trên Actions |
+| Pipeline và deploy | `.github/workflows/`, `deploy/aws/`; [lần chạy #66](https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43685962677) |
+| Phiên bản phát hành | SHA/digest trong `release-images.env` của run; release/tag và ghi chú phát hành quản lý tại GitHub Releases |
+| Video demo, Review/Retrospective | Video Playwright trong artifact; demo bàn giao và biên bản/tổng kết Sprint được nhóm bàn giao cùng báo cáo |
+| PDF/LaTeX | Báo cáo bàn giao riêng; các thư mục report đang ignore nên không mặc định có khi clone |
+
+Khi tạo release chính thức, chọn tag trên commit đã qua CI/deploy, ghi release notes gồm chức năng, thay đổi migration/cấu hình, kết quả test, URL và hướng dẫn rollback. SHA/digest của CI cho phép truy vết phiên bản nhưng không thay nội dung release notes. Cấp giảng viên quyền repo/artifact nếu tài nguyên không public; kiểm tra URL và thông tin đăng nhập nghiệm thu trước buổi demo.
 
 ## Xử lý lỗi thường gặp
 
@@ -339,7 +501,7 @@ Nếu vẫn lỗi, gửi lệnh đã chạy, thư mục hiện tại, phiên b�
 
 ## Tài liệu và đóng góp
 
-- [Báo cáo PDF](Assignment-report/Assignment_report.pdf) · [Nguồn LaTeX](Assignment-report/Assignment_report.tex).
+- Báo cáo PDF và nguồn LaTeX được bàn giao riêng; các thư mục report đang ignore, không bảo đảm có sẵn trong bản clone.
 - [Product Backlog](docs/product-backlog.md) · [Đối chiếu yêu cầu](docs/traceability-matrix.md).
 - [Đặt hàng và kho](docs/GIAI-THICH-KY-THUAT-DAT-HANG-VA-KHO.md).
 - [Thanh toán VNPay](docs/GIAI-THICH-KY-THUAT-THANH-TOAN-VNPAY.md).
