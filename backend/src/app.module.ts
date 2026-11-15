@@ -8,10 +8,19 @@ import { ProductsModule } from './products/products.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, ProductsModule, PromotionsModule, OrdersModule, PaymentsModule],
-  controllers: [AppController],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    ProductsModule,
+    PromotionsModule,
+    OrdersModule,
+    PaymentsModule,
+  ],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}
