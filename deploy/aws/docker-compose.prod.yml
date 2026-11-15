@@ -1,0 +1,106 @@
+# Cấu hình chạy production trên EC2. Khác docker-compose.yml ở máy dev:
+#  - dùng image đã build sẵn trên GHCR (tag theo digest), không build trên máy chủ
+#  - chỉ Caddy mở cổng ra ngoài; db, backend, frontend chỉ nằm trong mạng nội bộ của Docker
+#  - secret đọc từ file .env trên máy chủ, không nằm trong repo
+name: brewlite
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8443:8443"
+    environment:
+      PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-brewlite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-brewlite}
+    volumes:
+      - brewlite-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  backend:
+    image: ${BACKEND_IMAGE:?release.env is missing}
+    restart: unless-stopped
+    init: true
+    environment: &backend-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-brewlite}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-brewlite}?schema=public
+      PORT: "3001"
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      PAYMENT_MOCK_ENABLED: ${PAYMENT_MOCK_ENABLED:-true}
+      VNPAY_ENABLED: "false"
+      ORDER_EXPIRY_WORKER_ENABLED: ${ORDER_EXPIRY_WORKER_ENABLED:-true}
+      RELEASE_COMMIT: ${RELEASE_COMMIT:-unknown}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    image: ${FRONTEND_IMAGE:?release.env is missing}
+    restart: unless-stopped
+    init: true
+    environment:
+      SERVER_API_URL: http://backend:3001
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  migrate:
+    profiles: ["setup"]
+    image: ${TOOLS_IMAGE:?release.env is missing}
+    environment: *backend-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "prisma", "migrate", "deploy"]
+
+  seed:
+    profiles: ["setup"]
+    image: ${TOOLS_IMAGE:?release.env is missing}
+    environment:
+      <<: *backend-environment
+      BARISTA_EMAIL: ${BARISTA_EMAIL:-barista@brewlite.local}
+      BARISTA_PASSWORD: ${BARISTA_PASSWORD:?Set BARISTA_PASSWORD in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "prisma", "db", "seed"]
+
+volumes:
+  brewlite-data:
+  caddy-data:
+  caddy-config:
