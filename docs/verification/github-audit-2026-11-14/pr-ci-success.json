@@ -1,0 +1,218 @@
+{
+  "runId": 43251828645,
+  "runNumber": 2,
+  "event": "pull_request",
+  "prNumber": 1,
+  "headSha": "95b957af5277e3e75afae08a759b4fa66386aaa2",
+  "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645",
+  "jobs": [
+    {
+      "id": 131299380394,
+      "name": "Frontend lint build",
+      "conclusion": "success",
+      "html_url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131299380394",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v7",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Deployment orchestration unit checks (mock Docker)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v7",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 131299381091,
+      "name": "Backend lint unit API build",
+      "conclusion": "success",
+      "html_url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131299381091",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v7",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npx prisma generate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npx prisma migrate deploy",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run test:e2e -- --reporter=default --reporter=junit --outputFile.junit=reports/api.xml",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v7",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 131300297309,
+      "name": "Docker smoke backup restore",
+      "conclusion": "success",
+      "html_url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131300297309",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Create disposable test configuration",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose --env-file .env.docker --profile setup build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose --env-file .env.docker --profile setup run --rm migrate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose --env-file .env.docker --profile setup run --rm seed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose --env-file .env.docker up -d --no-build --wait --wait-timeout 180",
+          "conclusion": "success"
+        },
+        {
+          "name": "HTTP smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Exercise the actual backup and restore scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Capture test-container logs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Dispose isolated CI containers and volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 131301527418,
+      "name": "CI passed",
+      "conclusion": "success",
+      "html_url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43251828645/job/131301527418",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Require every CI job to pass",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

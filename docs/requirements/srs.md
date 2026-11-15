@@ -29,8 +29,8 @@ Trạng thái **Có mã** nghĩa là đã thấy code tương ứng, chưa thay 
 | FR-15 | Quầy duyệt đổi và thu chênh lệch — mở rộng | Should | AC-15: giá đã xác nhận giữ theo snapshot; duyệt chuyển credit/đổi giữ kho nguyên tử; tiền thu mới = total − credit; thấp hơn giá trị cũ bị từ chối; hai người cùng duyệt chỉ một thành công | Có mã |
 | FR-16 | Theo dõi hoàn khoản thu không áp dụng — mở rộng | Should | AC-16: thu dư mở một hồ sơ theo attempt; BARISTA nhận xử lý, nhập chứng từ rồi hoàn tất theo version; chứng từ trùng trả lỗi; khách không tự xác nhận hoàn | Có mã cho hoàn thủ công, chưa chuyển tiền tự động |
 | FR-17 | Hàng đợi hỗ trợ tại quầy — mở rộng | Should | AC-17: queue lọc trạng thái, tìm mã/email, phân trang 20 dòng; xem món cũ/mới, tiền và ghi chú; thiếu quyền 403; page/status sai 400 | Có mã |
-| FR-18 | Đóng gói và chạy local — đề Task 5.2 | Must | AC-18: clone sạch, điền biến mẫu, một lệnh Compose chạy web/API/DB; migration+seed trên DB sạch tạo được dữ liệu; health endpoint phản ánh tình trạng dịch vụ | Chưa đủ: Compose chỉ có DB, Dockerfile trống, thiếu health |
-| FR-19 | CI/CD và bàn giao — đề Task 4.4, 5.3–5.4 | Must | AC-19: PR tự install/lint/test/build; failed check không merge; release tạo image có version/SHA, deploy, migrate an toàn, smoke test; có cách rollback và URL HTTPS frontend/API/health | Chưa có minh chứng/pipeline trong bản local |
+| FR-18 | Đóng gói và chạy local — đề Task 5.2 | Must | AC-18: clone sạch, điền biến mẫu, một lệnh Compose chạy web/API/DB; migration+seed trên DB sạch tạo được dữ liệu; health endpoint phản ánh tình trạng dịch vụ | Có Docker đủ web/API/DB; init/seed, health và smoke; xem ma trận cập nhật 14/11 |
+| FR-19 | CI/CD và bàn giao — đề Task 4.4, 5.3–5.4 | Must | AC-19: PR tự install/lint/test/build; failed check không merge; release tạo image có version/SHA, deploy, migrate an toàn, smoke test; có cách rollback và URL HTTPS frontend/API/health | Có CI và browser E2E gate; production HTTPS/release nghiệm thu riêng |
 | FR-20 | Giao hàng | Won't | AC-20: phạm vi lần nộp ghi rõ chưa có UI tài xế/điều phối/tracking; không quảng bá trạng thái hiện tại là vòng đời giao hàng đầy đủ | Ghi nhận roadmap, không nghiệm thu ở lần này |
 
 ## 3. Yêu cầu phi chức năng
@@ -63,3 +63,7 @@ Các ngưỡng dưới đây là mục tiêu để nhóm kiểm chứng, không 
 ## 5. Mẫu nghiệm thu cho từng tiêu chí
 
 Mỗi lần chạy ghi: mã AC/NFR, commit SHA, ngày giờ, người chạy, môi trường, dữ liệu đầu vào, bước thực hiện, kết quả mong đợi/thực tế, log/ảnh và kết luận đạt/chưa đạt. Link test có sẵn không thay kết quả chạy; link proposal không chứng minh thay đổi đã được ghép vào mã gốc.
+
+## Cập nhật bằng chứng 14/11/2026
+
+Browser E2E đã có và chạy 16/16 ca trên Docker/Edge, hồ sơ tại `docs/verification/browser-e2e-2026-11-14/`. Actions #43 xác nhận gate tích hợp thành công. ADR đã có tại `docs/architecture/adr/`. Các nhận xét baseline ngày 12/11 là thời điểm cũ; đối chiếu trạng thái hiện tại bằng `docs/traceability-matrix.md`, không dùng các ghi chú baseline để phủ nhận tạo phẩm mới.

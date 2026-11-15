@@ -17,7 +17,15 @@ rollback() {
     return 1
   fi
   cp release.good.env release.env
-  dc up -d --remove-orphans --wait --wait-timeout 240
+  if ! dc up -d --remove-orphans --wait --wait-timeout 240; then
+    echo "::error::Rollback failed: previous release did not become healthy" >&2
+    return 1
+  fi
+  if ! api_ok; then
+    echo "::error::Rollback failed: previous API health check failed" >&2
+    return 1
+  fi
+  rm -f release.pending.env
   echo "Đã quay về bản: $(grep '^RELEASE_COMMIT=' release.env)"
 }
 
@@ -26,6 +34,7 @@ api_ok() {
 }
 
 deploy() {
+  [[ ! -f release.pending.env ]] || { echo "Unconfirmed release exists: confirm or rollback first" >&2; return 1; }
   local backend=$1 frontend=$2 tools=$3 commit=$4 reg_user=$5
   local token; token=$(cat)
 
@@ -80,13 +89,30 @@ EOT
     exit 1
   fi
 
-  cp release.env release.good.env
-  docker image prune -af --filter "until=168h" >/dev/null 2>&1 || true
-  echo "==> Deploy xong: $commit"
+  # Internal health is necessary, but public HTTPS smoke has not run yet.
+  cp release.env release.pending.env
+  echo "==> Awaiting public HTTPS confirmation: $commit"
+}
+
+# Called only after the runner has verified public HTTPS for this commit.
+confirm() {
+  local expected=${1:?Expected commit is required}
+  [[ -f release.pending.env ]] || { echo "No pending release" >&2; return 1; }
+  [[ "$(sed -n 's/^RELEASE_COMMIT=//p' release.pending.env)" == "$expected" ]] || {
+    echo "Pending commit mismatch" >&2; return 1;
+  }
+  cmp -s release.env release.pending.env || { echo "Active release changed" >&2; return 1; }
+  api_ok || { echo "API unhealthy at confirmation" >&2; return 1; }
+  # Preserve the old good file until a same-directory atomic rename succeeds.
+  cp release.pending.env release.good.env.tmp
+  mv -f release.good.env.tmp release.good.env
+  rm -f release.pending.env
+  echo "==> Confirmed release: $expected"
 }
 
 case "${1:-}" in
   deploy)   shift; deploy "$@" ;;
   rollback) rollback ;;
-  *) echo "Cách dùng: $0 deploy <backend> <frontend> <tools> <commit> <registry_user> | $0 rollback"; exit 2 ;;
+  confirm) shift; confirm "$@" ;;
+  *) echo "Cách dùng: $0 deploy <backend> <frontend> <tools> <commit> <registry_user> | $0 rollback | $0 confirm <commit>"; exit 2 ;;
 esac

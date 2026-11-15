@@ -1,0 +1,23 @@
+
+Running 16 tests using 1 worker
+
+(node:5684) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium] › tests\order-errors.spec.ts:64:1 › giỏ hàng trống hiện thông báo và có nút quay lại chọn món (1.5s)
+  ok  2 [chromium] › tests\order-errors.spec.ts:71:1 › mã giảm giá không tồn tại hiện lỗi và không giảm giá (1.7s)
+  ok  3 [chromium] › tests\order-errors.spec.ts:81:1 › mất kết nối server khi đặt hàng: báo chưa xác nhận kết quả và cho kiểm tra lịch sử (1.4s)
+  ok  4 [chromium] › tests\order-errors.spec.ts:92:1 › hết phiên đăng nhập (401) khi đặt hàng: bị đưa về trang đăng nhập (1.4s)
+  ok  5 [chromium] › tests\order-errors.spec.ts:101:1 › server lỗi 500 khi đặt hàng: hiện lỗi, không bị treo, thử lại được (1.9s)
+  ok  6 [chromium] › tests\order-errors.spec.ts:122:1 › không tải được phương thức thanh toán: hiện lỗi và yêu cầu tải lại trang (1.7s)
+  ok  7 [chromium] › tests\order-errors.spec.ts:131:1 › thanh toán thất bại: đơn được giữ lại và thanh toán lại thành công (2.2s)
+  ok  8 [chromium] › tests\order-errors.spec.ts:148:1 › hủy đơn chưa thanh toán: đơn chuyển sang đã hủy (2.2s)
+  ok  9 [chromium] › tests\order-flow.spec.ts:7:1 › khách đặt hàng từ menu đến trang xác nhận thanh toán thành công (2.8s)
+  ok 10 [chromium] › tests\staff-flow.spec.ts:17:1 › nhân viên xử lý đơn từ Chờ duyệt đến Đã hoàn tất, khách thấy đơn hoàn tất (4.3s)
+  ok 11 [chromium] › tests\staff-flow.spec.ts:65:1 › chưa đăng nhập vào quầy thì bị chuyển sang trang đăng nhập (667ms)
+  ok 12 [chromium] › tests\staff-flow.spec.ts:70:1 › tài khoản khách thường vào quầy thì bị báo không có quyền (1.2s)
+  ok 13 [chromium] › tests\staff-flow.spec.ts:85:1 › đăng nhập barista sai mật khẩu thì hiện lỗi và ở lại trang đăng nhập (950ms)
+  ok 14 [chromium] › tests\staff-flow.spec.ts:93:1 › không tải được danh sách đơn (lỗi 500): hiện thông báo tải lại (1.7s)
+  ok 15 [chromium] › tests\staff-flow.spec.ts:104:1 › tài khoản không đủ quyền barista (lỗi 403): hiện thông báo không có quyền (1.7s)
+  ok 16 [chromium] › tests\staff-flow.spec.ts:114:1 › duyệt đơn bị xung đột trạng thái (lỗi 409): hiện thông báo và đơn không bị chuyển cột (1.9s)
+
+  16 passed (31.0s)

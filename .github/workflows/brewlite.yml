@@ -157,10 +157,29 @@ jobs:
         if: always()
         run: docker compose --env-file .env.docker --profile setup down -v
 
+  browser_e2e:
+    name: Browser E2E
+    needs: [backend, frontend]
+    uses: ./.github/workflows/e2e.yml
+    permissions:
+      contents: read
+
+  aws_rollback_tests:
+    name: AWS release confirmation tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: node --test scripts/deploy/tests/aws-release.test.cjs
+
   passed:
     name: CI passed
     if: always()
-    needs: [backend, frontend, docker]
+    needs: [backend, frontend, docker, browser_e2e, aws_rollback_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Require every CI job to pass
@@ -428,8 +447,16 @@ jobs:
           echo "::error::Smoke test failed"
           exit 1
 
-      - name: Roll back after failed smoke test
-        if: failure() && steps.smoke.outcome == 'failure'
+      - name: Confirm release after public HTTPS smoke
+        id: confirm
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i $RUNNER_TEMP/deploy_key -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+          ssh $SSH_OPTS "ubuntu@$EC2_HOST" "~/brewlite/deploy.sh confirm '$GITHUB_SHA'"
+
+      - name: Roll back after failed smoke or confirmation
+        if: failure() && steps.deploy.outcome == 'success' && (steps.smoke.outcome == 'failure' || steps.confirm.outcome == 'failure')
         shell: bash
         run: |
           SSH_OPTS="-i $RUNNER_TEMP/deploy_key -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=20"

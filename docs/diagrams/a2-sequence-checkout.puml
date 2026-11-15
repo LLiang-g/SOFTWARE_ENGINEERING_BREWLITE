@@ -1,0 +1,56 @@
+@startuml
+title UC-01 - Tạo đơn, chống lặp và kết quả thanh toán
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+hide footbox
+actor Customer
+participant "Next.js UI" as UI
+participant "NestJS API" as API
+database PostgreSQL as DB
+participant "Payment Service\nMock / VNPay Sandbox" as Pay
+Customer -> UI : Xác nhận giỏ
+UI -> API : POST /orders (JWT, key, items)
+API -> API : Kiểm JWT, DTO và giá backend
+break JWT / input không hợp lệ
+ API --> UI : 401 / 400; không tạo đơn
+end
+API -> DB : BEGIN; kiểm user + key + request hash
+break Key đã có nhưng nội dung khác
+ API -> DB : ROLLBACK
+ API --> UI : 409; không tạo thêm đơn
+end
+alt Key đã có, nội dung khớp
+ DB --> API : Order đã tạo
+else Key mới
+ API -> DB : Khóa nguyên liệu theo ID; kiểm định lượng
+ break Thiếu nguyên liệu
+  API -> DB : ROLLBACK
+  API --> UI : 409 / thông báo; giữ giỏ
+ end
+ API -> DB : Trừ kho; Order PENDING; snapshot
+ API -> DB : COMMIT
+end
+API --> UI : Mã đơn và tiền backend
+Customer -> UI : Bắt đầu thanh toán
+UI -> API : Yêu cầu thanh toán (JWT, payment key)
+API -> API : Kiểm chủ đơn, trạng thái và key
+alt Key thanh toán đã có kết quả tương ứng
+ API -> DB : Đọc kết quả đã ghi
+ API --> UI : Trả lại; không thu/cộng điểm lần hai
+else Yêu cầu mới hợp lệ
+ API -> Pay : Mock charge hoặc yêu cầu VNPay ký số
+ Pay --> API : Kết quả mock / callback VNPay
+ API -> API : Kiểm kết quả; chữ ký/merchant/amount nếu VNPay
+ alt Thành công đã xác minh
+  API -> DB : TX: khóa đơn; ghi Payment, PAID, điểm một lần
+  API --> UI : PAID / xác nhận thanh toán
+ else Thất bại xác định
+  API -> DB : Ghi kết quả thất bại theo chế độ
+  API --> UI : Thông báo và lựa chọn thử lại hợp lệ
+ else Chưa rõ kết quả (VNPay)
+  API -> DB : Giữ attempt / lịch sử xác minh
+  API --> UI : Đang xác minh; đọc trạng thái backend
+ end
+end
+UI --> Customer : Mã đơn và trạng thái đã ghi
+@enduml

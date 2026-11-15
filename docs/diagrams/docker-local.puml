@@ -1,0 +1,24 @@
+@startuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam componentStyle rectangle
+top to bottom direction
+actor "Trình duyệt\nWindows" as browser
+rectangle "Docker Compose network" {
+  component "frontend\nNext.js standalone\n:3000" as web
+  component "backend\nNestJS\n:3001" as api
+  database "db\nPostgreSQL 16\n:5432" as db
+}
+folder "brewlite-data\nNamed volume" as volume
+cloud "VNPay Sandbox" as vnpay
+component "ngrok\nHTTPS callback" as tunnel
+browser --> web : localhost:3000
+browser --> api : localhost:3001\nREST / realtime
+web --> api : SERVER_API_URL\nhttp://backend:3001
+api --> db : DATABASE_URL\nhost: db
+db --> volume : Dữ liệu bền vững
+vnpay --> tunnel : IPN / Return
+tunnel --> api : host port 3001
+@enduml

@@ -1,0 +1,81 @@
+{
+  "checkedDate": "2026-11-14",
+  "repository": "LLiang-g/SOFTWARE_ENGINEERING_BREWLITE",
+  "branch": "ci/negative-gate-evidence-20261114",
+  "baseSha": "0bd33352da418dc0dbfca96d6ee560d5cc147e6a",
+  "failureSha": "8d807329449c4de270a012495f0f2c248c7cfa35",
+  "restoredSha": "39be949f625bcb91dc2af7a0d0d5e0b18275a7d0",
+  "run": {
+    "id": 43604157646,
+    "number": 45,
+    "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646",
+    "event": "push",
+    "conclusion": "failure",
+    "createdAt": "2026-11-14T14:18:20Z",
+    "updatedAt": "2026-11-14T14:19:13Z"
+  },
+  "mutation": {
+    "file": "backend/src/promotions/discount.spec.ts",
+    "actual": 12000,
+    "intentionalExpected": 12001,
+    "runtimeCodeChanged": false
+  },
+  "jobs": [
+    {
+      "id": 132475074673,
+      "name": "Frontend lint build",
+      "conclusion": "success",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475074673",
+      "failedSteps": []
+    },
+    {
+      "id": 132475074814,
+      "name": "Backend lint unit API build",
+      "conclusion": "failure",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475074814",
+      "failedSteps": [
+        "Run npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml"
+      ]
+    },
+    {
+      "id": 132475256622,
+      "name": "CI passed",
+      "conclusion": "failure",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475256622",
+      "failedSteps": [
+        "Require every CI job to pass"
+      ]
+    },
+    {
+      "id": 132475257796,
+      "name": "Docker smoke backup restore",
+      "conclusion": "skipped",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475257796",
+      "failedSteps": []
+    },
+    {
+      "id": 132475258058,
+      "name": "Browser E2E",
+      "conclusion": "skipped",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475258058",
+      "failedSteps": []
+    },
+    {
+      "id": 132475305505,
+      "name": "Publish versioned images",
+      "conclusion": "skipped",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475305505",
+      "failedSteps": []
+    },
+    {
+      "id": 132475305566,
+      "name": "Deploy tested images",
+      "conclusion": "skipped",
+      "url": "https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475305566",
+      "failedSteps": []
+    }
+  ],
+  "scope": "Controlled unit-test failure; pipeline failure and aggregator failure verified. Feature branch publishing conditions also restrict releases; not proof of branch-protection enforcement.",
+  "pullRequestCreated": false,
+  "localWorkingBranchUnchanged": true
+}

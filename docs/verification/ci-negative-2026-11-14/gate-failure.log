@@ -1,0 +1,10 @@
+# Source: https://github.com/LLiang-g/SOFTWARE_ENGINEERING_BREWLITE/actions/runs/43604157646/job/132475256622
+# Selected original log lines, ANSI colors removed; timestamps preserved.
+2026-11-14T14:19:06.3409352Z ##[group]Run node -e 'const n=JSON.parse(process.env.RESULTS); if(Object.values(n).some(x=>x.result!=="success")) process.exit(1)'
+2026-11-14T14:19:06.3410633Z node -e 'const n=JSON.parse(process.env.RESULTS); if(Object.values(n).some(x=>x.result!=="success")) process.exit(1)'
+    "result": "failure",
+    "result": "success",
+    "result": "skipped",
+    "result": "skipped",
+2026-11-14T14:19:10.6200685Z ##[error]Process completed with exit code 1.
+

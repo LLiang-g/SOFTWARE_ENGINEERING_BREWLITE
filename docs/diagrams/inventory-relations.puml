@@ -1,6 +1,15 @@
 @startuml
-title Order inventory - selected data relationships
+title Quan hệ dữ liệu đặt hàng và giữ nguyên liệu
+top to bottom direction
 hide methods
+hide circle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam linetype polyline
+skinparam nodesep 80
+skinparam ranksep 60
 skinparam classAttributeIconSize 0
 class Product {
  id: Int
@@ -17,6 +26,9 @@ class Recipe {
  ingredientId: Int
  quantity: Int
  scalesWithSize: Boolean
+ .. Ràng buộc ..
+ Unique(productId, ingredientId)
+ quantity > 0
 }
 class ToppingRecipe {
  toppingCode: String
@@ -40,6 +52,9 @@ class OrderInventoryReservation {
  ingredientId: Int
  quantity: Int
  releasedAt: DateTime?
+ .. Snapshot ..
+ Unique(orderId, ingredientId)
+ Lượng nguyên liệu đã giữ lúc đặt
 }
 class OrderCreateRequest {
  userId: Int
@@ -47,20 +62,15 @@ class OrderCreateRequest {
  requestHash: String
  orderId: Int?
 }
-Product "1" -- "0..*" Recipe
-Ingredient "1" -- "0..*" Recipe
-Ingredient "1" -- "0..*" ToppingRecipe
-Product "1" -- "0..*" OrderItem
-Order "1" *-- "1..*" OrderItem
-Order "1" -- "0..*" OrderInventoryReservation
-Ingredient "1" -- "0..*" OrderInventoryReservation
-Order "0..1" -- "0..1" OrderCreateRequest
-note bottom of Recipe
-Unique(productId, ingredientId)
-quantity > 0
-end note
-note bottom of OrderInventoryReservation
-Unique(orderId, ingredientId)
-Snapshot of the quantity actually reserved
-end note
+OrderCreateRequest "0..1" -right- "0..1" Order
+Order "1" *-down- "1..*" OrderItem
+Order "1" -down- "0..*" OrderInventoryReservation
+OrderItem "0..*" -down- "1" Product
+OrderInventoryReservation "0..*" -down- "1" Ingredient
+Product "1" -down- "0..*" Recipe
+Ingredient "1" -down- "0..*" Recipe
+Ingredient "1" -down- "0..*" ToppingRecipe
+OrderItem -[hidden]right- OrderInventoryReservation
+Product -[hidden]right- Ingredient
+Recipe -[hidden]right- ToppingRecipe
 @enduml

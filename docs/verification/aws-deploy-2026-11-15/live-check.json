@@ -1,0 +1,13 @@
+[
+  {
+    "name": "web",
+    "url": "https://13.228.196.157",
+    "status": 200
+  },
+  {
+    "name": "health",
+    "url": "https://13.228.196.157:8443/health",
+    "status": 200,
+    "body": "{\"status\":\"ok\",\"database\":\"up\",\"commit\":\"081de7c715661bbc2bea98c26288a927080dfcae\",\"uptimeSeconds\":1760}"
+  }
+]

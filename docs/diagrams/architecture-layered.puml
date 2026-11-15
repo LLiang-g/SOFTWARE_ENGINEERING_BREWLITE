@@ -1,0 +1,58 @@
+@startuml
+title BrewLite - Kiến trúc phân lớp và ranh giới trách nhiệm
+top to bottom direction
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam nodesep 35
+skinparam ranksep 35
+actor "Khách hàng / Barista" as user
+package "Lớp trình bày - Next.js" #EDF4FB {
+  component "App Router\nServer / Client Components" as web
+  component "Giỏ hàng / phiên\nZustand; UI responsive" as state
+  web -right- state
+}
+package "Lớp giao tiếp - NestJS" #EDF8F0 {
+  component "Controllers\nREST request / response" as http
+  component "JWT / Roles Guards\nValidationPipe / DTO" as guards
+  http -right- guards
+}
+package "Lớp nghiệp vụ - module/domain" #FFF5E8 {
+  component "Auth / Users" as auth
+  component "Products / Inventory" as products
+  component "Orders / Exchange / Expiry" as orders
+  component "Promotions / Loyalty" as promotions
+  component "Payments\nMock + VNPay services" as payments
+  auth -[hidden]right- products
+  products -[hidden]right- orders
+  orders -[hidden]down- promotions
+  promotions -[hidden]right- payments
+}
+package "Lớp truy cập dữ liệu" #F2EFFB {
+  component "PrismaService + adapter pg\nTransaction / SQL có kiểm soát" as prisma
+  database "PostgreSQL 16\nConstraint / dữ liệu lịch sử" as db
+  prisma --> db : SQL / transaction
+}
+component "MockGatewayService\nKết quả Ví/Thẻ mô phỏng" as mock
+cloud "VNPay Sandbox" as vnpay
+user --> web
+web --> http : REST / JSON + JWT
+http --> orders : ủy quyền nghiệp vụ
+orders --> products : giữ / hoàn nguyên liệu
+orders --> promotions : tính giảm / điểm
+http --> auth : xác thực
+http --> payments : yêu cầu thanh toán
+orders --> prisma
+payments --> prisma
+products --> prisma
+auth --> prisma
+promotions --> prisma
+payments --> mock
+payments --> vnpay : HTTPS; ký / xác minh
+note bottom of db
+  Cấu hình: env theo môi trường
+  Log: Nest stdout/stderr -> Docker logs
+  Health: pg_isready; API /products; web /
+end note
+@enduml

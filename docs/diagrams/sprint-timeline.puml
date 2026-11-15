@@ -1,0 +1,13 @@
+@startgantt
+title Tiến trình phát triển BrewLite - 2026
+Project starts 2026-10-21
+printscale daily
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+[Sprint 1] starts 2026-10-21 and ends 2026-10-28
+[Sprint 1] is colored in LightBlue
+[Sprint 2] starts 2026-10-29 and ends 2026-11-05
+[Sprint 2] is colored in LightGreen
+[Sprint 3] starts 2026-11-06 and ends 2026-11-13
+[Sprint 3] is colored in Wheat
+@endgantt

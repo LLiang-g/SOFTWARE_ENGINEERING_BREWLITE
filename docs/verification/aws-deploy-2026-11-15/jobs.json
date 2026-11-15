@@ -1,0 +1,634 @@
+[
+  {
+    "id": 132700560691,
+    "name": "Backend lint unit API build",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T04:35:36Z",
+        "completed_at": "2026-11-15T04:35:37Z"
+      },
+      {
+        "name": "Initialize containers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T04:35:37Z",
+        "completed_at": "2026-11-15T04:35:52Z"
+      },
+      {
+        "name": "Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T04:35:52Z",
+        "completed_at": "2026-11-15T04:35:53Z"
+      },
+      {
+        "name": "Run actions/setup-node@v7",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T04:35:53Z",
+        "completed_at": "2026-11-15T04:35:56Z"
+      },
+      {
+        "name": "Run npm ci --ignore-scripts",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T04:35:56Z",
+        "completed_at": "2026-11-15T04:36:03Z"
+      },
+      {
+        "name": "Run npx prisma generate",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T04:36:03Z",
+        "completed_at": "2026-11-15T04:36:04Z"
+      },
+      {
+        "name": "Run npm run lint",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-15T04:36:04Z",
+        "completed_at": "2026-11-15T04:36:04Z"
+      },
+      {
+        "name": "Run npx prisma migrate deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-15T04:36:04Z",
+        "completed_at": "2026-11-15T04:36:06Z"
+      },
+      {
+        "name": "Run npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-11-15T04:36:06Z",
+        "completed_at": "2026-11-15T04:36:06Z"
+      },
+      {
+        "name": "Run npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/unit.xml",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-15T04:36:06Z",
+        "completed_at": "2026-11-15T04:36:08Z"
+      },
+      {
+        "name": "Run npm run test:e2e -- --reporter=default --reporter=junit --outputFile.junit=reports/api.xml",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-15T04:36:08Z",
+        "completed_at": "2026-11-15T04:36:26Z"
+      },
+      {
+        "name": "Run npm run build",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-15T04:36:26Z",
+        "completed_at": "2026-11-15T04:36:29Z"
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-15T04:36:29Z",
+        "completed_at": "2026-11-15T04:36:31Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v7",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 24,
+        "started_at": "2026-11-15T04:36:31Z",
+        "completed_at": "2026-11-15T04:36:31Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 25,
+        "started_at": "2026-11-15T04:36:31Z",
+        "completed_at": "2026-11-15T04:36:31Z"
+      },
+      {
+        "name": "Stop containers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 26,
+        "started_at": "2026-11-15T04:36:31Z",
+        "completed_at": "2026-11-15T04:36:32Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 27,
+        "started_at": "2026-11-15T04:36:32Z",
+        "completed_at": "2026-11-15T04:36:32Z"
+      }
+    ]
+  },
+  {
+    "id": 132700560931,
+    "name": "Frontend lint build",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T04:35:36Z",
+        "completed_at": "2026-11-15T04:35:37Z"
+      },
+      {
+        "name": "Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T04:35:37Z",
+        "completed_at": "2026-11-15T04:35:38Z"
+      },
+      {
+        "name": "Run actions/setup-node@v7",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T04:35:38Z",
+        "completed_at": "2026-11-15T04:35:42Z"
+      },
+      {
+        "name": "Run npm ci --ignore-scripts",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T04:35:42Z",
+        "completed_at": "2026-11-15T04:35:51Z"
+      },
+      {
+        "name": "Run npm run lint",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T04:35:51Z",
+        "completed_at": "2026-11-15T04:35:55Z"
+      },
+      {
+        "name": "Run npm run build",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T04:35:55Z",
+        "completed_at": "2026-11-15T04:36:05Z"
+      },
+      {
+        "name": "Deployment orchestration unit checks (mock Docker)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-15T04:36:05Z",
+        "completed_at": "2026-11-15T04:36:06Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v7",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-15T04:36:06Z",
+        "completed_at": "2026-11-15T04:36:06Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-11-15T04:36:06Z",
+        "completed_at": "2026-11-15T04:36:07Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-15T04:36:07Z",
+        "completed_at": "2026-11-15T04:36:07Z"
+      }
+    ]
+  },
+  {
+    "id": 132700789901,
+    "name": "Docker smoke backup restore",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T04:36:38Z",
+        "completed_at": "2026-11-15T04:36:38Z"
+      },
+      {
+        "name": "Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T04:36:38Z",
+        "completed_at": "2026-11-15T04:36:40Z"
+      },
+      {
+        "name": "Create disposable test configuration",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T04:36:40Z",
+        "completed_at": "2026-11-15T04:36:40Z"
+      },
+      {
+        "name": "Run docker compose --env-file .env.docker --profile setup build",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T04:36:40Z",
+        "completed_at": "2026-11-15T04:38:06Z"
+      },
+      {
+        "name": "Run docker compose --env-file .env.docker --profile setup run --rm migrate",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T04:38:06Z",
+        "completed_at": "2026-11-15T04:38:26Z"
+      },
+      {
+        "name": "Run docker compose --env-file .env.docker --profile setup run --rm seed",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T04:38:26Z",
+        "completed_at": "2026-11-15T04:38:28Z"
+      },
+      {
+        "name": "Run docker compose --env-file .env.docker up -d --no-build --wait --wait-timeout 180",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-15T04:38:28Z",
+        "completed_at": "2026-11-15T04:38:40Z"
+      },
+      {
+        "name": "HTTP smoke",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-15T04:38:40Z",
+        "completed_at": "2026-11-15T04:38:43Z"
+      },
+      {
+        "name": "Exercise the actual backup and restore scripts",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-11-15T04:38:43Z",
+        "completed_at": "2026-11-15T04:38:46Z"
+      },
+      {
+        "name": "Capture test-container logs",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-15T04:38:46Z",
+        "completed_at": "2026-11-15T04:38:46Z"
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-15T04:38:46Z",
+        "completed_at": "2026-11-15T04:38:47Z"
+      },
+      {
+        "name": "Dispose isolated CI containers and volume",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-15T04:38:47Z",
+        "completed_at": "2026-11-15T04:38:48Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 24,
+        "started_at": "2026-11-15T04:38:48Z",
+        "completed_at": "2026-11-15T04:38:49Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 25,
+        "started_at": "2026-11-15T04:38:49Z",
+        "completed_at": "2026-11-15T04:38:49Z"
+      }
+    ]
+  },
+  {
+    "id": 132701274964,
+    "name": "CI passed",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T04:38:54Z",
+        "completed_at": "2026-11-15T04:38:54Z"
+      },
+      {
+        "name": "Require every CI job to pass",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T04:38:54Z",
+        "completed_at": "2026-11-15T04:38:55Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T04:38:55Z",
+        "completed_at": "2026-11-15T04:38:55Z"
+      }
+    ]
+  },
+  {
+    "id": 132701296399,
+    "name": "Publish versioned images",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T04:39:01Z",
+        "completed_at": "2026-11-15T04:39:03Z"
+      },
+      {
+        "name": "Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T04:39:03Z",
+        "completed_at": "2026-11-15T04:39:04Z"
+      },
+      {
+        "name": "Run docker/setup-buildx-action@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T04:39:04Z",
+        "completed_at": "2026-11-15T04:39:10Z"
+      },
+      {
+        "name": "Run docker/login-action@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T04:39:10Z",
+        "completed_at": "2026-11-15T04:39:10Z"
+      },
+      {
+        "name": "Run echo \"base=ghcr.io/${GITHUB_REPOSITORY,,}\" >> \"$GITHUB_OUTPUT\"",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T04:39:10Z",
+        "completed_at": "2026-11-15T04:39:10Z"
+      },
+      {
+        "name": "Backend runtime",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T04:39:10Z",
+        "completed_at": "2026-11-15T04:39:17Z"
+      },
+      {
+        "name": "Migration tools",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-15T04:39:17Z",
+        "completed_at": "2026-11-15T04:39:23Z"
+      },
+      {
+        "name": "Frontend standalone",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-15T04:39:23Z",
+        "completed_at": "2026-11-15T04:39:29Z"
+      },
+      {
+        "name": "Record exact image digests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-11-15T04:39:29Z",
+        "completed_at": "2026-11-15T04:39:29Z"
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-15T04:39:29Z",
+        "completed_at": "2026-11-15T04:39:30Z"
+      },
+      {
+        "name": "Post Frontend standalone",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-15T04:39:30Z",
+        "completed_at": "2026-11-15T04:39:32Z"
+      },
+      {
+        "name": "Post Migration tools",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-11-15T04:39:32Z",
+        "completed_at": "2026-11-15T04:39:34Z"
+      },
+      {
+        "name": "Post Backend runtime",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-11-15T04:39:34Z",
+        "completed_at": "2026-11-15T04:39:36Z"
+      },
+      {
+        "name": "Post Run docker/login-action@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-11-15T04:39:36Z",
+        "completed_at": "2026-11-15T04:39:36Z"
+      },
+      {
+        "name": "Post Run docker/setup-buildx-action@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-11-15T04:39:36Z",
+        "completed_at": "2026-11-15T04:39:37Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 20,
+        "started_at": "2026-11-15T04:39:37Z",
+        "completed_at": "2026-11-15T04:39:37Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 21,
+        "started_at": "2026-11-15T04:39:37Z",
+        "completed_at": "2026-11-15T04:39:37Z"
+      }
+    ]
+  },
+  {
+    "id": 132701448347,
+    "name": "Deploy to AWS EC2",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-15T04:45:06Z",
+        "completed_at": "2026-11-15T04:45:07Z"
+      },
+      {
+        "name": "Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-15T04:45:07Z",
+        "completed_at": "2026-11-15T04:45:08Z"
+      },
+      {
+        "name": "Check deploy configuration",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-15T04:45:08Z",
+        "completed_at": "2026-11-15T04:45:08Z"
+      },
+      {
+        "name": "Open SSH for this runner only",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-15T04:45:08Z",
+        "completed_at": "2026-11-15T04:45:17Z"
+      },
+      {
+        "name": "Prepare SSH key",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-15T04:45:17Z",
+        "completed_at": "2026-11-15T04:45:20Z"
+      },
+      {
+        "name": "Upload deploy files",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-15T04:45:20Z",
+        "completed_at": "2026-11-15T04:45:27Z"
+      },
+      {
+        "name": "Deploy (backup, migrate, start, internal smoke, auto rollback)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-15T04:45:27Z",
+        "completed_at": "2026-11-15T04:45:52Z"
+      },
+      {
+        "name": "Smoke test over public HTTPS",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-15T04:45:52Z",
+        "completed_at": "2026-11-15T04:45:53Z"
+      },
+      {
+        "name": "Roll back after failed smoke test",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 9,
+        "started_at": "2026-11-15T04:45:53Z",
+        "completed_at": "2026-11-15T04:45:53Z"
+      },
+      {
+        "name": "Close SSH for this runner",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-15T04:45:53Z",
+        "completed_at": "2026-11-15T04:45:54Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v6",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 20,
+        "started_at": "2026-11-15T04:45:54Z",
+        "completed_at": "2026-11-15T04:45:54Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 21,
+        "started_at": "2026-11-15T04:45:54Z",
+        "completed_at": "2026-11-15T04:45:54Z"
+      }
+    ]
+  },
+  {
+    "id": 132701448726,
+    "name": "Deploy tested images (legacy Windows runner)",
+    "conclusion": "skipped",
+    "steps": []
+  }
+]
