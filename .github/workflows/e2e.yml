@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Hai file môi trường bị .gitignore nên runner phải tự tạo.
       # PAYMENT_MOCK_ENABLED=true để trang đơn hàng hiện nút thanh toán mô phỏng.
