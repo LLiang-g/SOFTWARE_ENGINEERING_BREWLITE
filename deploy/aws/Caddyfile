@@ -1,0 +1,21 @@
+# Caddy đứng ngoài cùng: lấy chứng chỉ HTTPS cho địa chỉ IP và chuyển yêu cầu vào web/API.
+# PUBLIC_IP lấy từ file .env trên máy chủ (qua docker-compose.prod.yml).
+{
+	# Trình duyệt vào bằng IP thì không gửi tên miền (SNI), nên cần tên mặc định
+	default_sni {$PUBLIC_IP}
+
+	# Let's Encrypt chỉ cấp chứng chỉ cho địa chỉ IP với profile "shortlived" (hạn ~6 ngày, Caddy tự gia hạn)
+	cert_issuer acme {
+		profile shortlived
+	}
+}
+
+# Web: https://<IP>
+{$PUBLIC_IP} {
+	reverse_proxy frontend:3000
+}
+
+# API và health check: https://<IP>:8443  (WebSocket socket.io cũng đi qua đây)
+{$PUBLIC_IP}:8443 {
+	reverse_proxy backend:3001
+}
