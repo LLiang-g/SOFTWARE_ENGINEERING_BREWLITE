@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       deploy:
-        description: Deploy the tested images to the configured Windows runner
+        description: Deploy the tested images to production (AWS EC2)
         type: boolean
         default: false
 
@@ -265,9 +265,10 @@ jobs:
           retention-days: 30
 
   deploy:
-    name: Deploy tested images
+    name: Deploy tested images (legacy Windows runner)
     needs: publish
     if: >-
+      vars.WINDOWS_DEPLOY_ENABLED == 'true' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
       ((github.event_name == 'workflow_dispatch' && inputs.deploy) ||
        (github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'))
@@ -321,3 +322,123 @@ jobs:
               Remove-Item -LiteralPath (Join-Path $env:DOCKER_CONFIG 'config.json')
             }
           }
+
+  deploy-aws:
+    name: Deploy to AWS EC2
+    needs: publish
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      ((github.event_name == 'workflow_dispatch' && inputs.deploy) ||
+       (github.event_name == 'push' && vars.AWS_DEPLOY_ENABLED == 'true'))
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    concurrency:
+      group: brewlite-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    env:
+      AWS_DEFAULT_REGION: ap-southeast-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      EC2_HOST: ${{ vars.EC2_HOST }}
+      EC2_SG_ID: ${{ vars.EC2_SG_ID }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check deploy configuration
+        shell: bash
+        run: |
+          missing=0
+          for v in EC2_HOST EC2_SG_ID AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            if [[ -z "${!v}" ]]; then echo "::error::Missing $v"; missing=1; fi
+          done
+          if [[ -z "${EC2_SSH_KEY}" ]]; then echo "::error::Missing EC2_SSH_KEY"; missing=1; fi
+          exit $missing
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+      # Cổng 22 của máy chủ luôn đóng với bên ngoài. Chỉ mở cho đúng IP của runner này trong lúc deploy.
+      - name: Open SSH for this runner only
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUNNER_IP=$(curl -fsS https://checkip.amazonaws.com | tr -d '[:space:]')
+          echo "RUNNER_IP=$RUNNER_IP" >> "$GITHUB_ENV"
+          aws ec2 authorize-security-group-ingress --group-id "$EC2_SG_ID" --protocol tcp --port 22 --cidr "$RUNNER_IP/32"
+          sleep 5
+
+      - name: Prepare SSH key
+        shell: bash
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 600 /dev/null "$RUNNER_TEMP/deploy_key"
+          printf '%s\n' "$EC2_SSH_KEY" > "$RUNNER_TEMP/deploy_key"
+          ssh-keyscan -T 20 -H "$EC2_HOST" > "$RUNNER_TEMP/known_hosts"
+
+      - name: Upload deploy files
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i $RUNNER_TEMP/deploy_key -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+          ssh $SSH_OPTS "ubuntu@$EC2_HOST" 'mkdir -p ~/brewlite'
+          scp $SSH_OPTS deploy/aws/docker-compose.prod.yml deploy/aws/Caddyfile deploy/aws/deploy.sh "ubuntu@$EC2_HOST:~/brewlite/"
+
+      - name: Deploy (backup, migrate, start, internal smoke, auto rollback)
+        id: deploy
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BACKEND_IMAGE: ${{ needs.publish.outputs.backend }}
+          FRONTEND_IMAGE: ${{ needs.publish.outputs.frontend }}
+          TOOLS_IMAGE: ${{ needs.publish.outputs.tools }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i $RUNNER_TEMP/deploy_key -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+          # Token GHCR đi qua stdin, không nằm trên dòng lệnh hay trong log
+          printf '%s' "$GHCR_TOKEN" | ssh $SSH_OPTS "ubuntu@$EC2_HOST" \
+            "chmod +x ~/brewlite/deploy.sh && ~/brewlite/deploy.sh deploy '$BACKEND_IMAGE' '$FRONTEND_IMAGE' '$TOOLS_IMAGE' '$GITHUB_SHA' '$GITHUB_ACTOR'"
+
+      - name: Smoke test over public HTTPS
+        id: smoke
+        shell: bash
+        run: |
+          for i in $(seq 1 30); do
+            if health=$(curl -fsS --max-time 15 "https://$EC2_HOST:8443/health") \
+               && curl -fsS --max-time 15 -o /dev/null "https://$EC2_HOST/" \
+               && grep -q "$GITHUB_SHA" <<<"$health"; then
+              echo "$health"
+              {
+                echo "### Deployed"
+                echo "- Web: https://$EC2_HOST"
+                echo "- API health: https://$EC2_HOST:8443/health"
+                echo "- Commit: \`$GITHUB_SHA\`"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Attempt $i/30 failed, retrying in 10s"
+            sleep 10
+          done
+          echo "::error::Smoke test failed"
+          exit 1
+
+      - name: Roll back after failed smoke test
+        if: failure() && steps.smoke.outcome == 'failure'
+        shell: bash
+        run: |
+          SSH_OPTS="-i $RUNNER_TEMP/deploy_key -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+          ssh $SSH_OPTS "ubuntu@$EC2_HOST" '~/brewlite/deploy.sh rollback'
+
+      - name: Close SSH for this runner
+        if: always()
+        shell: bash
+        run: |
+          [[ -n "${RUNNER_IP:-}" ]] || exit 0
+          aws ec2 revoke-security-group-ingress --group-id "$EC2_SG_ID" --protocol tcp --port 22 --cidr "$RUNNER_IP/32" || true
+          rm -f "$RUNNER_TEMP/deploy_key"
