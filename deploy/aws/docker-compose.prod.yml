@@ -50,7 +50,7 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       PAYMENT_MOCK_ENABLED: ${PAYMENT_MOCK_ENABLED:-true}
-      VNPAY_ENABLED: "false"
+      VNPAY_ENABLED: "true"
       ORDER_EXPIRY_WORKER_ENABLED: ${ORDER_EXPIRY_WORKER_ENABLED:-true}
       RELEASE_COMMIT: ${RELEASE_COMMIT:-unknown}
     depends_on:
