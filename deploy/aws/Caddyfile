@@ -12,7 +12,13 @@
 
 # Web: https://<IP>
 {$PUBLIC_IP} {
-	reverse_proxy frontend:3000
+    log
+    handle /payments/vnpay/ipn {
+        reverse_proxy backend:3001
+    }
+    handle {
+        reverse_proxy frontend:3000
+    }
 }
 
 # API và health check: https://<IP>:8443  (WebSocket socket.io cũng đi qua đây)
