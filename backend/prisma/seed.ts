@@ -69,7 +69,7 @@ async function main() {
         ['TRAN_CHAU', 'Trân châu topping', 30], ['KEM', 'Kem topping', 20],
     ] as const) {
         const ingredient = await prisma.ingredient.upsert({
-            where: { name }, update: {}, create: { name, unit: 'g', stock: 0 },
+            where: { name }, update: {}, create: { name, unit: 'g', stock: 9999 },
         });
         await prisma.toppingRecipe.upsert({
             where: { toppingCode_ingredientId: { toppingCode: code, ingredientId: ingredient.id } },
